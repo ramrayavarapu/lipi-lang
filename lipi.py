@@ -24,7 +24,7 @@ def eval_lipi_expr(expr, env):
     Supported:
     - String literals: "text"
     - Integer literals: 10
-    - Binary + : a + b
+    - Binary + : a + b  (string concat OR numeric add)
     - Variables: పేరు, వయసు, etc.
     """
     expr = expr.strip()
@@ -40,16 +40,25 @@ def eval_lipi_expr(expr, env):
     except ValueError:
         pass
 
-    # Binary plus: we only support a single " a + b " for v0.1
+    # Binary plus: support a single "a + b" for v0.1
     if " + " in expr:
         left, right = expr.split(" + ", 1)
-        return eval_lipi_expr(left, env) + eval_lipi_expr(right, env)
+        left_val = eval_lipi_expr(left, env)
+        right_val = eval_lipi_expr(right, env)
+
+        # If either side is a string → string concatenation
+        if isinstance(left_val, str) or isinstance(right_val, str):
+            return str(left_val) + str(right_val)
+
+        # Otherwise numeric addition
+        return left_val + right_val
 
     # Variable lookup
     if expr in env:
         return env[expr]
 
     raise ValueError(f"తెలియని వ్యక్తీకరణ (unknown expression): {expr}")
+
 
 
 def run_lipi_line(line, env):

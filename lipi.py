@@ -13,6 +13,7 @@ Supported:
 Usage:
     python lipi.py examples/hello.lipi
     (or run without args for a simple REPL)
+    More code to come in future versions!
 """
 
 import sys

@@ -53,13 +53,101 @@ def eval_lipi_expr(expr, env):
         # Otherwise numeric addition
         return left_val + right_val
 
+    # Comparisons
+    for op in [">=", "<=", "==", "!=", ">", "<"]:
+        if op in expr:
+            left, right = expr.split(op, 1)
+            left_val = eval_lipi_expr(left, env)
+            right_val = eval_lipi_expr(right, env)
+
+            if op == ">":  return left_val > right_val
+            if op == "<":  return left_val < right_val
+            if op == ">=": return left_val >= right_val
+            if op == "<=": return left_val <= right_val
+            if op == "==": return left_val == right_val
+            if op == "!=": return left_val != right_val
+
+
     # Variable lookup
     if expr in env:
         return env[expr]
 
     raise ValueError(f"తెలియని వ్యక్తీకరణ (unknown expression): {expr}")
 
+def run_lipi_block(lines, start_index, env):
+    """
+    Processes an IF/ELSE block starting at start_index.
+    Returns next index to continue execution.
+    """
 
+    line = lines[start_index].strip()
+
+    # --- IF START ---
+    if line.startswith("యెడల ") and line.endswith(":"):
+        condition_expr = line[len("యెడల "):-1].strip()
+
+        # Evaluate condition (true/false)
+        condition_value = eval_lipi_expr(condition_expr, env)
+        condition_true = bool(condition_value)
+
+        # Collect IF body
+        if_body = []
+        else_body = []
+        current = if_body
+
+        i = start_index + 1
+        while i < len(lines):
+            stripped = lines[i].strip()
+
+            if stripped == "లేకపోతే:":
+                current = else_body
+                i += 1
+                continue
+
+            if stripped == "ముగింపు":
+                break
+
+            current.append(stripped)
+            i += 1
+
+        # Execute correct block
+        body_to_run = if_body if condition_true else else_body
+        for statement in body_to_run:
+            run_lipi_line(statement, env)
+
+        # return index just after ముగింపు
+        return i + 1
+
+    # NOT an if-block
+    return start_index
+
+def run_lipi_file(path):
+    env = {}
+
+    with open(path, "r", encoding="utf-8") as f:
+        lines = [ln.rstrip("\n") for ln in f]
+
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+
+        if not line or line.startswith("#"):
+            i += 1
+            continue
+
+        # IF BLOCK DETECTED
+        if line.startswith("యెడల ") and line.endswith(":"):
+            i = run_lipi_block(lines, i, env)
+            continue
+
+        # Standard single-line statement
+        try:
+            run_lipi_line(line, env)
+        except Exception as e:
+            print(f"[లోపం] లైన్ {i+1}: {e}")
+            break
+
+        i += 1
 
 def run_lipi_line(line, env):
     """

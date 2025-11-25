@@ -1,4 +1,4 @@
-# Lipi v0.1 – sample program
+# Lipi v0.3 – sample program
 
 పేరు = "రామచంద్ర రావు"
 వయసు = 19

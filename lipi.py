@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Lipi Language - v0.3
+Lipi Language - v0.4
 A minimal Telugu-first scripting language.
 
 Supported:

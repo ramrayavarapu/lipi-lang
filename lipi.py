@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Lipi Language - v0.2
+Lipi Language - v0.3
 A minimal Telugu-first scripting language.
 
 Supported:
@@ -18,9 +18,12 @@ Supported:
         చెప్పు "యంగ్"
     ముగింపు
 
-Usage:
-    python lipi.py examples/hello.lipi
-    (or run without args for a simple REPL)
+- While loops:
+
+    వరకు వయసు < 21:
+        చెప్పు "వయసు: " + వయసు
+        వయసు = వయసు + 1
+    ముగింపు
 """
 
 import sys
@@ -120,14 +123,14 @@ def run_lipi_line(line, env):
         env[name] = eval_lipi_expr(expr, env)
         return
 
-    # If we reach here, syntax is unknown for v0.2 (outside blocks)
+    # If we reach here, syntax is unknown for v0.3 (outside blocks)
     raise SyntaxError(f"తెలియని లైన్ (unknown line): {line}")
 
 
 # ---------------------------
 # Block executor (if/else)
 # ---------------------------
-def run_lipi_block(lines, start_index, env):
+def run_lipi_if_block(lines, start_index, env):
     """
     Processes an IF/ELSE block starting at start_index.
     Returns next index to continue execution.
@@ -135,47 +138,89 @@ def run_lipi_block(lines, start_index, env):
 
     line = lines[start_index].strip()
 
-    # --- IF START ---
-    if line.startswith("యెడల ") and line.endswith(":"):
-        condition_expr = line[len("యెడల "):-1].strip()
+    if not (line.startswith("యెడల ") and line.endswith(":")):
+        return start_index
 
-        # Evaluate condition (true/false)
-        condition_value = eval_lipi_expr(condition_expr, env)
-        condition_true = bool(condition_value)
+    condition_expr = line[len("యెడల "):-1].strip()
 
-        # Collect IF and ELSE bodies
-        if_body = []
-        else_body = []
-        current = if_body
+    # Evaluate condition (true/false)
+    condition_value = eval_lipi_expr(condition_expr, env)
+    condition_true = bool(condition_value)
 
-        i = start_index + 1
-        while i < len(lines):
-            stripped = lines[i].strip()
+    # Collect IF and ELSE bodies
+    if_body = []
+    else_body = []
+    current = if_body
 
-            # ELSE branch
-            if stripped == "లేకపోతే:":
-                current = else_body
-                i += 1
-                continue
+    i = start_index + 1
+    while i < len(lines):
+        stripped = lines[i].strip()
 
-            # END of block
-            if stripped == "ముగింపు":
-                break
-
-            current.append(stripped)
+        # ELSE branch
+        if stripped == "లేకపోతే:":
+            current = else_body
             i += 1
+            continue
 
-        # Execute chosen body
-        body_to_run = if_body if condition_true else else_body
-        for statement in body_to_run:
-            # Each statement is already stripped single line
+        # END of block
+        if stripped == "ముగింపు":
+            break
+
+        current.append(stripped)
+        i += 1
+
+    # Execute chosen body
+    body_to_run = if_body if condition_true else else_body
+    for statement in body_to_run:
+        run_lipi_line(statement, env)
+
+    # Return index just after 'ముగింపు'
+    return i + 1
+
+
+# ---------------------------
+# Block executor (while)
+# ---------------------------
+def run_lipi_while_block(lines, start_index, env):
+    """
+    Processes a WHILE (వరకు) block starting at start_index.
+    Returns next index to continue execution.
+
+    NOTE (v0.3): while-body supports only simple single-line
+    statements (చెప్పు, అసైన్‌మెంట్). Nested if/while will come later.
+    """
+
+    line = lines[start_index].strip()
+
+    if not (line.startswith("వరకు ") and line.endswith(":")):
+        return start_index
+
+    condition_expr = line[len("వరకు "):-1].strip()
+
+    # Collect body
+    body = []
+    i = start_index + 1
+    while i < len(lines):
+        stripped = lines[i].strip()
+
+        # END of block
+        if stripped == "ముగింపు":
+            break
+
+        body.append(stripped)
+        i += 1
+
+    # Execute loop
+    while True:
+        condition_value = eval_lipi_expr(condition_expr, env)
+        if not bool(condition_value):
+            break
+
+        for statement in body:
             run_lipi_line(statement, env)
 
-        # Return index just after 'ముగింపు'
-        return i + 1
-
-    # Not an if-block → just return same index
-    return start_index
+    # Return index just after 'ముగింపు'
+    return i + 1
 
 
 # ---------------------------
@@ -199,7 +244,16 @@ def run_lipi_file(path):
         # IF block detected
         if line.startswith("యెడల ") and line.endswith(":"):
             try:
-                i = run_lipi_block(lines, i, env)
+                i = run_lipi_if_block(lines, i, env)
+            except Exception as e:
+                print(f"[లోపం] లైన్ {i + 1}: {e}")
+                break
+            continue
+
+        # WHILE block detected
+        if line.startswith("వరకు ") and line.endswith(":"):
+            try:
+                i = run_lipi_while_block(lines, i, env)
             except Exception as e:
                 print(f"[లోపం] లైన్ {i + 1}: {e}")
                 break
@@ -222,7 +276,7 @@ def repl():
     """
     Simple interactive shell for Lipi.
     """
-    print("Lipi v0.2 REPL – తెలుగు లో కోడ్ రాయండి (Ctrl+C తో బయటకు రావచ్చు)")
+    print("Lipi v0.3 REPL – తెలుగు లో కోడ్ రాయండి (Ctrl+C తో బయటకు రావచ్చు)")
     env = {}
     while True:
         try:
@@ -232,7 +286,7 @@ def repl():
             break
 
         try:
-            # For now, REPL does not support multi-line if/else blocks
+            # For now, REPL does not support multi-line blocks
             run_lipi_line(line, env)
         except Exception as e:
             print(f"[లోపం] {e}")

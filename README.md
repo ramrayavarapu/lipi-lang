@@ -43,6 +43,14 @@ The bilingual (Telugu + English) programming language.
 
 **తెలుగు:** లిపి అనేది తెలుగు మాట్లాడే విద్యార్థులకు వారి మాతృభాషలో ప్రోగ్రామింగ్ నేర్చుకోవడానికి రూపొందించబడిన ప్రోగ్రామింగ్ భాష. దీని ప్రత్యేకత ఏమిటంటే **ఒకే ప్రోగ్రామ్‌లో తెలుగు మరియు ఇంగ్లీష్‌ని కలిపి ఉపయోగించవచ్చు**, ఇది భాషల మధ్య సులభంగా మారడానికి మరియు ఇతరులతో కలిసి పని చేయడానికి సహాయపడుతుంది.
 
+### Implementation | అమలు
+
+**English:** lipi-lang v0.5 is a **line-by-line interpreter** written in Python that directly executes Telugu/English code. The interpreter reads `.lipi.py` files, parses Telugu and English keywords, and executes statements immediately without compilation. Future versions (v1.7+) will introduce compilation and transpilation options for better performance.
+
+**తెలుగు:** lipi-lang v0.5 అనేది Python లో వ్రాయబడిన **లైన్-బై-లైన్ ఇంటర్ప్రెటర్**, ఇది తెలుగు/ఇంగ్లీష్ కోడ్‌ను నేరుగా అమలు చేస్తుంది. ఇంటర్ప్రెటర్ `.lipi.py` ఫైల్‌లను చదువుతుంది, తెలుగు మరియు ఇంగ్లీష్ కీవర్డ్‌లను పార్స్ చేస్తుంది మరియు కంపైలేషన్ లేకుండా వెంటనే స్టేట్‌మెంట్‌లను అమలు చేస్తుంది. భవిష్యత్తు వెర్షన్‌లు (v1.7+) మెరుగైన పనితీరు కోసం కంపైలేషన్ మరియు ట్రాన్స్‌పైలేషన్ ఎంపికలను పరిచయం చేస్తాయి.
+
+**Architecture:** Pure Python interpreter → Future: Bytecode VM / JIT / Transpiler to Python/JS
+
 ## Features | ఫీచర్లు
 
 ✅ **Three Ways to Code: | మూడు విధాలుగా కోడ్ రాయండి:**

@@ -19,14 +19,14 @@ repos:
     hooks:
       - id: run-security-tests
         name: Run Security Tests
-        entry: python3 test_lipi.py
+        entry: python3 tests/test_lipi.py
         language: system
         pass_filenames: false
         always_run: true
 
       - id: security-scan
         name: Security Pattern Scan
-        entry: python3 security_check.py
+        entry: python3 tests/security_check.py
         language: system
         pass_filenames: false
         always_run: true

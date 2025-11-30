@@ -29,29 +29,29 @@ jobs:
 
     - name: Run comprehensive test suite
       run: |
-        python3 test_lipi.py
+        python3 tests/test_lipi.py
 
     - name: Test example programs
       run: |
         echo "Testing Telugu example..."
-        python3 lipi.py examples/hello.lipi.py
+        python3 src/lipi.py examples/hello.lipi.py
 
         echo "Testing English example..."
-        python3 lipi.py examples/english.lipi.py
+        python3 src/lipi.py examples/english.lipi.py
 
         echo "Testing Bilingual example..."
-        python3 lipi.py examples/bilingual.lipi.py
+        python3 src/lipi.py examples/bilingual.lipi.py
 
     - name: Check for Python security issues with bandit
       run: |
         pip install bandit
-        bandit -r lipi.py -f txt || true
+        bandit -r src/lipi.py -f txt || true
       continue-on-error: true
 
     - name: Check code quality with pylint
       run: |
         pip install pylint
-        pylint lipi.py --disable=all --enable=E,F --score=no || true
+        pylint src/lipi.py --disable=all --enable=E,F --score=no || true
       continue-on-error: true
 
   malicious-code-scan:
@@ -74,25 +74,25 @@ jobs:
       run: |
         echo "Scanning for suspicious patterns..."
 
-        # Check for eval/exec usage (should not exist in lipi.py)
-        if grep -n "eval(" lipi.py | grep -v "def eval_lipi_expr"; then
+        # Check for eval/exec usage (should not exist in src/lipi.py)
+        if grep -n "eval(" src/lipi.py | grep -v "def eval_lipi_expr"; then
           echo "WARNING: Found eval() usage outside of eval_lipi_expr"
           exit 1
         fi
 
-        if grep -n "exec(" lipi.py; then
+        if grep -n "exec(" src/lipi.py; then
           echo "WARNING: Found exec() usage"
           exit 1
         fi
 
         # Check for subprocess/os.system usage
-        if grep -n "subprocess\|os.system\|os.popen" lipi.py; then
+        if grep -n "subprocess\|os.system\|os.popen" src/lipi.py; then
           echo "WARNING: Found system command execution"
           exit 1
         fi
 
         # Check for file write operations
-        if grep -n "open.*[\"']w\|open.*[\"']a" lipi.py; then
+        if grep -n "open.*[\"']w\|open.*[\"']a" src/lipi.py; then
           echo "WARNING: Found file write operations"
           exit 1
         fi
@@ -109,10 +109,10 @@ jobs:
 
     - name: Verify no external dependencies
       run: |
-        echo "Checking that lipi.py has minimal dependencies..."
+        echo "Checking that src/lipi.py has minimal dependencies..."
 
-        # lipi.py should only import sys (standard library)
-        imports=$(grep "^import " lipi.py | grep -v "import sys" || true)
+        # src/lipi.py should only import sys (standard library)
+        imports=$(grep "^import " src/lipi.py | grep -v "import sys" || true)
 
         if [ ! -z "$imports" ]; then
           echo "WARNING: Found unexpected imports:"
@@ -152,6 +152,6 @@ jobs:
         EOF
 
         echo "Running malicious input tests..."
-        python3 lipi.py /tmp/malicious_test.lipi.py
+        python3 src/lipi.py /tmp/malicious_test.lipi.py
 
         echo "✓ All malicious inputs handled safely"

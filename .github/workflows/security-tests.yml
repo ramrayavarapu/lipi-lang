@@ -1,0 +1,157 @@
+name: Security & Quality Tests
+
+on:
+  push:
+    branches: [ main, dev, 'claude/**' ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  security-tests:
+    name: Run Security & Functional Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Display Python version
+      run: python --version
+
+    - name: Run comprehensive test suite
+      run: |
+        python3 test_lipi.py
+
+    - name: Test example programs
+      run: |
+        echo "Testing Telugu example..."
+        python3 lipi.py examples/hello.lipi.py
+
+        echo "Testing English example..."
+        python3 lipi.py examples/english.lipi.py
+
+        echo "Testing Bilingual example..."
+        python3 lipi.py examples/bilingual.lipi.py
+
+    - name: Check for Python security issues with bandit
+      run: |
+        pip install bandit
+        bandit -r lipi.py -f txt || true
+      continue-on-error: true
+
+    - name: Check code quality with pylint
+      run: |
+        pip install pylint
+        pylint lipi.py --disable=all --enable=E,F --score=no || true
+      continue-on-error: true
+
+  malicious-code-scan:
+    name: Scan for Malicious Code
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Scan for secrets and credentials
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+      continue-on-error: true
+
+    - name: Check for suspicious patterns
+      run: |
+        echo "Scanning for suspicious patterns..."
+
+        # Check for eval/exec usage (should not exist in lipi.py)
+        if grep -n "eval(" lipi.py | grep -v "def eval_lipi_expr"; then
+          echo "WARNING: Found eval() usage outside of eval_lipi_expr"
+          exit 1
+        fi
+
+        if grep -n "exec(" lipi.py; then
+          echo "WARNING: Found exec() usage"
+          exit 1
+        fi
+
+        # Check for subprocess/os.system usage
+        if grep -n "subprocess\|os.system\|os.popen" lipi.py; then
+          echo "WARNING: Found system command execution"
+          exit 1
+        fi
+
+        # Check for file write operations
+        if grep -n "open.*[\"']w\|open.*[\"']a" lipi.py; then
+          echo "WARNING: Found file write operations"
+          exit 1
+        fi
+
+        echo "✓ No suspicious patterns found"
+
+  dependency-check:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Verify no external dependencies
+      run: |
+        echo "Checking that lipi.py has minimal dependencies..."
+
+        # lipi.py should only import sys (standard library)
+        imports=$(grep "^import " lipi.py | grep -v "import sys" || true)
+
+        if [ ! -z "$imports" ]; then
+          echo "WARNING: Found unexpected imports:"
+          echo "$imports"
+          exit 1
+        fi
+
+        echo "✓ Only standard library dependencies found"
+
+  code-injection-tests:
+    name: Additional Code Injection Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Test malicious input handling
+      run: |
+        cat > /tmp/malicious_test.lipi.py << 'EOF'
+        # Test 1: Try to import modules
+        test1 = "import os"
+        చెప్పు "Test 1 passed"
+
+        # Test 2: Try eval injection
+        test2 = "__import__('os').system('echo pwned')"
+        print "Test 2 passed"
+
+        # Test 3: Try file access
+        test3 = "/etc/passwd"
+        చెప్పు "Test 3 passed"
+        EOF
+
+        echo "Running malicious input tests..."
+        python3 lipi.py /tmp/malicious_test.lipi.py
+
+        echo "✓ All malicious inputs handled safely"

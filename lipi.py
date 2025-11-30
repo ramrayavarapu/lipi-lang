@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Lipi Language - v0.4
-A minimal Telugu-first scripting language.
+Lipi Language - v0.5
+A bilingual (Telugu + English) scripting language.
 
 Supported:
-- Variable assignment:  పేరు = "రామ్",  వయసు = 10
-- Integer + operator:   మొత్తం = వయసు + 5
-- String concat:        "వయసు: " + వయసు
-- Print:                చెప్పు "నమస్తే", చెప్పు పేరు
+- Variable assignment:  పేరు = "రామ్",  వయసు = 10, name = "Ram", age = 10
+- Integer + operator:   మొత్తం = వయసు + 5, total = age + 5
+- String concat:        "వయసు: " + వయసు, "age: " + age
+- Print (Telugu):       చెప్పు "నమస్తే", చెప్పు పేరు
+- Print (English):      print "Hello", print name
 - Comments:             # this is a comment
-- If/else blocks:
+- If/else blocks (Telugu):
 
     యెడల వయసు > 18:
         చెప్పు "అడల్ట్"
@@ -18,12 +19,29 @@ Supported:
         చెప్పు "యంగ్"
     ముగింపు
 
-- While loops:
+- If/else blocks (English):
+
+    if age > 18:
+        print "Adult"
+    else:
+        print "Young"
+    end
+
+- While loops (Telugu):
 
     వరకు వయసు < 21:
         చెప్పు "వయసు: " + వయసు
         వయసు = వయసు + 1
     ముగింపు
+
+- While loops (English):
+
+    while age < 21:
+        print "age: " + age
+        age = age + 1
+    end
+
+Note: You can mix Telugu and English keywords in the same program!
 """
 
 import sys
@@ -101,6 +119,7 @@ def eval_lipi_expr(expr, env):
 def run_lipi_line(line, env):
     """
     Execute a single line of Lipi code (non-block).
+    Supports both Telugu and English keywords.
     """
     line = line.strip()
 
@@ -108,9 +127,16 @@ def run_lipi_line(line, env):
     if not line or line.startswith("#"):
         return
 
-    # Print statement: చెప్పు expr
+    # Print statement (Telugu): చెప్పు expr
     if line.startswith("చెప్పు "):
         expr = line[len("చెప్పు "):]
+        value = eval_lipi_expr(expr, env)
+        print(value)
+        return
+
+    # Print statement (English): print expr
+    if line.startswith("print "):
+        expr = line[len("print "):]
         value = eval_lipi_expr(expr, env)
         print(value)
         return
@@ -123,7 +149,7 @@ def run_lipi_line(line, env):
         env[name] = eval_lipi_expr(expr, env)
         return
 
-    # If we reach here, syntax is unknown for v0.3 (outside blocks)
+    # If we reach here, syntax is unknown
     raise SyntaxError(f"తెలియని లైన్ (unknown line): {line}")
 
 
@@ -133,15 +159,24 @@ def run_lipi_line(line, env):
 def run_lipi_if_block(lines, start_index, env):
     """
     Processes an IF/ELSE block starting at start_index.
+    Supports both Telugu (యెడల/లేకపోతే/ముగింపు) and English (if/else/end).
     Returns next index to continue execution.
     """
 
     line = lines[start_index].strip()
 
-    if not (line.startswith("యెడల ") and line.endswith(":")):
+    # Check for Telugu IF or English if
+    is_telugu_if = line.startswith("యెడల ") and line.endswith(":")
+    is_english_if = line.startswith("if ") and line.endswith(":")
+
+    if not (is_telugu_if or is_english_if):
         return start_index
 
-    condition_expr = line[len("యెడల "):-1].strip()
+    # Extract condition
+    if is_telugu_if:
+        condition_expr = line[len("యెడల "):-1].strip()
+    else:
+        condition_expr = line[len("if "):-1].strip()
 
     # Evaluate condition (true/false)
     condition_value = eval_lipi_expr(condition_expr, env)
@@ -156,14 +191,14 @@ def run_lipi_if_block(lines, start_index, env):
     while i < len(lines):
         stripped = lines[i].strip()
 
-        # ELSE branch
-        if stripped == "లేకపోతే:":
+        # ELSE branch (both Telugu and English)
+        if stripped == "లేకపోతే:" or stripped == "else:":
             current = else_body
             i += 1
             continue
 
-        # END of block
-        if stripped == "ముగింపు":
+        # END of block (both Telugu and English)
+        if stripped == "ముగింపు" or stripped == "end":
             break
 
         current.append(stripped)
@@ -174,7 +209,7 @@ def run_lipi_if_block(lines, start_index, env):
     for statement in body_to_run:
         run_lipi_line(statement, env)
 
-    # Return index just after 'ముగింపు'
+    # Return index just after 'ముగింపు' or 'end'
     return i + 1
 
 
@@ -183,19 +218,28 @@ def run_lipi_if_block(lines, start_index, env):
 # ---------------------------
 def run_lipi_while_block(lines, start_index, env):
     """
-    Processes a WHILE (వరకు) block starting at start_index.
+    Processes a WHILE block starting at start_index.
+    Supports both Telugu (వరకు/ముగింపు) and English (while/end).
     Returns next index to continue execution.
 
-    NOTE (v0.3): while-body supports only simple single-line
-    statements (చెప్పు, అసైన్‌మెంట్). Nested if/while will come later.
+    NOTE (v0.5): while-body supports only simple single-line
+    statements (చెప్పు/print, assignment). Nested if/while will come later.
     """
 
     line = lines[start_index].strip()
 
-    if not (line.startswith("వరకు ") and line.endswith(":")):
+    # Check for Telugu WHILE or English while
+    is_telugu_while = line.startswith("వరకు ") and line.endswith(":")
+    is_english_while = line.startswith("while ") and line.endswith(":")
+
+    if not (is_telugu_while or is_english_while):
         return start_index
 
-    condition_expr = line[len("వరకు "):-1].strip()
+    # Extract condition
+    if is_telugu_while:
+        condition_expr = line[len("వరకు "):-1].strip()
+    else:
+        condition_expr = line[len("while "):-1].strip()
 
     # Collect body
     body = []
@@ -203,8 +247,8 @@ def run_lipi_while_block(lines, start_index, env):
     while i < len(lines):
         stripped = lines[i].strip()
 
-        # END of block
-        if stripped == "ముగింపు":
+        # END of block (both Telugu and English)
+        if stripped == "ముగింపు" or stripped == "end":
             break
 
         body.append(stripped)
@@ -219,7 +263,7 @@ def run_lipi_while_block(lines, start_index, env):
         for statement in body:
             run_lipi_line(statement, env)
 
-    # Return index just after 'ముగింపు'
+    # Return index just after 'ముగింపు' or 'end'
     return i + 1
 
 
@@ -241,8 +285,8 @@ def run_lipi_file(path):
             i += 1
             continue
 
-        # IF block detected
-        if line.startswith("యెడల ") and line.endswith(":"):
+        # IF block detected (Telugu or English)
+        if (line.startswith("యెడల ") or line.startswith("if ")) and line.endswith(":"):
             try:
                 i = run_lipi_if_block(lines, i, env)
             except Exception as e:
@@ -250,8 +294,8 @@ def run_lipi_file(path):
                 break
             continue
 
-        # WHILE block detected
-        if line.startswith("వరకు ") and line.endswith(":"):
+        # WHILE block detected (Telugu or English)
+        if (line.startswith("వరకు ") or line.startswith("while ")) and line.endswith(":"):
             try:
                 i = run_lipi_while_block(lines, i, env)
             except Exception as e:
@@ -276,7 +320,7 @@ def repl():
     """
     Simple interactive shell for Lipi.
     """
-    print("Lipi v0.3 REPL – తెలుగు లో కోడ్ రాయండి (Ctrl+C తో బయటకు రావచ్చు)")
+    print("Lipi v0.5 REPL – తెలుగు లో / in English కోడ్ రాయండి (Ctrl+C తో బయటకు రావచ్చు)")
     env = {}
     while True:
         try:

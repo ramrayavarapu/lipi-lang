@@ -243,11 +243,33 @@ end
 - [ ] Standard library | స్టాండర్డ్ లైబ్రరీ
 - [ ] More Indian language support (Hindi, Tamil, etc.) | మరిన్ని భారతీయ భాషల మద్దతు (హిందీ, తమిళం, మొదలైనవి)
 
+## Security | భద్రత
+
+**English:** This project includes comprehensive security testing to prevent vulnerabilities:
+- ✅ 39 automated tests including security checks
+- ✅ Automated security scanner
+- ✅ GitHub Actions CI/CD pipeline
+- ✅ Pre-commit hooks
+- ✅ No code execution vulnerabilities
+
+All code is tested before merge. See [SECURITY.md](SECURITY.md) for details.
+
+**తెలుగు:** ఈ ప్రాజెక్ట్ దుర్బలత్వాలను నిరోధించడానికి సమగ్ర భద్రతా పరీక్షను కలిగి ఉంది:
+- ✅ 39 ఆటోమేటెడ్ టెస్ట్‌లు భద్రతా తనిఖీలతో సహా
+- ✅ ఆటోమేటెడ్ సెక్యూరిటీ స్కానర్
+- ✅ GitHub Actions CI/CD పైప్‌లైన్
+- ✅ ప్రీ-కమిట్ హుక్స్
+- ✅ కోడ్ ఎగ్జిక్యూషన్ దుర్బలత్వాలు లేవు
+
 ## Contributing | సహకారం
 
-**English:** We welcome contributions! This project aims to make programming accessible to non-English speakers.
+**English:** We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-**తెలుగు:** మేము సహకారాన్ని స్వాగతిస్తున్నాము! ఈ ప్రాజెక్ట్ ఇంగ్లీష్ కాని వారికి ప్రోగ్రామింగ్‌ను అందుబాటులోకి తీసుకురావడం లక్ష్యం.
+**Important:** All contributions must pass security tests.
+
+**తెలుగు:** మేము సహకారాన్ని స్వాగతిస్తున్నాము! దయచేసి మార్గదర్శకాల కోసం [CONTRIBUTING.md](CONTRIBUTING.md) చదవండి.
+
+**ముఖ్యమైనది:** అన్ని సహకారాలు భద్రతా పరీక్షలలో ఉత్తీర్ణత సాధించాలి.
 
 ## License | లైసెన్స్
 

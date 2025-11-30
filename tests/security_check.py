@@ -186,10 +186,13 @@ def main():
     """Main security check function"""
     scanner = SecurityScanner()
 
-    # Files to scan
+    # Get the directory containing this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Files to scan (relative to script directory)
     files_to_scan = [
-        'lipi.py',
-        'test_lipi.py',
+        os.path.join(script_dir, '..', 'src', 'lipi.py'),
+        os.path.join(script_dir, 'test_lipi.py'),
     ]
 
     print("🛡️  Running security scan for lipi-lang\n")

@@ -26,7 +26,7 @@ The bilingual (Telugu + English) programming language.
 **ఎలా ఉపయోగించాలి:**
 1. Python 3 ఇన్‌స్టాల్ చేసుకోండి
 2. ఈ రిపోజిటరీ డౌన్‌లోడ్ చేసుకోండి
-3. `python3 lipi.py మీ_ప్రోగ్రామ్.lipi.py` అని రన్ చేయండి
+3. `python3 src/lipi.py మీ_ప్రోగ్రామ్.lipi.py` అని రన్ చేయండి
 
 **ముఖ్యమైన కీవర్డ్స్:**
 - `చెప్పు` - ప్రింట్ చేయడానికి (output చూపించడానికి)
@@ -81,16 +81,16 @@ cd lipi-lang
 
 ```bash
 # Run a Telugu program | తెలుగు ప్రోగ్రామ్ రన్ చేయండి
-python3 lipi.py examples/hello.lipi.py
+python3 src/lipi.py examples/hello.lipi.py
 
 # Run an English program | ఇంగ్లీష్ ప్రోగ్రామ్ రన్ చేయండి
-python3 lipi.py examples/english.lipi.py
+python3 src/lipi.py examples/english.lipi.py
 
 # Run a bilingual program | ద్విభాషా ప్రోగ్రామ్ రన్ చేయండి
-python3 lipi.py examples/bilingual.lipi.py
+python3 src/lipi.py examples/bilingual.lipi.py
 
 # Start the interactive REPL | ఇంటరాక్టివ్ REPL ప్రారంభించండి
-python3 lipi.py
+python3 src/lipi.py
 ```
 
 ## Examples | ఉదాహరణలు
@@ -252,7 +252,7 @@ end
 - ✅ Pre-commit hooks
 - ✅ No code execution vulnerabilities
 
-All code is tested before merge. See [SECURITY.md](SECURITY.md) for details.
+All code is tested before merge. See [SECURITY.md](docs/SECURITY.md) for details.
 
 **తెలుగు:** ఈ ప్రాజెక్ట్ దుర్బలత్వాలను నిరోధించడానికి సమగ్ర భద్రతా పరీక్షను కలిగి ఉంది:
 - ✅ 39 ఆటోమేటెడ్ టెస్ట్‌లు భద్రతా తనిఖీలతో సహా
@@ -263,11 +263,11 @@ All code is tested before merge. See [SECURITY.md](SECURITY.md) for details.
 
 ## Contributing | సహకారం
 
-**English:** We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+**English:** We welcome contributions! Please read [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 
 **Important:** All contributions must pass security tests.
 
-**తెలుగు:** మేము సహకారాన్ని స్వాగతిస్తున్నాము! దయచేసి మార్గదర్శకాల కోసం [CONTRIBUTING.md](CONTRIBUTING.md) చదవండి.
+**తెలుగు:** మేము సహకారాన్ని స్వాగతిస్తున్నాము! దయచేసి మార్గదర్శకాల కోసం [CONTRIBUTING.md](docs/CONTRIBUTING.md) చదవండి.
 
 **ముఖ్యమైనది:** అన్ని సహకారాలు భద్రతా పరీక్షలలో ఉత్తీర్ణత సాధించాలి.
 

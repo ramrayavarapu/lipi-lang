@@ -111,9 +111,13 @@ jobs:
       run: |
         echo "Checking that src/lipi.py has minimal dependencies..."
 
-        # src/lipi.py should only import sys and importlib (standard library)
-        # importlib is needed for Python library access feature (v1.0)
-        imports=$(grep "^import " src/lipi.py | grep -v "import sys" | grep -v "import importlib" || true)
+        # src/lipi.py should only import standard library modules (v2.0)
+        # importlib: Python library access feature
+        # sqlite3: Database connectivity
+        # urllib.request, urllib.parse: HTTP/API support
+        # json: JSON data handling
+        allowed_imports="sys|importlib|sqlite3|urllib\.request|urllib\.parse|json"
+        imports=$(grep "^import " src/lipi.py | grep -v -E "import ($allowed_imports)" || true)
 
         if [ ! -z "$imports" ]; then
           echo "WARNING: Found unexpected imports:"

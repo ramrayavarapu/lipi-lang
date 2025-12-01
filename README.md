@@ -45,9 +45,9 @@ The bilingual (Telugu + English) programming language.
 
 ### Implementation | అమలు
 
-**English:** lipi-lang v0.5 is a **line-by-line interpreter** written in Python that directly executes Telugu/English code. The interpreter reads `.lipi.py` files, parses Telugu and English keywords, and executes statements immediately without compilation. Future versions (v1.7+) will introduce compilation and transpilation options for better performance.
+**English:** lipi-lang **v2.0** is a **full-featured production-ready interpreter** written in Python that directly executes Telugu/English code with support for functions, data structures, file I/O, HTTP APIs, and database connectivity. The interpreter reads `.lipi.py` files, parses Telugu and English keywords, and executes statements immediately. Future versions will introduce compilation and transpilation options for better performance.
 
-**తెలుగు:** lipi-lang v0.5 అనేది Python లో వ్రాయబడిన **లైన్-బై-లైన్ ఇంటర్ప్రెటర్**, ఇది తెలుగు/ఇంగ్లీష్ కోడ్‌ను నేరుగా అమలు చేస్తుంది. ఇంటర్ప్రెటర్ `.lipi.py` ఫైల్‌లను చదువుతుంది, తెలుగు మరియు ఇంగ్లీష్ కీవర్డ్‌లను పార్స్ చేస్తుంది మరియు కంపైలేషన్ లేకుండా వెంటనే స్టేట్‌మెంట్‌లను అమలు చేస్తుంది. భవిష్యత్తు వెర్షన్‌లు (v1.7+) మెరుగైన పనితీరు కోసం కంపైలేషన్ మరియు ట్రాన్స్‌పైలేషన్ ఎంపికలను పరిచయం చేస్తాయి.
+**తెలుగు:** lipi-lang **v2.0** అనేది Python లో వ్రాయబడిన **పూర్తి-ఫీచర్ ఉత్పత్తి-సిద్ధ ఇంటర్ప్రెటర్**, ఇది ఫంక్షన్లు, డేటా స్ట్రక్చర్లు, ఫైల్ I/O, HTTP APIలు మరియు డేటాబేస్ కనెక్టివిటీకి మద్దతుతో తెలుగు/ఇంగ్లీష్ కోడ్‌ను నేరుగా అమలు చేస్తుంది. ఇంటర్ప్రెటర్ `.lipi.py` ఫైల్‌లను చదువుతుంది, తెలుగు మరియు ఇంగ్లీష్ కీవర్డ్‌లను పార్స్ చేస్తుంది మరియు వెంటనే స్టేట్‌మెంట్‌లను అమలు చేస్తుంది. భవిష్యత్తు వెర్షన్‌లు మెరుగైన పనితీరు కోసం కంపైలేషన్ మరియు ట్రాన్స్‌పైలేషన్ ఎంపికలను పరిచయం చేస్తాయి.
 
 **Architecture:** Pure Python interpreter → Future: Bytecode VM / JIT / Transpiler to Python/JS
 
@@ -60,13 +60,32 @@ The bilingual (Telugu + English) programming language.
 
 ✅ **Language Support: | భాషా మద్దతు:**
 
+### Basic Keywords | ప్రాథమిక కీవర్డ్లు
+
 | Feature<br/>ఫీచర్ | Telugu<br/>తెలుగు | English<br/>ఇంగ్లీష్ | Meaning<br/>అర్థం |
 |---------|--------|---------|---------|
 | Print | `చెప్పు` | `print` | ముద్రించు / చూపించు |
 | If | `యెడల` | `if` | ఒకవేళ |
 | Else | `లేకపోతే:` | `else:` | లేకపోతే |
 | While | `వరకు` | `while` | వరకు (లూప్) |
+| For | `పునరావృతం` | `for` | పునరావృతం |
 | End block | `ముగింపు` | `end` | ముగింపు |
+| Function | `పనిచేయి` | `function` | ఫంక్షన్ |
+| Return | `రిటర్న్` | `return` | తిరిగి ఇవ్వు |
+| Try | `ప్రయత్నించు:` | `try:` | ప్రయత్నించు |
+| Catch | `పట్టుకో:` | `catch:` | పట్టుకో |
+| Finally | `చివరకు:` | `finally:` | చివరకు |
+
+### NEW in v2.0: File & Database Operations | v2.0లో కొత్తది: ఫైల్ & డేటాబేస్ కార్యకలాపాలు
+
+| Feature<br/>ఫీచర్ | Telugu<br/>తెలుగు | English<br/>ఇంగ్లీష్ | Usage<br/>ఉపయోగం |
+|---------|--------|---------|---------|
+| Read File | `ఫైల్_చదువు(path)` | `file_read(path)` | ఫైల్ చదవడం |
+| Write File | `ఫైల్_వ్రాయి(path, data)` | `file_write(path, data)` | ఫైల్ రాయడం |
+| HTTP GET | `http_పొందు(url)` | `http_get(url)` | API డేటా పొందడం |
+| HTTP POST | `http_పంపు(url, data)` | `http_post(url, data)` | API డేటా పంపడం |
+| DB Connect | `డేటాబేస్_కనెక్ట్(path)` | `db_connect(path)` | డేటాబేస్ కనెక్ట్ |
+| DB Query | `డేటాబేస్_ప్రశ్న(db, sql)` | `db_query(db, sql)` | SQL ప్రశ్నలు |
 
 ## Quick Start | త్వరిత ప్రారంభం
 

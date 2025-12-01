@@ -124,12 +124,14 @@ jobs:
       run: |
         echo "Checking that src/lipi.py has minimal dependencies..."
 
-        # src/lipi.py should only import standard library modules (v2.0)
+        # src/lipi.py should only import standard library modules (v3.0)
+        # sys: System functions
+        # os: File path operations for module system (v3.0)
         # importlib: Python library access feature
         # sqlite3: Database connectivity
         # urllib.request, urllib.parse: HTTP/API support
         # json: JSON data handling
-        allowed_imports="sys|importlib|sqlite3|urllib\.request|urllib\.parse|json"
+        allowed_imports="sys|os|importlib|sqlite3|urllib\.request|urllib\.parse|json"
         imports=$(grep "^import " src/lipi.py | grep -v -E "import ($allowed_imports)" || true)
 
         if [ ! -z "$imports" ]; then
@@ -138,7 +140,7 @@ jobs:
           exit 1
         fi
 
-        echo "✓ Only standard library dependencies found"
+        echo "✓ Only standard library dependencies found (v3.0: added os for module system)"
 
   code-injection-tests:
     name: Additional Code Injection Tests

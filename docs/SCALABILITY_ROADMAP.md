@@ -101,6 +101,90 @@ end
 export create_order
 ```
 
+### v0.8.5: Python Library Access (HIGH PRIORITY) ⭐
+
+**Critical Bridge Feature:** Access Python's standard library before building everything from scratch
+
+**Telugu Keywords:**
+- `దిగుమతి_python` / `import_python` - Import Python module
+
+**Rationale:**
+- Users need practical functionality NOW (math, file I/O, JSON, HTTP)
+- Building standard library from scratch takes months
+- Python has 200+ modules ready to use
+- Enables real applications immediately
+
+**Implementation:**
+```python
+# Access Python's standard library
+దిగుమతి_python("math")
+దిగుమతి_python("json")
+import_python("datetime")
+
+# Telugu developer using Python's math
+result = math.sqrt(16)
+చెప్పు "వర్గమూలం: " + result
+
+# English developer using Python's json
+data = {"name": "Ram", "age": 25}
+json_string = json.dumps(data)
+print json_string
+
+# Parse JSON
+parsed = json.loads(json_string)
+చెప్పు parsed["name"]
+```
+
+**Key Decision:** How to name Python functions?
+
+**Option 1: Keep English names (RECOMMENDED)**
+```python
+import_python("math")
+result = math.sqrt(16)  # Keep "sqrt" as is
+చెప్పు result
+```
+- ✅ Familiar to anyone who knows Python
+- ✅ Easier to find documentation
+- ✅ Copy-paste from Python examples works
+
+**Option 2: Telugu wrappers (Future)**
+```python
+import_python("math")
+వర్గమూలం = math.sqrt  # Telugu alias
+result = వర్గమూలం(16)
+చెప్పు result
+```
+- Community can create Telugu wrapper libraries
+- Not blocking initial implementation
+
+**Standard Modules to Support First:**
+1. `math` - Mathematics (square root, trigonometry, etc.)
+2. `json` - JSON parsing (essential for APIs)
+3. `datetime` - Date and time operations
+4. `random` - Random numbers
+5. `os.path` - File path operations (safe, no execution)
+6. `re` - Regular expressions
+
+**Security Constraints:**
+- ❌ Block `os.system`, `subprocess` - No command execution
+- ❌ Block `eval`, `exec` - No code injection
+- ✅ Allow safe modules only - Whitelisted
+- ✅ Sandboxed execution - Security maintained
+
+**Timeline:** 1-2 months (parallel with v0.8 module system)
+
+**Why This Is Critical:**
+Without this, developers cannot:
+- Parse JSON from APIs ❌
+- Calculate mathematical operations ❌
+- Handle dates and times ❌
+- Read/write files ❌
+- Make HTTP requests ❌
+
+**This unblocks real application development immediately!**
+
+---
+
 ### v0.9: Error Handling
 **Telugu Keywords:**
 - `ప్రయత్నించు` / `try`
@@ -454,6 +538,7 @@ def complex_calculation(data):
 | v0.6 | Functions | 2-3 months | 2-3 devs |
 | v0.7 | Data structures | 2-3 months | 2-3 devs |
 | v0.8 | Modules | 2-3 months | 3-4 devs |
+| **v0.8.5** | **Python library access** ⭐ | **1-2 months** | **2 devs** |
 | v0.9 | Error handling | 1-2 months | 2 devs |
 | v1.0 | File I/O | 1 month | 2 devs |
 | v1.1 | Database | 2 months | 2-3 devs |
@@ -524,10 +609,15 @@ This allows:
 
 To make this production-ready, start with:
 
-1. **v0.6: Functions** (highest priority)
+1. **v0.6: Functions** (highest priority - enables code reuse)
 2. **v0.7: Arrays/Objects** (needed for real apps)
-3. **Transpiler POC** (prove Python interop)
-4. **Community building** (get Telugu developers involved)
+3. **v0.8: Module System** (code organization)
+4. **v0.8.5: Python Library Access** ⭐ (CRITICAL - unblocks real development)
+   - Access math, json, datetime, file I/O immediately
+   - Don't wait months to build from scratch
+   - Security-constrained, whitelisted modules only
+5. **Transpiler POC** (prove Python interop for future)
+6. **Community building** (get Telugu developers involved)
 
 ---
 

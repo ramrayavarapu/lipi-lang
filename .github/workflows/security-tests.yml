@@ -111,8 +111,9 @@ jobs:
       run: |
         echo "Checking that src/lipi.py has minimal dependencies..."
 
-        # src/lipi.py should only import sys (standard library)
-        imports=$(grep "^import " src/lipi.py | grep -v "import sys" || true)
+        # src/lipi.py should only import sys and importlib (standard library)
+        # importlib is needed for Python library access feature (v1.0)
+        imports=$(grep "^import " src/lipi.py | grep -v "import sys" | grep -v "import importlib" || true)
 
         if [ ! -z "$imports" ]; then
           echo "WARNING: Found unexpected imports:"

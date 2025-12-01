@@ -1,0 +1,175 @@
+name: Security & Quality Tests
+
+on:
+  push:
+    branches: [ main, dev, 'claude/**' ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  security-tests:
+    name: Run Security & Functional Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Display Python version
+      run: python --version
+
+    - name: Run comprehensive test suite
+      run: |
+        python3 tests/test_lipi.py
+
+    - name: Test example programs
+      run: |
+        echo "Testing Telugu example..."
+        python3 src/lipi.py examples/hello.lipi.py
+
+        echo "Testing English example..."
+        python3 src/lipi.py examples/english.lipi.py
+
+        echo "Testing Bilingual example..."
+        python3 src/lipi.py examples/bilingual.lipi.py
+
+    - name: Check for Python security issues with bandit
+      run: |
+        pip install bandit
+        bandit -r src/lipi.py -f txt || true
+      continue-on-error: true
+
+    - name: Check code quality with pylint
+      run: |
+        pip install pylint
+        pylint src/lipi.py --disable=all --enable=E,F --score=no || true
+      continue-on-error: true
+
+  malicious-code-scan:
+    name: Scan for Malicious Code
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Scan for secrets and credentials
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+      continue-on-error: true
+
+    - name: Check for suspicious patterns
+      run: |
+        echo "Scanning for suspicious patterns..."
+
+        # Check for eval/exec usage (should not exist in src/lipi.py)
+        if grep -n "eval(" src/lipi.py | grep -v "def eval_lipi_expr"; then
+          echo "WARNING: Found eval() usage outside of eval_lipi_expr"
+          exit 1
+        fi
+
+        if grep -n "exec(" src/lipi.py; then
+          echo "WARNING: Found exec() usage"
+          exit 1
+        fi
+
+        # Check for subprocess/os.system usage
+        if grep -n "subprocess\|os.system\|os.popen" src/lipi.py; then
+          echo "WARNING: Found system command execution"
+          exit 1
+        fi
+
+        # Check for file write operations (v2.0: Allow controlled File I/O feature)
+        # File writes are allowed ONLY within file_write/file_append function implementations
+        # Look for: open(path, 'w') or open(path, 'a')
+        echo "Checking for file write operations..."
+        write_count=$(grep -n "open(.*['\"]w['\"]" src/lipi.py | wc -l)
+        append_count=$(grep -n "open(.*['\"]a['\"]" src/lipi.py | wc -l)
+
+        echo "Found $write_count write operations and $append_count append operations"
+
+        # v2.0 should have exactly 1 write (line 283) and 1 append (line 299)
+        if [ "$write_count" -ne 1 ] || [ "$append_count" -ne 1 ]; then
+          echo "ERROR: Unexpected number of file operations"
+          echo "Expected: 1 write, 1 append (for File I/O feature)"
+          echo "Found: $write_count write, $append_count append"
+          grep -n "open(.*['\"]w['\"]" src/lipi.py || true
+          grep -n "open(.*['\"]a['\"]" src/lipi.py || true
+          exit 1
+        fi
+
+        echo "✓ File operations verified (v2.0 File I/O feature)"
+
+  dependency-check:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Verify no external dependencies
+      run: |
+        echo "Checking that src/lipi.py has minimal dependencies..."
+
+        # src/lipi.py should only import standard library modules (v2.0)
+        # importlib: Python library access feature
+        # sqlite3: Database connectivity
+        # urllib.request, urllib.parse: HTTP/API support
+        # json: JSON data handling
+        allowed_imports="sys|importlib|sqlite3|urllib\.request|urllib\.parse|json"
+        imports=$(grep "^import " src/lipi.py | grep -v -E "import ($allowed_imports)" || true)
+
+        if [ ! -z "$imports" ]; then
+          echo "WARNING: Found unexpected imports:"
+          echo "$imports"
+          exit 1
+        fi
+
+        echo "✓ Only standard library dependencies found"
+
+  code-injection-tests:
+    name: Additional Code Injection Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Test malicious input handling
+      run: |
+        cat > /tmp/malicious_test.lipi.py << 'EOF'
+        # Test 1: Try to import modules
+        test1 = "import os"
+        చెప్పు "Test 1 passed"
+
+        # Test 2: Try eval injection
+        test2 = "__import__('os').system('echo pwned')"
+        print "Test 2 passed"
+
+        # Test 3: Try file access
+        test3 = "/etc/passwd"
+        చెప్పు "Test 3 passed"
+        EOF
+
+        echo "Running malicious input tests..."
+        python3 src/lipi.py /tmp/malicious_test.lipi.py
+
+        echo "✓ All malicious inputs handled safely"

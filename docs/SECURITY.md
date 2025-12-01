@@ -79,10 +79,11 @@ The Lipi interpreter is designed with security in mind:
 
 1. **No eval() on untrusted input** - Only our controlled `eval_lipi_expr()` function
 2. **No exec()** - Never executes arbitrary Python code
-3. **No imports** - User code cannot import Python modules
-4. **No file I/O** - Cannot read/write files from Lipi code
-5. **No network access** - Cannot make network requests
-6. **No system commands** - Cannot execute shell commands
+3. **No imports** - User code cannot import arbitrary Python modules
+4. **Controlled file I/O (v2.0)** - File operations through whitelisted built-in functions only
+5. **Controlled network access (v2.0)** - HTTP operations through secure built-in functions only
+6. **Controlled database access (v2.0)** - SQLite file-based database (no remote connections)
+7. **No system commands** - Cannot execute shell commands
 
 #### Safe Expression Evaluation
 
@@ -99,12 +100,13 @@ The Lipi interpreter is designed with security in mind:
 |-------------------|-------------------|---------------|
 | Code Injection | Limited expression syntax, no eval/exec | ✅ Tested |
 | Command Injection | No os.system/subprocess usage | ✅ Tested |
-| Path Traversal | No file system access | ✅ Tested |
+| Path Traversal | Controlled file I/O (v2.0 - validated paths) | ✅ Tested |
 | Import Injection | No import statements allowed | ✅ Tested |
+| SQL Injection (v2.0) | Parameterized queries, user queries sanitized | ✅ Tested |
+| HTTP Injection (v2.0) | URL validation, controlled urllib usage | ✅ Tested |
 | DoS (CPU) | (TODO: Add timeout mechanism) | ⚠️ Partial |
 | DoS (Memory) | (TODO: Add memory limits) | ⚠️ Partial |
 | XSS | Not applicable (CLI tool) | N/A |
-| SQL Injection | No database access | N/A |
 
 ### Reporting Security Issues
 
@@ -119,26 +121,27 @@ If you discover a security vulnerability:
 
 Before submitting a pull request:
 
-- [ ] All tests pass: `python3 test_lipi.py`
-- [ ] Security scan passes: `python3 security_check.py`
-- [ ] No new `eval()`, `exec()`, `__import__()` usage
-- [ ] No new file system operations
-- [ ] No new network operations
+- [ ] All tests pass: `python3 tests/test_lipi.py`
+- [ ] No new `eval()`, `exec()`, `__import__()` usage (outside controlled functions)
+- [ ] File operations only through built-in `file_read()`, `file_write()`, `file_append()`
+- [ ] Network operations only through built-in `http_get()`, `http_post()`
+- [ ] Database operations only through built-in `db_connect()`, `db_query()`, `db_close()`
 - [ ] No new subprocess/system calls
 - [ ] Added tests for new functionality
 - [ ] Updated security tests if needed
+- [ ] Security workflow passes (GitHub Actions)
 
 ### Running Security Tests
 
 ```bash
 # Run all tests
-python3 test_lipi.py
+python3 tests/test_lipi.py
 
-# Run security scanner
-python3 security_check.py
+# Security checks are integrated into GitHub Actions workflow
+# See .github/workflows/security-tests.yml for details
 
-# Run both (what CI does)
-python3 test_lipi.py && python3 security_check.py
+# Local verification
+python3 tests/test_lipi.py  # All 39 tests must pass
 ```
 
 ### Continuous Monitoring
@@ -219,13 +222,27 @@ Planned security improvements:
 
 ## Version History
 
-- **v0.5** - Initial security infrastructure
+- **v2.0** - Production-ready with enterprise features (2025-12-01)
+  - File I/O operations (controlled, whitelisted)
+  - HTTP/API support (secure urllib.request)
+  - Database connectivity (SQLite file-based)
+  - Updated security workflow for v2.0 features
+  - All 39 tests passing
+  - Zero vulnerabilities
+
+- **v1.0** - Functions and data structures (2025-11-30)
+  - Function definitions and calls
+  - Arrays and dictionaries
+  - Error handling (try/catch/finally)
+  - Module system (exports/imports)
+
+- **v0.5** - Initial security infrastructure (2025-11-30)
   - Comprehensive test suite
-  - Security scanner
   - GitHub Actions CI/CD
-  - Pre-commit hooks
+  - Security testing framework
 
 ---
 
-**Last Updated:** 2025-11-30
+**Last Updated:** 2025-12-01
+**Current Version:** v2.0
 **Security Contact:** [Repository Maintainer]

@@ -91,13 +91,26 @@ jobs:
           exit 1
         fi
 
-        # Check for file write operations
-        if grep -n "open.*[\"']w\|open.*[\"']a" src/lipi.py; then
-          echo "WARNING: Found file write operations"
+        # Check for file write operations (v2.0: Allow controlled File I/O feature)
+        # File writes are allowed ONLY within file_write/file_append function implementations
+        # Look for: open(path, 'w') or open(path, 'a')
+        echo "Checking for file write operations..."
+        write_count=$(grep -n "open(.*['\"]w['\"]" src/lipi.py | wc -l)
+        append_count=$(grep -n "open(.*['\"]a['\"]" src/lipi.py | wc -l)
+
+        echo "Found $write_count write operations and $append_count append operations"
+
+        # v2.0 should have exactly 1 write (line 283) and 1 append (line 299)
+        if [ "$write_count" -ne 1 ] || [ "$append_count" -ne 1 ]; then
+          echo "ERROR: Unexpected number of file operations"
+          echo "Expected: 1 write, 1 append (for File I/O feature)"
+          echo "Found: $write_count write, $append_count append"
+          grep -n "open(.*['\"]w['\"]" src/lipi.py || true
+          grep -n "open(.*['\"]a['\"]" src/lipi.py || true
           exit 1
         fi
 
-        echo "✓ No suspicious patterns found"
+        echo "✓ File operations verified (v2.0 File I/O feature)"
 
   dependency-check:
     name: Check Dependencies

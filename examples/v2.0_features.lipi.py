@@ -193,7 +193,10 @@ end
 function export_users_to_file(users, filepath):
     file_write(filepath, "=== User Export ===\n")
     పునరావృతం user in users:
-        line = "ID: " + str(user["id"]) + ", Username: " + user["username"] + ", Email: " + user["email"] + "\n"
+        user_id = str(user["id"])
+        username = user["username"]
+        email = user["email"]
+        line = "ID: " + user_id + ", Username: " + username + ", Email: " + email + "\n"
         file_append(filepath, line)
     ముగింపు
     return true
@@ -216,7 +219,9 @@ print "Total users: " + str(len(all_users))
 
 చెప్పు "User list:"
 for user in all_users:
-    print "  - " + user["username"] + " (" + user["email"] + ")"
+    username = user["username"]
+    email = user["email"]
+    print "  - " + username + " (" + email + ")"
 end
 చెప్పు ""
 
@@ -252,7 +257,9 @@ db_query(db, "INSERT INTO products (name, price) VALUES ('Mouse', 500)")
 results = డేటాబేస్_ప్రశ్న(db, "SELECT * FROM products")
 చెప్పు "Products:"
 పునరావృతం product in results:
-    చెప్పు "  " + product["name"] + ": ₹" + str(product["price"])
+    name = product["name"]
+    price = str(product["price"])
+    చెప్పు "  " + name + ": ₹" + price
 ముగింపు
 
 db_close(db)

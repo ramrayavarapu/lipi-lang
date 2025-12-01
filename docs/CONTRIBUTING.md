@@ -98,13 +98,23 @@ When adding features:
 ### Testing Guidelines
 
 ```python
-# Good test
+# Good test (basic feature)
 def test_telugu_print_statement(self):
     """Test Telugu print with string literal"""
     env = {}
     with captured_output() as output:
         lipi.run_lipi_line('చెప్పు "నమస్తే"', env)
     self.assertEqual(output.getvalue().strip(), "నమస్తే")
+
+# v2.0 feature test example
+def test_file_operations(self):
+    """Test v2.0 file I/O operations"""
+    env = {}
+    # Write file
+    lipi.run_lipi_line('file_write("/tmp/test.txt", "content")', env)
+    # Read file
+    content = lipi.eval_lipi_expr('file_read("/tmp/test.txt")', env)
+    self.assertEqual(content, "content")
 
 # Include security test if needed
 def test_no_injection_in_feature(self):
@@ -148,16 +158,17 @@ Update relevant documentation:
 ### What We're Looking For
 
 **High Priority:**
-- Telugu keyword translations
-- Bug fixes
+- Bug fixes for v2.0 features (File I/O, Database, HTTP)
 - Security improvements
 - Test coverage improvements
 - Documentation improvements
+- Community engagement & feedback
 
 **Medium Priority:**
-- New language features (functions, arrays, etc.)
+- New v3.0+ language features (advanced OOP, imports, etc.)
 - Performance optimizations
 - Error message improvements
+- Additional Telugu keyword synonyms
 
 **Low Priority:**
 - Code refactoring (must maintain compatibility)

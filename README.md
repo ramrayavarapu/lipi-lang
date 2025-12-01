@@ -116,6 +116,9 @@ python3 src/lipi.py examples/english.lipi.py
 # Run a bilingual program | ద్విభాషా ప్రోగ్రామ్ రన్ చేయండి
 python3 src/lipi.py examples/bilingual.lipi.py
 
+# Run v2.0 features demo | v2.0 ఫీచర్ల డెమో రన్ చేయండి
+python3 src/lipi.py examples/v2.0_features.lipi.py
+
 # Start the interactive REPL | ఇంటరాక్టివ్ REPL ప్రారంభించండి
 python3 src/lipi.py
 ```
@@ -254,20 +257,33 @@ end
 
 ## Current Version | ప్రస్తుత వెర్షన్
 
-**v0.5** - Bilingual support with Telugu and English keywords
-**v0.5** - తెలుగు మరియు ఇంగ్లీష్ కీవర్డ్‌లతో ద్విభాషా మద్దతు
+**v2.0** - Production-ready with File I/O, HTTP/API, and Database connectivity
+**v2.0** - ఫైల్ I/O, HTTP/API మరియు డేటాబేస్ కనెక్టివిటీతో ఉత్పత్తి-సిద్ధం
+
+See `examples/v2.0_features.lipi.py` for complete demonstrations!
 
 ## Roadmap | రోడ్‌మ్యాప్
 
-**English:** Upcoming features:
+**English:** Completed features (v1.0-v2.0):
 
-**తెలుగు:** రాబోయే ఫీచర్లు:
+**తెలుగు:** పూర్తయిన ఫీచర్లు (v1.0-v2.0):
 
-- [ ] Functions/procedures | ఫంక్షన్లు/ప్రొసీజర్లు
-- [ ] Nested control structures | నెస్టెడ్ కంట్రోల్ స్ట్రక్చర్లు
-- [ ] More operators | మరిన్ని ఆపరేటర్లు
-- [ ] File I/O | ఫైల్ ఇన్‌పుట్/అవుట్‌పుట్
-- [ ] Standard library | స్టాండర్డ్ లైబ్రరీ
+- [x] Functions/procedures | ఫంక్షన్లు/ప్రొసీజర్లు ✅ v1.0
+- [x] Arrays & dictionaries | అర్రేలు & డిక్షనరీలు ✅ v1.0
+- [x] Error handling (try/catch) | ఎర్రర్ హ్యాండ్లింగ్ ✅ v1.0
+- [x] File I/O | ఫైల్ ఇన్‌పుట్/అవుట్‌పుట్ ✅ v2.0
+- [x] Database connectivity (SQLite) | డేటాబేస్ కనెక్టివిటీ ✅ v2.0
+- [x] HTTP/API support | HTTP/API మద్దతు ✅ v2.0
+
+**English:** Future features (v3.0+):
+
+**తెలుగు:** భవిష్యత్ ఫీచర్లు (v3.0+):
+
+- [ ] Full module import system | పూర్తి మాడ్యూల్ ఇంపోర్ట్ సిస్టమ్
+- [ ] Advanced OOP (classes, inheritance) | అధునాతన OOP
+- [ ] Multi-database support (MySQL, PostgreSQL) | మల్టీ-డేటాబేస్ మద్దతు
+- [ ] Package manager | ప్యాకేజ్ మేనేజర్
+- [ ] Native compilation | నేటివ్ కంపైలేషన్
 - [ ] More Indian language support (Hindi, Tamil, etc.) | మరిన్ని భారతీయ భాషల మద్దతు (హిందీ, తమిళం, మొదలైనవి)
 
 ## Security | భద్రత

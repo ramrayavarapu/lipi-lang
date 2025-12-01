@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Lipi Language - v2.0 (Full-Featured Production Ready)
+Lipi Language - v3.0 (Enterprise Scale)
 A bilingual (Telugu + English) scripting language.
 
-NEW in v2.0:
+NEW in v3.0:
+- ✅ Full module import system (దిగుమతి / import from "module")
+- 🔄 OOP Classes with inheritance (క్లాస్ / class) - IN PROGRESS
+- 🔄 MySQL database support - IN PROGRESS
+- 🔄 PostgreSQL database support - IN PROGRESS
+
+Implemented in v2.0:
 - ✅ File I/O (ఫైల్_చదువు / file_read, ఫైల్_వ్రాయి / file_write)
 - ✅ HTTP/API support (http_పొందు / http_get, http_పంపు / http_post)
 - ✅ Database connectivity (డేటాబేస్_కనెక్ట్ / db_connect, SQLite)
@@ -31,6 +37,7 @@ Supported in v0.5:
 """
 
 import sys
+import os
 import importlib
 import sqlite3
 import urllib.request
@@ -48,6 +55,9 @@ class LipiRuntime:
         self.modules = {}  # Imported Lipi modules
         self.exports = {}  # Module exports
         self.db_connections = {}  # Database connections
+        self.loaded_modules = {}  # v3.0: Track loaded module exports
+        self.module_stack = []  # v3.0: Detect circular imports
+        self.current_module_path = None  # v3.0: Track current module for relative imports
         self.whitelist_modules = [
             'math', 'json', 'datetime', 'random', 're', 'time',
             'collections', 'itertools', 'functools', 'operator'
@@ -70,6 +80,194 @@ class LipiReturnValue(Exception):
     def __init__(self, value):
         self.value = value
         super().__init__()
+
+
+# ---------------------------
+# v3.0: Module Import System
+# ---------------------------
+
+def resolve_module_path(module_name, current_file_path=None):
+    """
+    Resolve module path relative to current file or absolute.
+
+    Args:
+        module_name: Module name like "utils" or "models/user"
+        current_file_path: Path of file doing the import
+
+    Returns:
+        Absolute path to module file
+    """
+    # Security: Prevent path traversal
+    if '..' in module_name or module_name.startswith('/'):
+        raise LipiException(f"Invalid module path: {module_name}. Path traversal not allowed.")
+
+    # Add .lipi.py extension if not present
+    if not module_name.endswith('.lipi.py'):
+        module_file = module_name + '.lipi.py'
+    else:
+        module_file = module_name
+
+    # If current file path provided, resolve relative to it
+    if current_file_path:
+        current_dir = os.path.dirname(os.path.abspath(current_file_path))
+        module_path = os.path.join(current_dir, module_file)
+    else:
+        # Resolve relative to current working directory
+        module_path = os.path.abspath(module_file)
+
+    return module_path
+
+
+def load_lipi_module(module_path, runtime, parent_env):
+    """
+    Load a Lipi module file and return its exports.
+
+    Args:
+        module_path: Absolute path to .lipi.py file
+        runtime: LipiRuntime instance
+        parent_env: Parent environment (for variable access)
+
+    Returns:
+        Dictionary of exported functions/variables
+    """
+    # Check if already loaded (module caching)
+    if module_path in runtime.loaded_modules:
+        return runtime.loaded_modules[module_path]
+
+    # Check for circular imports
+    if module_path in runtime.module_stack:
+        cycle = ' -> '.join(runtime.module_stack + [module_path])
+        raise LipiException(f"Circular import detected: {cycle}")
+
+    # Check if file exists
+    if not os.path.exists(module_path):
+        raise LipiException(f"Module not found: {module_path}")
+
+    # Push to module stack
+    runtime.module_stack.append(module_path)
+    prev_module_path = runtime.current_module_path
+    runtime.current_module_path = module_path
+
+    try:
+        # Read module file
+        with open(module_path, 'r', encoding='utf-8') as f:
+            module_code = f.read()
+
+        # Create new environment for module
+        module_env = parent_env.copy()  # Inherit parent scope
+        module_exports = {}
+
+        # Split into lines
+        lines = module_code.split('\n')
+
+        # Track what to export (collect export statements first)
+        temp_exports_list = []
+        filtered_lines = []
+
+        for line in lines:
+            stripped = line.strip()
+            # Collect export statements but don't execute them
+            if stripped.startswith('ఎగుమతి ') or stripped.startswith('export '):
+                export_keyword = 'ఎగుమతి ' if stripped.startswith('ఎగుమతి ') else 'export '
+                exports_str = stripped[len(export_keyword):].strip()
+                export_names = [name.strip() for name in exports_str.split(',')]
+                temp_exports_list.extend(export_names)
+            else:
+                # Keep non-export lines for execution
+                filtered_lines.append(line)
+
+        # Execute the module code (handles multi-line functions properly)
+        try:
+            execute_block(filtered_lines, module_env)
+        except LipiReturnValue:
+            # Returns shouldn't escape module scope
+            pass
+
+        # Collect exported items
+        for export_name in temp_exports_list:
+            if export_name in module_env:
+                module_exports[export_name] = module_env[export_name]
+            elif export_name in runtime.functions:
+                module_exports[export_name] = runtime.functions[export_name]
+            else:
+                raise LipiException(f"Cannot export '{export_name}': not defined in module")
+
+        # Cache the module exports
+        runtime.loaded_modules[module_path] = module_exports
+
+        return module_exports
+
+    finally:
+        # Pop from module stack
+        runtime.module_stack.pop()
+        runtime.current_module_path = prev_module_path
+
+
+def parse_import_statement(line, runtime, env):
+    """
+    Parse import statement and load module.
+
+    Syntax:
+        దిగుమతి function_name from "module_path"
+        import function_name from "module_path"
+        దిగుమతి function1, function2 from "module"
+
+    Args:
+        line: Import statement line
+        runtime: LipiRuntime instance
+        env: Current environment
+    """
+    # Determine which keyword is used
+    if line.startswith('దిగుమతి '):
+        keyword = 'దిగుమతి '
+    elif line.startswith('import '):
+        keyword = 'import '
+    else:
+        raise LipiException(f"Invalid import statement: {line}")
+
+    # Remove keyword
+    import_spec = line[len(keyword):].strip()
+
+    # Check for "from" keyword
+    if ' from ' in import_spec:
+        parts = import_spec.split(' from ')
+        if len(parts) != 2:
+            raise LipiException(f"Invalid import syntax: {line}")
+
+        import_names_str, module_name_quoted = parts
+
+        # Parse imported names (can be comma-separated)
+        import_names = [name.strip() for name in import_names_str.split(',')]
+
+        # Remove quotes from module name
+        module_name = module_name_quoted.strip()
+        if (module_name.startswith('"') and module_name.endswith('"')) or \
+           (module_name.startswith("'") and module_name.endswith("'")):
+            module_name = module_name[1:-1]
+        else:
+            raise LipiException(f"Module name must be quoted: {module_name_quoted}")
+
+        # Resolve module path
+        module_path = resolve_module_path(module_name, runtime.current_module_path)
+
+        # Load module
+        module_exports = load_lipi_module(module_path, runtime, env)
+
+        # Import requested names into current environment
+        for import_name in import_names:
+            if import_name not in module_exports:
+                raise LipiException(f"Module '{module_name}' does not export '{import_name}'")
+
+            # Add to current environment
+            if callable(module_exports[import_name]):
+                # It's a function - add to runtime.functions
+                runtime.functions[import_name] = module_exports[import_name]
+            else:
+                # It's a variable - add to environment
+                env[import_name] = module_exports[import_name]
+
+    else:
+        raise LipiException(f"Import statement must use 'from' keyword: {line}")
 
 
 # ---------------------------
@@ -620,6 +818,14 @@ def run_lipi_line(line, env):
             raise LipiException(f"Failed to import Python module {module_name}: {e}")
         return
 
+    # v3.0: Lipi module import: దిగుమతి func from "module" / import func from "module"
+    if line.startswith("దిగుమతి ") or line.startswith("import "):
+        # Check if it's a module import (has "from" keyword)
+        if " from " in line:
+            parse_import_statement(line, runtime, env)
+            return
+        # Otherwise fall through to other statement types
+
     # Export statement: export func_name / ఎగుమతి func_name
     if line.startswith("export ") or line.startswith("ఎగుమతి "):
         names = line[7:] if line.startswith("export ") else line[8:]
@@ -1013,6 +1219,9 @@ def run_lipi_file(path):
     """Run a Lipi source file"""
     env = {}
 
+    # v3.0: Set current module path for imports
+    runtime.current_module_path = os.path.abspath(path)
+
     with open(path, "r", encoding="utf-8") as f:
         lines = [ln.rstrip("\n") for ln in f]
 
@@ -1022,6 +1231,9 @@ def run_lipi_file(path):
         print(f"[లోపం] Runtime error: {e}")
         import traceback
         traceback.print_exc()
+    finally:
+        # Reset module path
+        runtime.current_module_path = None
 
 
 # ---------------------------

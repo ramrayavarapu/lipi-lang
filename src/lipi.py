@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Lipi Language - v1.0 (Production Ready)
+Lipi Language - v2.0 (Full-Featured Production Ready)
 A bilingual (Telugu + English) scripting language.
 
-NEW in v1.0:
+NEW in v2.0:
+- ✅ File I/O (ఫైల్_చదువు / file_read, ఫైల్_వ్రాయి / file_write)
+- ✅ HTTP/API support (http_పొందు / http_get, http_పంపు / http_post)
+- ✅ Database connectivity (డేటాబేస్_కనెక్ట్ / db_connect, SQLite)
+
+Implemented in v1.0:
 - ✅ Functions and procedures (పనిచేయి / function)
 - ✅ Arrays and lists (జాబితా / list)
 - ✅ Objects/dictionaries (వస్తువు / object)
@@ -27,6 +32,10 @@ Supported in v0.5:
 
 import sys
 import importlib
+import sqlite3
+import urllib.request
+import urllib.parse
+import json
 
 # ---------------------------
 # Global Runtime Environment
@@ -38,6 +47,7 @@ class LipiRuntime:
         self.python_modules = {}  # Imported Python modules
         self.modules = {}  # Imported Lipi modules
         self.exports = {}  # Module exports
+        self.db_connections = {}  # Database connections
         self.whitelist_modules = [
             'math', 'json', 'datetime', 'random', 're', 'time',
             'collections', 'itertools', 'functools', 'operator'
@@ -96,6 +106,54 @@ def find_operator_outside_strings(expr, operator):
     return -1
 
 
+def split_arguments(args_str):
+    """
+    Split function arguments by comma, respecting string boundaries and parentheses.
+    Example: 'a, "b, c", d' -> ['a', '"b, c"', 'd']
+    """
+    args = []
+    current = []
+    in_string = False
+    string_char = None
+    paren_depth = 0
+    bracket_depth = 0
+
+    for i, char in enumerate(args_str):
+        # Track string boundaries
+        if char in ['"', "'"] and (i == 0 or args_str[i-1] != '\\'):
+            if not in_string:
+                in_string = True
+                string_char = char
+            elif char == string_char:
+                in_string = False
+                string_char = None
+
+        # Track parentheses and brackets
+        if not in_string:
+            if char == '(':
+                paren_depth += 1
+            elif char == ')':
+                paren_depth -= 1
+            elif char == '[':
+                bracket_depth += 1
+            elif char == ']':
+                bracket_depth -= 1
+
+            # Split on comma only if not in string and all brackets/parens are balanced
+            if char == ',' and paren_depth == 0 and bracket_depth == 0:
+                args.append(''.join(current).strip())
+                current = []
+                continue
+
+        current.append(char)
+
+    # Add last argument
+    if current:
+        args.append(''.join(current).strip())
+
+    return args
+
+
 def eval_lipi_expr(expr, env):
     """
     Evaluate a Lipi expression.
@@ -125,10 +183,15 @@ def eval_lipi_expr(expr, env):
     if expr in ['false', 'అబద్ధం']:
         return False
 
-    # String literal
+    # String literal (only if no operators outside quotes)
     if (expr.startswith('"') and expr.endswith('"')) or \
        (expr.startswith("'") and expr.endswith("'")):
-        return expr[1:-1]
+        # Check if there are operators outside string boundaries
+        # If there's a + operator outside strings, it's not a simple string literal
+        if find_operator_outside_strings(expr, " + ") == -1 and \
+           find_operator_outside_strings(expr, " - ") == -1:
+            return expr[1:-1]
+        # Otherwise, fall through to operator handling below
 
     # List literal [1, 2, 3]
     if expr.startswith('[') and expr.endswith(']'):
@@ -195,6 +258,133 @@ def eval_lipi_expr(expr, env):
         arg_expr = expr[4:-1]
         arg_val = eval_lipi_expr(arg_expr, env)
         return int(arg_val)
+
+    # File I/O: file_read(path) / ఫైల్_చదువు(path)
+    if expr.startswith('file_read(') or expr.startswith('ఫైల్_చదువు('):
+        start = len('file_read(') if expr.startswith('file_read(') else len('ఫైల్_చదువు(')
+        arg_expr = expr[start:-1]
+        file_path = eval_lipi_expr(arg_expr, env)
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            raise LipiException(f"File read error: {e}")
+
+    # File I/O: file_write(path, content) / ఫైల్_వ్రాయి(path, content)
+    if expr.startswith('file_write(') or expr.startswith('ఫైల్_వ్రాయి('):
+        start = len('file_write(') if expr.startswith('file_write(') else len('ఫైల్_వ్రాయి(')
+        args_expr = expr[start:-1]
+        args = split_arguments(args_expr)
+        if len(args) != 2:
+            raise LipiException("file_write requires 2 arguments: path and content")
+        file_path = eval_lipi_expr(args[0], env)
+        content = eval_lipi_expr(args[1], env)
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(str(content))
+            return True
+        except Exception as e:
+            raise LipiException(f"File write error: {e}")
+
+    # File I/O: file_append(path, content) / ఫైల్_జోడించు(path, content)
+    if expr.startswith('file_append(') or expr.startswith('ఫైల్_జోడించు('):
+        start = len('file_append(') if expr.startswith('file_append(') else len('ఫైల్_జోడించు(')
+        args_expr = expr[start:-1]
+        args = split_arguments(args_expr)
+        if len(args) != 2:
+            raise LipiException("file_append requires 2 arguments: path and content")
+        file_path = eval_lipi_expr(args[0], env)
+        content = eval_lipi_expr(args[1], env)
+        try:
+            with open(file_path, 'a', encoding='utf-8') as f:
+                f.write(str(content))
+            return True
+        except Exception as e:
+            raise LipiException(f"File append error: {e}")
+
+    # HTTP: http_get(url) / http_పొందు(url)
+    if expr.startswith('http_get(') or expr.startswith('http_పొందు('):
+        start = len('http_get(') if expr.startswith('http_get(') else len('http_పొందు(')
+        arg_expr = expr[start:-1]
+        url = eval_lipi_expr(arg_expr, env)
+        try:
+            with urllib.request.urlopen(url) as response:
+                return response.read().decode('utf-8')
+        except Exception as e:
+            raise LipiException(f"HTTP GET error: {e}")
+
+    # HTTP: http_post(url, data) / http_పంపు(url, data)
+    if expr.startswith('http_post(') or expr.startswith('http_పంపు('):
+        start = len('http_post(') if expr.startswith('http_post(') else len('http_పంపు(')
+        args_expr = expr[start:-1]
+        args = split_arguments(args_expr)
+        if len(args) != 2:
+            raise LipiException("http_post requires 2 arguments: url and data")
+        url = eval_lipi_expr(args[0], env)
+        data = eval_lipi_expr(args[1], env)
+        try:
+            # Convert dict to JSON if needed
+            if isinstance(data, dict):
+                data = json.dumps(data)
+            data_bytes = data.encode('utf-8')
+            req = urllib.request.Request(url, data=data_bytes, headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req) as response:
+                return response.read().decode('utf-8')
+        except Exception as e:
+            raise LipiException(f"HTTP POST error: {e}")
+
+    # Database: db_connect(path) / డేటాబేస్_కనెక్ట్(path)
+    if expr.startswith('db_connect(') or expr.startswith('డేటాబేస్_కనెక్ట్('):
+        start = len('db_connect(') if expr.startswith('db_connect(') else len('డేటాబేస్_కనెక్ట్(')
+        arg_expr = expr[start:-1]
+        db_path = eval_lipi_expr(arg_expr, env)
+        try:
+            conn = sqlite3.connect(db_path)
+            conn_id = f"db_{id(conn)}"
+            runtime.db_connections[conn_id] = conn
+            return conn_id
+        except Exception as e:
+            raise LipiException(f"Database connection error: {e}")
+
+    # Database: db_query(conn_id, sql) / డేటాబేస్_ప్రశ్న(conn_id, sql)
+    if expr.startswith('db_query(') or expr.startswith('డేటాబేస్_ప్రశ్న('):
+        start = len('db_query(') if expr.startswith('db_query(') else len('డేటాబేస్_ప్రశ్న(')
+        args_expr = expr[start:-1]
+        args = split_arguments(args_expr)
+        if len(args) != 2:
+            raise LipiException("db_query requires 2 arguments: connection_id and sql")
+        conn_id = eval_lipi_expr(args[0], env)
+        sql = eval_lipi_expr(args[1], env)
+        try:
+            if conn_id not in runtime.db_connections:
+                raise LipiException(f"Invalid database connection: {conn_id}")
+            conn = runtime.db_connections[conn_id]
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            conn.commit()
+            # Return results for SELECT, row count for other operations
+            if sql.strip().upper().startswith('SELECT'):
+                results = cursor.fetchall()
+                # Convert to list of dicts
+                columns = [desc[0] for desc in cursor.description]
+                return [dict(zip(columns, row)) for row in results]
+            return cursor.rowcount
+        except Exception as e:
+            raise LipiException(f"Database query error: {e}")
+
+    # Database: db_close(conn_id) / డేటాబేస్_మూసివేయి(conn_id)
+    if expr.startswith('db_close(') or expr.startswith('డేటాబేస్_మూసివేయి('):
+        start = len('db_close(') if expr.startswith('db_close(') else len('డేటాబేస్_మూసివేయి(')
+        arg_expr = expr[start:-1]
+        conn_id = eval_lipi_expr(arg_expr, env)
+        try:
+            if conn_id in runtime.db_connections:
+                runtime.db_connections[conn_id].close()
+                del runtime.db_connections[conn_id]
+                return True
+            return False
+        except Exception as e:
+            raise LipiException(f"Database close error: {e}")
 
     # Indexing: list[0] or obj["key"] or obj.key
     if '[' in expr and ']' in expr:
@@ -441,17 +631,32 @@ def run_lipi_line(line, env):
                 runtime.exports[name] = runtime.functions[name]
         return
 
+    # Standalone function call: call func(args) or కాల్ func(args)
+    if line.startswith('call ') or line.startswith('కాల్ '):
+        eval_lipi_expr(line, env)
+        return
+
+    # Standalone built-in function calls (file operations, http, db)
+    # Check these BEFORE assignment to avoid false positives with '=' in function arguments
+    builtin_prefixes = [
+        'file_read(', 'file_write(', 'file_append(',
+        'ఫైల్_చదువు(', 'ఫైల్_వ్రాయి(', 'ఫైల్_జోడించు(',
+        'http_get(', 'http_post(',
+        'http_పొందు(', 'http_పంపు(',
+        'db_connect(', 'db_query(', 'db_close(',
+        'డేటాబేస్_కనెక్ట్(', 'డేటాబేస్_ప్రశ్న(', 'డేటాబేస్_మూసివేయి('
+    ]
+    for prefix in builtin_prefixes:
+        if line.startswith(prefix):
+            eval_lipi_expr(line, env)
+            return
+
     # Assignment: name = expr
     if "=" in line and not any(op in line for op in ["==", ">=", "<=", "!="]):
         name, expr = line.split("=", 1)
         name = name.strip()
         expr = expr.strip()
         env[name] = eval_lipi_expr(expr, env)
-        return
-
-    # Standalone function call: call func(args) or కాల్ func(args)
-    if line.startswith('call ') or line.startswith('కాల్ '):
-        eval_lipi_expr(line, env)
         return
 
     # If we reach here, syntax is unknown

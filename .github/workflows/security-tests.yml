@@ -91,13 +91,26 @@ jobs:
           exit 1
         fi
 
-        # Check for file write operations
-        if grep -n "open.*[\"']w\|open.*[\"']a" src/lipi.py; then
-          echo "WARNING: Found file write operations"
+        # Check for file write operations (v2.0: Allow controlled File I/O feature)
+        # File writes are allowed ONLY within file_write/file_append function implementations
+        # Look for: open(path, 'w') or open(path, 'a')
+        echo "Checking for file write operations..."
+        write_count=$(grep -n "open(.*['\"]w['\"]" src/lipi.py | wc -l)
+        append_count=$(grep -n "open(.*['\"]a['\"]" src/lipi.py | wc -l)
+
+        echo "Found $write_count write operations and $append_count append operations"
+
+        # v2.0 should have exactly 1 write (line 283) and 1 append (line 299)
+        if [ "$write_count" -ne 1 ] || [ "$append_count" -ne 1 ]; then
+          echo "ERROR: Unexpected number of file operations"
+          echo "Expected: 1 write, 1 append (for File I/O feature)"
+          echo "Found: $write_count write, $append_count append"
+          grep -n "open(.*['\"]w['\"]" src/lipi.py || true
+          grep -n "open(.*['\"]a['\"]" src/lipi.py || true
           exit 1
         fi
 
-        echo "✓ No suspicious patterns found"
+        echo "✓ File operations verified (v2.0 File I/O feature)"
 
   dependency-check:
     name: Check Dependencies
@@ -111,9 +124,13 @@ jobs:
       run: |
         echo "Checking that src/lipi.py has minimal dependencies..."
 
-        # src/lipi.py should only import sys and importlib (standard library)
-        # importlib is needed for Python library access feature (v1.0)
-        imports=$(grep "^import " src/lipi.py | grep -v "import sys" | grep -v "import importlib" || true)
+        # src/lipi.py should only import standard library modules (v2.0)
+        # importlib: Python library access feature
+        # sqlite3: Database connectivity
+        # urllib.request, urllib.parse: HTTP/API support
+        # json: JSON data handling
+        allowed_imports="sys|importlib|sqlite3|urllib\.request|urllib\.parse|json"
+        imports=$(grep "^import " src/lipi.py | grep -v -E "import ($allowed_imports)" || true)
 
         if [ ! -z "$imports" ]; then
           echo "WARNING: Found unexpected imports:"

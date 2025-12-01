@@ -183,10 +183,15 @@ def eval_lipi_expr(expr, env):
     if expr in ['false', 'అబద్ధం']:
         return False
 
-    # String literal
+    # String literal (only if no operators outside quotes)
     if (expr.startswith('"') and expr.endswith('"')) or \
        (expr.startswith("'") and expr.endswith("'")):
-        return expr[1:-1]
+        # Check if there are operators outside string boundaries
+        # If there's a + operator outside strings, it's not a simple string literal
+        if find_operator_outside_strings(expr, " + ") == -1 and \
+           find_operator_outside_strings(expr, " - ") == -1:
+            return expr[1:-1]
+        # Otherwise, fall through to operator handling below
 
     # List literal [1, 2, 3]
     if expr.startswith('[') and expr.endswith(']'):

@@ -83,7 +83,8 @@ The Lipi interpreter is designed with security in mind:
 4. **Controlled file I/O (v2.0)** - File operations through whitelisted built-in functions only
 5. **Controlled network access (v2.0)** - HTTP operations through secure built-in functions only
 6. **Controlled database access (v2.0)** - SQLite file-based database (no remote connections)
-7. **No system commands** - Cannot execute shell commands
+7. **Safe path operations (v3.0)** - Module system uses `os.path.*` for path resolution only
+8. **No system commands** - Cannot execute shell commands (`subprocess`, `os.system`, `os.popen` blocked)
 
 #### Safe Expression Evaluation
 

@@ -6,10 +6,10 @@ A bilingual (Telugu + English) scripting language.
 
 NEW in v3.0:
 - ✅ Full module import system (దిగుమతి / import from "module")
-- ✅ OOP Classes (క్లాస్ / class, basic classes with methods)
+- ✅ OOP Classes with inheritance (క్లాస్ / class, inheritance support)
 - ✅ MySQL database support (mysql_కనెక్ట్ / mysql_connect)
-- 🔄 Class inheritance - IN PROGRESS (Day 3)
-- 🔄 PostgreSQL database support - IN PROGRESS (Day 3)
+- ✅ PostgreSQL database support (postgres_కనెక్ట్ / postgres_connect)
+- 🔄 Comprehensive testing & optimization - IN PROGRESS (Day 4-5)
 
 Implemented in v2.0:
 - ✅ File I/O (ఫైల్_చదువు / file_read, ఫైల్_వ్రాయి / file_write)
@@ -51,6 +51,14 @@ try:
     MYSQL_AVAILABLE = True
 except ImportError:
     MYSQL_AVAILABLE = False
+
+# v3.0: Optional PostgreSQL support
+try:
+    import psycopg2
+    import psycopg2.extras
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    POSTGRES_AVAILABLE = False
 
 # ---------------------------
 # Global Runtime Environment
@@ -684,6 +692,103 @@ def eval_lipi_expr(expr, env):
         except Exception as e:
             raise LipiException(f"MySQL close error: {e}")
 
+    # PostgreSQL: postgres_connect(host, user, password, database, [port]) / postgres_కనెక్ట్(...) (v3.0)
+    if expr.startswith('postgres_connect(') or expr.startswith('postgres_కనెక్ట్('):
+        if not POSTGRES_AVAILABLE:
+            raise LipiException("PostgreSQL connector not available. Install: pip install psycopg2-binary")
+
+        start = len('postgres_connect(') if expr.startswith('postgres_connect(') else len('postgres_కనెక్ట్(')
+        args_expr = expr[start:-1]
+        args = [arg.strip() for arg in split_arguments(args_expr)]
+
+        if len(args) < 4:
+            raise LipiException("postgres_connect requires at least 4 arguments: (host, user, password, database, [port])")
+
+        host = eval_lipi_expr(args[0], env)
+        user = eval_lipi_expr(args[1], env)
+        password = eval_lipi_expr(args[2], env)
+        database = eval_lipi_expr(args[3], env)
+        port = "5432"  # Default PostgreSQL port
+        if len(args) >= 5:
+            port = eval_lipi_expr(args[4], env)
+
+        try:
+            conn = psycopg2.connect(
+                host=host,
+                user=user,
+                password=password,
+                database=database,
+                port=port
+            )
+            conn_id = f"pg_{id(conn)}"
+            runtime.db_connections[conn_id] = conn
+            return conn_id
+        except Exception as e:
+            raise LipiException(f"PostgreSQL connection error: {e}")
+
+    # PostgreSQL: postgres_query(conn_id, sql, [params]) / postgres_ప్రశ్న(...) (v3.0)
+    if expr.startswith('postgres_query(') or expr.startswith('postgres_ప్రశ్న('):
+        if not POSTGRES_AVAILABLE:
+            raise LipiException("PostgreSQL connector not available. Install: pip install psycopg2-binary")
+
+        start = len('postgres_query(') if expr.startswith('postgres_query(') else len('postgres_ప్రశ్న(')
+        args_expr = expr[start:-1]
+        args = [arg.strip() for arg in split_arguments(args_expr)]
+
+        if len(args) < 2:
+            raise LipiException("postgres_query requires at least 2 arguments: (conn_id, sql, [params])")
+
+        conn_id = eval_lipi_expr(args[0], env)
+        sql = eval_lipi_expr(args[1], env)
+        params = None
+        if len(args) >= 3:
+            params = eval_lipi_expr(args[2], env)
+            if not isinstance(params, (list, tuple)):
+                params = [params]
+
+        try:
+            if conn_id not in runtime.db_connections:
+                raise LipiException(f"Invalid PostgreSQL connection: {conn_id}")
+
+            conn = runtime.db_connections[conn_id]
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)  # Return results as dictionaries
+
+            if params:
+                cursor.execute(sql, params)
+            else:
+                cursor.execute(sql)
+
+            conn.commit()
+
+            # Fetch results if it's a SELECT query
+            if sql.strip().upper().startswith('SELECT'):
+                results = cursor.fetchall()
+                # Convert RealDictRow to regular dict
+                results = [dict(row) for row in results]
+                cursor.close()
+                return results
+            else:
+                # For INSERT/UPDATE/DELETE, return affected rows
+                affected = cursor.rowcount
+                cursor.close()
+                return affected
+        except Exception as e:
+            raise LipiException(f"PostgreSQL query error: {e}")
+
+    # PostgreSQL: postgres_close(conn_id) / postgres_మూసివేయి(conn_id) (v3.0)
+    if expr.startswith('postgres_close(') or expr.startswith('postgres_మూసివేయి('):
+        start = len('postgres_close(') if expr.startswith('postgres_close(') else len('postgres_మూసివేయి(')
+        arg_expr = expr[start:-1]
+        conn_id = eval_lipi_expr(arg_expr, env)
+        try:
+            if conn_id in runtime.db_connections and conn_id.startswith('pg_'):
+                runtime.db_connections[conn_id].close()
+                del runtime.db_connections[conn_id]
+                return True
+            return False
+        except Exception as e:
+            raise LipiException(f"PostgreSQL close error: {e}")
+
     # Indexing: list[0] or obj["key"] or obj.key
     if '[' in expr and ']' in expr:
         # Find the variable name and index
@@ -1019,7 +1124,9 @@ def run_lipi_line(line, env):
         'db_connect(', 'db_query(', 'db_close(',
         'డేటాబేస్_కనెక్ట్(', 'డేటాబేస్_ప్రశ్న(', 'డేటాబేస్_మూసివేయి(',
         'mysql_connect(', 'mysql_query(', 'mysql_close(',  # v3.0 MySQL
-        'mysql_కనెక్ట్(', 'mysql_ప్రశ్న(', 'mysql_మూసివేయి('  # v3.0 MySQL Telugu
+        'mysql_కనెక్ట్(', 'mysql_ప్రశ్న(', 'mysql_మూసివేయి(',  # v3.0 MySQL Telugu
+        'postgres_connect(', 'postgres_query(', 'postgres_close(',  # v3.0 PostgreSQL
+        'postgres_కనెక్ట్(', 'postgres_ప్రశ్న(', 'postgres_మూసివేయి('  # v3.0 PostgreSQL Telugu
     ]
     for prefix in builtin_prefixes:
         if line.startswith(prefix):
@@ -1220,6 +1327,7 @@ def instantiate_class(class_name, args, env):
     """
     Create a new instance of a class.
     Example: person = Person("Ram", 25)
+    Supports inheritance: looks up __init__ in child, then parent, then grandparent, etc.
     """
     if class_name not in runtime.classes:
         raise LipiException(f"Undefined class: {class_name}")
@@ -1227,9 +1335,24 @@ def instantiate_class(class_name, args, env):
     class_def = runtime.classes[class_name]
     instance = LipiClassInstance(class_name, class_def)
 
-    # Call __init__ if it exists
-    if '__init__' in class_def['methods']:
-        init_method = class_def['methods']['__init__']
+    # v3.0: Look for __init__ in class hierarchy (inheritance support)
+    init_method = None
+    current_class_def = class_def
+
+    while current_class_def is not None:
+        if '__init__' in current_class_def['methods']:
+            init_method = current_class_def['methods']['__init__']
+            break
+
+        # Move to parent class
+        parent_name = current_class_def.get('parent')
+        if parent_name and parent_name in runtime.classes:
+            current_class_def = runtime.classes[parent_name]
+        else:
+            current_class_def = None
+
+    # Call __init__ if found in hierarchy
+    if init_method:
         # Create method environment with self bound to instance
         method_env = env.copy()
         method_env['స్వీయ'] = instance  # Telugu 'self'
@@ -1257,16 +1380,32 @@ def call_method(instance, method_name, args, env):
     """
     Call a method on a class instance.
     Example: person.greet()
+    Supports inheritance: looks up method in child, then parent, then grandparent, etc.
     """
     if not isinstance(instance, LipiClassInstance):
         raise LipiException(f"Cannot call method on non-instance: {type(instance)}")
 
-    class_def = instance.class_def
+    # v3.0: Walk inheritance chain to find method
+    method = None
+    current_class_def = instance.class_def
+    method_class_name = instance.class_name
 
-    if method_name not in class_def['methods']:
+    # Look up method in class hierarchy
+    while current_class_def is not None:
+        if method_name in current_class_def['methods']:
+            method = current_class_def['methods'][method_name]
+            break
+
+        # Move to parent class
+        parent_name = current_class_def.get('parent')
+        if parent_name and parent_name in runtime.classes:
+            current_class_def = runtime.classes[parent_name]
+            method_class_name = parent_name
+        else:
+            current_class_def = None
+
+    if method is None:
         raise LipiException(f"Undefined method: {instance.class_name}.{method_name}")
-
-    method = class_def['methods'][method_name]
 
     # Create method environment with self bound to instance
     method_env = env.copy()

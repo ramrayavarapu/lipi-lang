@@ -6,9 +6,10 @@ A bilingual (Telugu + English) scripting language.
 
 NEW in v3.0:
 - ✅ Full module import system (దిగుమతి / import from "module")
-- 🔄 OOP Classes with inheritance (క్లాస్ / class) - IN PROGRESS
-- 🔄 MySQL database support - IN PROGRESS
-- 🔄 PostgreSQL database support - IN PROGRESS
+- ✅ OOP Classes (క్లాస్ / class, basic classes with methods)
+- ✅ MySQL database support (mysql_కనెక్ట్ / mysql_connect)
+- 🔄 Class inheritance - IN PROGRESS (Day 3)
+- 🔄 PostgreSQL database support - IN PROGRESS (Day 3)
 
 Implemented in v2.0:
 - ✅ File I/O (ఫైల్_చదువు / file_read, ఫైల్_వ్రాయి / file_write)
@@ -44,6 +45,13 @@ import urllib.request
 import urllib.parse
 import json
 
+# v3.0: Optional MySQL support
+try:
+    import mysql.connector
+    MYSQL_AVAILABLE = True
+except ImportError:
+    MYSQL_AVAILABLE = False
+
 # ---------------------------
 # Global Runtime Environment
 # ---------------------------
@@ -58,6 +66,7 @@ class LipiRuntime:
         self.loaded_modules = {}  # v3.0: Track loaded module exports
         self.module_stack = []  # v3.0: Detect circular imports
         self.current_module_path = None  # v3.0: Track current module for relative imports
+        self.classes = {}  # v3.0: User-defined classes
         self.whitelist_modules = [
             'math', 'json', 'datetime', 'random', 're', 'time',
             'collections', 'itertools', 'functools', 'operator'
@@ -584,6 +593,97 @@ def eval_lipi_expr(expr, env):
         except Exception as e:
             raise LipiException(f"Database close error: {e}")
 
+    # MySQL: mysql_connect(host, user, password, database) / mysql_కనెక్ట్(...) (v3.0)
+    if expr.startswith('mysql_connect(') or expr.startswith('mysql_కనెక్ట్('):
+        if not MYSQL_AVAILABLE:
+            raise LipiException("MySQL connector not available. Install: pip install mysql-connector-python")
+
+        start = len('mysql_connect(') if expr.startswith('mysql_connect(') else len('mysql_కనెక్ట్(')
+        args_expr = expr[start:-1]
+        args = [arg.strip() for arg in split_arguments(args_expr)]
+
+        if len(args) != 4:
+            raise LipiException("mysql_connect requires 4 arguments: (host, user, password, database)")
+
+        host = eval_lipi_expr(args[0], env)
+        user = eval_lipi_expr(args[1], env)
+        password = eval_lipi_expr(args[2], env)
+        database = eval_lipi_expr(args[3], env)
+
+        try:
+            conn = mysql.connector.connect(
+                host=host,
+                user=user,
+                password=password,
+                database=database
+            )
+            conn_id = f"mysql_{id(conn)}"
+            runtime.db_connections[conn_id] = conn
+            return conn_id
+        except Exception as e:
+            raise LipiException(f"MySQL connection error: {e}")
+
+    # MySQL: mysql_query(conn_id, sql, [params]) / mysql_ప్రశ్న(...) (v3.0)
+    if expr.startswith('mysql_query(') or expr.startswith('mysql_ప్రశ్న('):
+        if not MYSQL_AVAILABLE:
+            raise LipiException("MySQL connector not available. Install: pip install mysql-connector-python")
+
+        start = len('mysql_query(') if expr.startswith('mysql_query(') else len('mysql_ప్రశ్న(')
+        args_expr = expr[start:-1]
+        args = [arg.strip() for arg in split_arguments(args_expr)]
+
+        if len(args) < 2:
+            raise LipiException("mysql_query requires at least 2 arguments: (conn_id, sql, [params])")
+
+        conn_id = eval_lipi_expr(args[0], env)
+        sql = eval_lipi_expr(args[1], env)
+        params = None
+        if len(args) >= 3:
+            params = eval_lipi_expr(args[2], env)
+            if not isinstance(params, (list, tuple)):
+                params = [params]
+
+        try:
+            if conn_id not in runtime.db_connections:
+                raise LipiException(f"Invalid MySQL connection: {conn_id}")
+
+            conn = runtime.db_connections[conn_id]
+            cursor = conn.cursor(dictionary=True)  # Return results as dictionaries
+
+            if params:
+                cursor.execute(sql, params)
+            else:
+                cursor.execute(sql)
+
+            conn.commit()
+
+            # Fetch results if it's a SELECT query
+            if sql.strip().upper().startswith('SELECT'):
+                results = cursor.fetchall()
+                cursor.close()
+                return results
+            else:
+                # For INSERT/UPDATE/DELETE, return affected rows
+                affected = cursor.rowcount
+                cursor.close()
+                return affected
+        except Exception as e:
+            raise LipiException(f"MySQL query error: {e}")
+
+    # MySQL: mysql_close(conn_id) / mysql_మూసివేయి(conn_id) (v3.0)
+    if expr.startswith('mysql_close(') or expr.startswith('mysql_మూసివేయి('):
+        start = len('mysql_close(') if expr.startswith('mysql_close(') else len('mysql_మూసివేయి(')
+        arg_expr = expr[start:-1]
+        conn_id = eval_lipi_expr(arg_expr, env)
+        try:
+            if conn_id in runtime.db_connections and conn_id.startswith('mysql_'):
+                runtime.db_connections[conn_id].close()
+                del runtime.db_connections[conn_id]
+                return True
+            return False
+        except Exception as e:
+            raise LipiException(f"MySQL close error: {e}")
+
     # Indexing: list[0] or obj["key"] or obj.key
     if '[' in expr and ']' in expr:
         # Find the variable name and index
@@ -724,6 +824,57 @@ def eval_lipi_expr(expr, env):
 
         return left_val + right_val
 
+    # Class instantiation: ClassName(args) (v3.0)
+    # Check for dots outside strings to distinguish from method calls
+    if '(' in expr and ')' in expr and find_operator_outside_strings(expr, ".") == -1:
+        paren_pos = expr.index('(')
+        potential_class_name = expr[:paren_pos].strip()
+        if potential_class_name in runtime.classes:
+            # This is class instantiation
+            args_str = expr[paren_pos+1:expr.rindex(')')].strip()
+            args = []
+            if args_str:
+                for arg in split_arguments(args_str):
+                    args.append(eval_lipi_expr(arg.strip(), env))
+            return instantiate_class(potential_class_name, args, env)
+
+    # Method call on instance: instance.method(args) (v3.0)
+    if '.' in expr and '(' in expr and ')' in expr:
+        dot_pos = expr.index('.')
+        paren_pos = expr.index('(')
+        if dot_pos < paren_pos:
+            obj_name = expr[:dot_pos].strip()
+            # Check if this is a class instance (not a Python module)
+            if obj_name in env and isinstance(env[obj_name], LipiClassInstance):
+                instance = env[obj_name]
+                method_and_args = expr[dot_pos+1:]
+                method_name = method_and_args[:method_and_args.index('(')].strip()
+                args_str = method_and_args[method_and_args.index('(')+1:method_and_args.rindex(')')].strip()
+
+                # Parse arguments
+                args = []
+                if args_str:
+                    for arg in split_arguments(args_str):
+                        args.append(eval_lipi_expr(arg.strip(), env))
+
+                return call_method(instance, method_name, args, env)
+
+    # Instance attribute access: instance.attribute (v3.0)
+    if '.' in expr and '(' not in expr:
+        dot_pos = expr.index('.')
+        obj_name = expr[:dot_pos].strip()
+        attr_name = expr[dot_pos+1:].strip()
+
+        # Check if this is a class instance
+        if obj_name in env and isinstance(env[obj_name], LipiClassInstance):
+            instance = env[obj_name]
+            if attr_name in instance.attributes:
+                return instance.attributes[attr_name]
+            # Also check if it's స్వీయ/self
+            if obj_name in ['స్వీయ', 'self']:
+                if attr_name in instance.attributes:
+                    return instance.attributes[attr_name]
+
     # Variable lookup
     if expr in env:
         return env[expr]
@@ -732,10 +883,26 @@ def eval_lipi_expr(expr, env):
 
 
 def eval_function_call(call_expr, env):
-    """Evaluate a function call: func_name(arg1, arg2)"""
+    """Evaluate a function call: func_name(arg1, arg2) or instance.method(arg1, arg2)"""
     paren_pos = call_expr.index('(')
     func_name = call_expr[:paren_pos].strip()
     args_str = call_expr[paren_pos+1:call_expr.rindex(')')].strip()
+
+    # Check if this is a method call on an instance (v3.0)
+    if '.' in func_name:
+        dot_pos = func_name.index('.')
+        obj_name = func_name[:dot_pos].strip()
+        method_name = func_name[dot_pos+1:].strip()
+
+        # Check if this is a class instance
+        if obj_name in env and isinstance(env[obj_name], LipiClassInstance):
+            instance = env[obj_name]
+            # Parse arguments
+            args = []
+            if args_str:
+                for arg in split_arguments(args_str):
+                    args.append(eval_lipi_expr(arg.strip(), env))
+            return call_method(instance, method_name, args, env)
 
     # Check if function exists
     if func_name not in runtime.functions:
@@ -850,7 +1017,9 @@ def run_lipi_line(line, env):
         'http_get(', 'http_post(',
         'http_పొందు(', 'http_పంపు(',
         'db_connect(', 'db_query(', 'db_close(',
-        'డేటాబేస్_కనెక్ట్(', 'డేటాబేస్_ప్రశ్న(', 'డేటాబేస్_మూసివేయి('
+        'డేటాబేస్_కనెక్ట్(', 'డేటాబేస్_ప్రశ్న(', 'డేటాబేస్_మూసివేయి(',
+        'mysql_connect(', 'mysql_query(', 'mysql_close(',  # v3.0 MySQL
+        'mysql_కనెక్ట్(', 'mysql_ప్రశ్న(', 'mysql_మూసివేయి('  # v3.0 MySQL Telugu
     ]
     for prefix in builtin_prefixes:
         if line.startswith(prefix):
@@ -862,6 +1031,20 @@ def run_lipi_line(line, env):
         name, expr = line.split("=", 1)
         name = name.strip()
         expr = expr.strip()
+
+        # Attribute assignment: self.name = expr or స్వీయ.name = expr (v3.0)
+        if '.' in name:
+            dot_pos = name.index('.')
+            obj_name = name[:dot_pos].strip()
+            attr_name = name[dot_pos+1:].strip()
+
+            # Check if this is a class instance
+            if obj_name in env and isinstance(env[obj_name], LipiClassInstance):
+                instance = env[obj_name]
+                instance.attributes[attr_name] = eval_lipi_expr(expr, env)
+                return
+
+        # Regular variable assignment
         env[name] = eval_lipi_expr(expr, env)
         return
 
@@ -939,6 +1122,171 @@ def parse_function_definition(lines, start_index, env):
 
     # Return index after 'ముగింపు' or 'end'
     return i + 1
+
+
+# ---------------------------
+# Class Definition Parser (v3.0)
+# ---------------------------
+def parse_class_definition(lines, start_index, env):
+    """
+    Parse class definition starting at start_index.
+    Supports: class ClassName: / క్లాస్ ClassName:
+    Returns: (next_index)
+    """
+    line = lines[start_index].strip()
+
+    # Check for Telugu or English class definition
+    is_telugu = line.startswith("క్లాస్ ")
+    is_english = line.startswith("class ")
+
+    if not (is_telugu or is_english) or ':' not in line:
+        return None
+
+    # Extract class name
+    if is_telugu:
+        class_decl = line[len("క్లాస్ "):-1].strip()
+    else:
+        class_decl = line[len("class "):-1].strip()
+
+    # Check for inheritance (not implemented in Day 2, but prepare for Day 3)
+    parent_class = None
+    if '(' in class_decl:
+        paren_pos = class_decl.index('(')
+        class_name = class_decl[:paren_pos].strip()
+        parent_class = class_decl[paren_pos+1:class_decl.rindex(')')].strip()
+    else:
+        class_name = class_decl.strip()
+
+    # Collect class body (methods and attributes)
+    methods = {}
+    i = start_index + 1
+    nesting_depth = 0
+
+    while i < len(lines):
+        stripped = lines[i].strip()
+
+        # Check if this is a method definition
+        if (stripped.startswith("పనిచేయి ") or stripped.startswith("function ")) and stripped.endswith(":"):
+            # Parse method definition
+            method_result = parse_function_definition(lines, i, env)
+            if method_result:
+                i = method_result
+                # Get the method that was just added to runtime.functions
+                # The last added function is the method we just parsed
+                last_func_name = list(runtime.functions.keys())[-1]
+                method_def = runtime.functions.pop(last_func_name)
+                methods[last_func_name] = method_def
+                continue
+
+        # Track nested control structures
+        if any(stripped.startswith(kw) for kw in ["యెడల", "if", "లేకపోతే", "else",
+                                                    "అలాగే", "elif", "ఎప్పుడు", "while",
+                                                    "పునరావృతం", "for", "పనిచేయి", "function",
+                                                    "ప్రయత్నించు:", "try:"]):
+            nesting_depth += 1
+        elif stripped in ["ముగింపు", "end"]:
+            if nesting_depth == 0:
+                # This closes the class
+                break
+            else:
+                # This closes a nested structure
+                nesting_depth -= 1
+
+        i += 1
+
+    # Store class in runtime
+    runtime.classes[class_name] = {
+        'methods': methods,
+        'parent': parent_class,
+        'env': env.copy()  # Capture closure
+    }
+
+    # Return index after 'ముగింపు' or 'end'
+    return i + 1
+
+
+# ---------------------------
+# Class Instance Creation (v3.0)
+# ---------------------------
+class LipiClassInstance:
+    """Represents an instance of a Lipi class"""
+    def __init__(self, class_name, class_def):
+        self.class_name = class_name
+        self.class_def = class_def
+        self.attributes = {}
+
+
+def instantiate_class(class_name, args, env):
+    """
+    Create a new instance of a class.
+    Example: person = Person("Ram", 25)
+    """
+    if class_name not in runtime.classes:
+        raise LipiException(f"Undefined class: {class_name}")
+
+    class_def = runtime.classes[class_name]
+    instance = LipiClassInstance(class_name, class_def)
+
+    # Call __init__ if it exists
+    if '__init__' in class_def['methods']:
+        init_method = class_def['methods']['__init__']
+        # Create method environment with self bound to instance
+        method_env = env.copy()
+        method_env['స్వీయ'] = instance  # Telugu 'self'
+        method_env['self'] = instance  # English 'self'
+
+        # Bind parameters
+        params = init_method['params']
+        if len(args) != len(params) - 1:  # -1 because first param is self
+            raise LipiException(f"__init__ expects {len(params)-1} arguments, got {len(args)}")
+
+        # Skip first parameter (self/స్వీయ)
+        for i, param_name in enumerate(params[1:]):
+            method_env[param_name] = args[i]
+
+        # Execute __init__ body
+        try:
+            execute_block(init_method['body'], method_env)
+        except LipiReturnValue:
+            pass  # __init__ shouldn't return values, but handle it gracefully
+
+    return instance
+
+
+def call_method(instance, method_name, args, env):
+    """
+    Call a method on a class instance.
+    Example: person.greet()
+    """
+    if not isinstance(instance, LipiClassInstance):
+        raise LipiException(f"Cannot call method on non-instance: {type(instance)}")
+
+    class_def = instance.class_def
+
+    if method_name not in class_def['methods']:
+        raise LipiException(f"Undefined method: {instance.class_name}.{method_name}")
+
+    method = class_def['methods'][method_name]
+
+    # Create method environment with self bound to instance
+    method_env = env.copy()
+    method_env['స్వీయ'] = instance  # Telugu 'self'
+    method_env['self'] = instance  # English 'self'
+
+    # Bind parameters (skip first which is self/స్వీయ)
+    params = method['params']
+    if len(args) != len(params) - 1:  # -1 because first param is self
+        raise LipiException(f"{method_name} expects {len(params)-1} arguments, got {len(args)}")
+
+    for i, param_name in enumerate(params[1:]):
+        method_env[param_name] = args[i]
+
+    # Execute method body
+    try:
+        execute_block(method['body'], method_env)
+        return None  # Methods that don't return anything
+    except LipiReturnValue as ret:
+        return ret.value
 
 
 # ---------------------------
@@ -1185,6 +1533,11 @@ def execute_block(lines, env):
         # Function definition
         if (line.startswith("పనిచేయి ") or line.startswith("function ")) and line.endswith(":"):
             i = parse_function_definition(lines, i, env)
+            continue
+
+        # Class definition (v3.0)
+        if (line.startswith("క్లాస్ ") or line.startswith("class ")) and line.endswith(":"):
+            i = parse_class_definition(lines, i, env)
             continue
 
         # IF block

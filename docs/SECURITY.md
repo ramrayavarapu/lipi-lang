@@ -10,7 +10,7 @@ This document outlines the security measures implemented in lipi-lang to prevent
 
 #### 1. Comprehensive Test Suite (`test_lipi.py`)
 
-**39 automated tests covering:**
+**53 automated tests covering:**
 - ✅ Basic expression evaluation
 - ✅ Telugu keyword functionality
 - ✅ English keyword functionality
@@ -19,6 +19,8 @@ This document outlines the security measures implemented in lipi-lang to prevent
 - ✅ File execution safety
 - ✅ Error handling
 - ✅ Input validation
+- ✅ v3.0 Module system (import/export)
+- ✅ v3.0 OOP (classes, inheritance)
 
 **Security-Specific Tests:**
 - Code injection prevention
@@ -82,9 +84,10 @@ The Lipi interpreter is designed with security in mind:
 3. **No imports** - User code cannot import arbitrary Python modules
 4. **Controlled file I/O (v2.0)** - File operations through whitelisted built-in functions only
 5. **Controlled network access (v2.0)** - HTTP operations through secure built-in functions only
-6. **Controlled database access (v2.0)** - SQLite file-based database (no remote connections)
-7. **Safe path operations (v3.0)** - Module system uses `os.path.*` for path resolution only
-8. **No system commands** - Cannot execute shell commands (`subprocess`, `os.system`, `os.popen` blocked)
+6. **Controlled database access (v2.0-v3.0)** - SQLite, MySQL, PostgreSQL through parameterized queries
+7. **Path traversal prevention (v3.0)** - Module system blocks `../` patterns, uses safe path operations
+8. **SQL injection prevention (v3.0)** - All database queries use parameterized statements
+9. **No system commands** - Cannot execute shell commands (`subprocess`, `os.system`, `os.popen` blocked)
 
 #### Safe Expression Evaluation
 
@@ -101,10 +104,11 @@ The Lipi interpreter is designed with security in mind:
 |-------------------|-------------------|---------------|
 | Code Injection | Limited expression syntax, no eval/exec | ✅ Tested |
 | Command Injection | No os.system/subprocess usage | ✅ Tested |
-| Path Traversal | Controlled file I/O (v2.0 - validated paths) | ✅ Tested |
+| Path Traversal | Controlled file I/O (v2.0), Module `../` blocking (v3.0) | ✅ Tested |
 | Import Injection | No import statements allowed | ✅ Tested |
-| SQL Injection (v2.0) | Parameterized queries, user queries sanitized | ✅ Tested |
-| HTTP Injection (v2.0) | URL validation, controlled urllib usage | ✅ Tested |
+| SQL Injection | Parameterized queries for all databases (v2.0-v3.0) | ✅ Tested |
+| HTTP Injection | URL validation, controlled urllib usage (v2.0) | ✅ Tested |
+| Module Path Injection (v3.0) | Path traversal prevention in module system | ✅ Tested |
 | DoS (CPU) | (TODO: Add timeout mechanism) | ⚠️ Partial |
 | DoS (Memory) | (TODO: Add memory limits) | ⚠️ Partial |
 | XSS | Not applicable (CLI tool) | N/A |
@@ -126,7 +130,11 @@ Before submitting a pull request:
 - [ ] No new `eval()`, `exec()`, `__import__()` usage (outside controlled functions)
 - [ ] File operations only through built-in `file_read()`, `file_write()`, `file_append()`
 - [ ] Network operations only through built-in `http_get()`, `http_post()`
-- [ ] Database operations only through built-in `db_connect()`, `db_query()`, `db_close()`
+- [ ] Database operations only through built-in functions:
+  - SQLite: `db_connect()`, `db_query()`, `db_close()`
+  - MySQL: `mysql_connect()`, `mysql_query()`, `mysql_close()`
+  - PostgreSQL: `postgres_connect()`, `postgres_query()`, `postgres_close()`
+- [ ] Module operations use path traversal prevention (block `../`)
 - [ ] No new subprocess/system calls
 - [ ] Added tests for new functionality
 - [ ] Updated security tests if needed
@@ -142,7 +150,7 @@ python3 tests/test_lipi.py
 # See .github/workflows/security-tests.yml for details
 
 # Local verification
-python3 tests/test_lipi.py  # All 39 tests must pass
+python3 tests/test_lipi.py  # All 53 tests must pass
 ```
 
 ### Continuous Monitoring

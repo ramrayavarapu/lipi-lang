@@ -85,6 +85,87 @@ runtime = LipiRuntime()
 
 
 # ---------------------------
+# Bilingual Error Messages (v3.0)
+# ---------------------------
+# Global language preference: 'en' (English) or 'te' (Telugu)
+# Using list to make it mutable for command-line argument
+ERROR_LANGUAGE = ['en']  # Default to English
+
+# Error message dictionaries
+ERROR_MESSAGES = {
+    'en': {
+        'runtime_error': 'Runtime error',
+        'unknown_expression': 'Unknown expression',
+        'function_not_found': 'Function not defined',
+        'variable_not_defined': 'Variable not defined',
+        'class_not_found': 'Class not defined',
+        'invalid_syntax': 'Invalid syntax',
+        'division_by_zero': 'Division by zero',
+        'import_error': 'Import error',
+        'module_not_found': 'Module not found',
+        'circular_import': 'Circular import detected',
+        'invalid_module_path': 'Invalid module path. Path traversal not allowed',
+        'database_error': 'Database error',
+        'connection_error': 'Connection error',
+        'file_error': 'File error',
+        'http_error': 'HTTP error',
+        'type_error': 'Type error',
+        'attribute_error': 'Attribute error',
+        'index_error': 'Index out of range',
+        'key_error': 'Key not found',
+    },
+    'te': {
+        'runtime_error': 'రన్‌టైమ్ లోపం',
+        'unknown_expression': 'తెలియని వ్యక్తీకరణ',
+        'function_not_found': 'ఫంక్షన్ నిర్వచించబడలేదు',
+        'variable_not_defined': 'వేరియబుల్ నిర్వచించబడలేదు',
+        'class_not_found': 'క్లాస్ నిర్వచించబడలేదు',
+        'invalid_syntax': 'చెల్లని వాక్యనిర్మాణం',
+        'division_by_zero': 'సున్నాతో భాగహారం',
+        'import_error': 'దిగుమతి లోపం',
+        'module_not_found': 'మాడ్యూల్ కనుగొనబడలేదు',
+        'circular_import': 'వృత్తాకార దిగుమతి గుర్తించబడింది',
+        'invalid_module_path': 'చెల్లని మాడ్యూల్ పాత్. పాత్ ట్రావర్సల్ అనుమతించబడదు',
+        'database_error': 'డేటాబేస్ లోపం',
+        'connection_error': 'కనెక్షన్ లోపం',
+        'file_error': 'ఫైల్ లోపం',
+        'http_error': 'HTTP లోపం',
+        'type_error': 'రకం లోపం',
+        'attribute_error': 'ఆట్రిబ్యూట్ లోపం',
+        'index_error': 'ఇండెక్స్ పరిధి దాటింది',
+        'key_error': 'కీ కనుగొనబడలేదు',
+    }
+}
+
+def get_error_message(error_key, detail=None):
+    """
+    Get error message in selected language.
+
+    Args:
+        error_key: Key from ERROR_MESSAGES dictionary
+        detail: Optional detail to append (e.g., variable name, function name)
+
+    Returns:
+        Formatted error message string
+    """
+    lang = ERROR_LANGUAGE[0]  # Get current language from mutable list
+    prefix = '[లోపం]' if lang == 'te' else '[Error]'
+
+    # Get base message
+    if error_key in ERROR_MESSAGES.get(lang, {}):
+        message = ERROR_MESSAGES[lang][error_key]
+    else:
+        # Fallback to English if key not found
+        message = ERROR_MESSAGES['en'].get(error_key, error_key)
+
+    # Add detail if provided
+    if detail:
+        message = f"{message}: {detail}"
+
+    return f"{prefix} {message}"
+
+
+# ---------------------------
 # Exception Classes
 # ---------------------------
 class LipiException(Exception):
@@ -116,7 +197,7 @@ def resolve_module_path(module_name, current_file_path=None):
     """
     # Security: Prevent path traversal
     if '..' in module_name or module_name.startswith('/'):
-        raise LipiException(f"Invalid module path: {module_name}. Path traversal not allowed.")
+        raise LipiException(get_error_message('invalid_module_path', module_name))
 
     # Add .lipi.py extension if not present
     if not module_name.endswith('.lipi.py'):
@@ -154,11 +235,11 @@ def load_lipi_module(module_path, runtime, parent_env):
     # Check for circular imports
     if module_path in runtime.module_stack:
         cycle = ' -> '.join(runtime.module_stack + [module_path])
-        raise LipiException(f"Circular import detected: {cycle}")
+        raise LipiException(get_error_message('circular_import', cycle))
 
     # Check if file exists
     if not os.path.exists(module_path):
-        raise LipiException(f"Module not found: {module_path}")
+        raise LipiException(get_error_message('module_not_found', module_path))
 
     # Push to module stack
     runtime.module_stack.append(module_path)
@@ -984,7 +1065,7 @@ def eval_lipi_expr(expr, env):
     if expr in env:
         return env[expr]
 
-    raise ValueError(f"తెలియని వ్యక్తీకరణ (unknown expression): {expr}")
+    raise ValueError(get_error_message('unknown_expression', expr))
 
 
 def eval_function_call(call_expr, env):
@@ -1720,7 +1801,7 @@ def run_lipi_file(path):
     try:
         execute_block(lines, env)
     except Exception as e:
-        print(f"[లోపం] Runtime error: {e}")
+        print(get_error_message('runtime_error', str(e)))
         import traceback
         traceback.print_exc()
     finally:
@@ -1749,11 +1830,34 @@ def repl():
         except LipiReturnValue as ret:
             print(f"=> {ret.value}")
         except Exception as e:
-            print(f"[లోపం] {e}")
+            print(get_error_message('runtime_error', str(e)))
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        run_lipi_file(sys.argv[1])
+    # Parse command-line arguments
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='Lipi Language v3.0 - Bilingual (Telugu + English) Programming',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python lipi.py script.lipi.py           # Run script in English error mode
+  python lipi.py script.lipi.py --lang te # Run script with Telugu errors
+  python lipi.py --lang te                # Start REPL with Telugu errors
+  python lipi.py                          # Start REPL with English errors
+        """
+    )
+    parser.add_argument('file', nargs='?', help='Lipi script file to run')
+    parser.add_argument('--lang', choices=['en', 'te'], default='en',
+                        help='Error message language: en (English) or te (Telugu). Default: en')
+
+    args = parser.parse_args()
+
+    # Set error language preference
+    ERROR_LANGUAGE[0] = args.lang
+
+    # Run file or REPL
+    if args.file:
+        run_lipi_file(args.file)
     else:
         repl()

@@ -158,14 +158,15 @@ Update relevant documentation:
 ### What We're Looking For
 
 **High Priority:**
-- Bug fixes for v2.0 features (File I/O, Database, HTTP)
+- Bug fixes for v3.0 features (Modules, OOP, MySQL, PostgreSQL)
+- Bug fixes for v2.0 features (File I/O, SQLite, HTTP)
 - Security improvements
 - Test coverage improvements
 - Documentation improvements
 - Community engagement & feedback
 
 **Medium Priority:**
-- New v3.0+ language features (advanced OOP, imports, etc.)
+- New v4.0+ language features (package manager, advanced tooling)
 - Performance optimizations
 - Error message improvements
 - Additional Telugu keyword synonyms

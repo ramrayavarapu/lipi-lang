@@ -45,9 +45,9 @@ The bilingual (Telugu + English) programming language.
 
 ### Implementation | అమలు
 
-**English:** lipi-lang **v2.0** is a **full-featured production-ready interpreter** written in Python that directly executes Telugu/English code with support for functions, data structures, file I/O, HTTP APIs, and database connectivity. The interpreter reads `.lipi.py` files, parses Telugu and English keywords, and executes statements immediately. Future versions will introduce compilation and transpilation options for better performance.
+**English:** lipi-lang **v3.0** is an **enterprise-ready interpreter** written in Python that directly executes Telugu/English code with full support for modules, object-oriented programming with inheritance, multiple database backends (SQLite, MySQL, PostgreSQL), file I/O, HTTP APIs, and comprehensive error handling. The interpreter reads `.lipi.py` files, parses Telugu and English keywords, and executes statements immediately. Future versions will introduce compilation and transpilation options for better performance.
 
-**తెలుగు:** lipi-lang **v2.0** అనేది Python లో వ్రాయబడిన **పూర్తి-ఫీచర్ ఉత్పత్తి-సిద్ధ ఇంటర్ప్రెటర్**, ఇది ఫంక్షన్లు, డేటా స్ట్రక్చర్లు, ఫైల్ I/O, HTTP APIలు మరియు డేటాబేస్ కనెక్టివిటీకి మద్దతుతో తెలుగు/ఇంగ్లీష్ కోడ్‌ను నేరుగా అమలు చేస్తుంది. ఇంటర్ప్రెటర్ `.lipi.py` ఫైల్‌లను చదువుతుంది, తెలుగు మరియు ఇంగ్లీష్ కీవర్డ్‌లను పార్స్ చేస్తుంది మరియు వెంటనే స్టేట్‌మెంట్‌లను అమలు చేస్తుంది. భవిష్యత్తు వెర్షన్‌లు మెరుగైన పనితీరు కోసం కంపైలేషన్ మరియు ట్రాన్స్‌పైలేషన్ ఎంపికలను పరిచయం చేస్తాయి.
+**తెలుగు:** lipi-lang **v3.0** అనేది Python లో వ్రాయబడిన **ఎంటర్‌ప్రైజ్-సిద్ధ ఇంటర్ప్రెటర్**, ఇది మాడ్యూల్స్, వారసత్వంతో ఆబ్జెక్ట్-ఓరియెంటెడ్ ప్రోగ్రామింగ్, బహుళ డేటాబేస్ బ్యాకెండ్‌లు (SQLite, MySQL, PostgreSQL), ఫైల్ I/O, HTTP APIలు మరియు సమగ్ర ఎర్రర్ హ్యాండ్లింగ్‌కు పూర్తి మద్దతుతో తెలుగు/ఇంగ్లీష్ కోడ్‌ను నేరుగా అమలు చేస్తుంది. ఇంటర్ప్రెటర్ `.lipi.py` ఫైల్‌లను చదువుతుంది, తెలుగు మరియు ఇంగ్లీష్ కీవర్డ్‌లను పార్స్ చేస్తుంది మరియు వెంటనే స్టేట్‌మెంట్‌లను అమలు చేస్తుంది. భవిష్యత్తు వెర్షన్‌లు మెరుగైన పనితీరు కోసం కంపైలేషన్ మరియు ట్రాన్స్‌పైలేషన్ ఎంపికలను పరిచయం చేస్తాయి.
 
 **Architecture:** Pure Python interpreter → Future: Bytecode VM / JIT / Transpiler to Python/JS
 
@@ -76,7 +76,7 @@ The bilingual (Telugu + English) programming language.
 | Catch | `పట్టుకో:` | `catch:` | పట్టుకో |
 | Finally | `చివరకు:` | `finally:` | చివరకు |
 
-### NEW in v2.0: File & Database Operations | v2.0లో కొత్తది: ఫైల్ & డేటాబేస్ కార్యకలాపాలు
+### v2.0 Features: File & Database Operations | v2.0 ఫీచర్లు: ఫైల్ & డేటాబేస్ కార్యకలాపాలు
 
 | Feature<br/>ఫీచర్ | Telugu<br/>తెలుగు | English<br/>ఇంగ్లీష్ | Usage<br/>ఉపయోగం |
 |---------|--------|---------|---------|
@@ -84,8 +84,25 @@ The bilingual (Telugu + English) programming language.
 | Write File | `ఫైల్_వ్రాయి(path, data)` | `file_write(path, data)` | ఫైల్ రాయడం |
 | HTTP GET | `http_పొందు(url)` | `http_get(url)` | API డేటా పొందడం |
 | HTTP POST | `http_పంపు(url, data)` | `http_post(url, data)` | API డేటా పంపడం |
-| DB Connect | `డేటాబేస్_కనెక్ట్(path)` | `db_connect(path)` | డేటాబేస్ కనెక్ట్ |
+| DB Connect (SQLite) | `డేటాబేస్_కనెక్ట్(path)` | `db_connect(path)` | డేటాబేస్ కనెక్ట్ |
 | DB Query | `డేటాబేస్_ప్రశ్న(db, sql)` | `db_query(db, sql)` | SQL ప్రశ్నలు |
+
+### ✨ NEW in v3.0: Enterprise Features | v3.0లో కొత్తది: ఎంటర్‌ప్రైజ్ ఫీచర్లు
+
+| Feature<br/>ఫీచర్ | Telugu<br/>తెలుగు | English<br/>ఇంగ్లీష్ | Usage<br/>ఉపయోగం |
+|---------|--------|---------|---------|
+| **Module System** | | | **మాడ్యూల్ సిస్టమ్** |
+| Import | `దిగుమతి func from "module"` | `import func from "module"` | మాడ్యూల్స్ ఉపయోగించడం |
+| Export | `ఎగుమతి func, var` | `export func, var` | మాడ్యూల్స్ నుండి ఎగుమతి |
+| **Object-Oriented Programming** | | | **ఆబ్జెక్ట్-ఓరియెంటెడ్ ప్రోగ్రామింగ్** |
+| Class | `క్లాస్ Name:` | `class Name:` | క్లాస్ నిర్వచనం |
+| Inheritance | `క్లాస్ Child(Parent):` | `class Child(Parent):` | వారసత్వం |
+| Self | `స్వీయ` | `self` | ఇన్‌స్టెన్స్ రిఫరెన్స్ |
+| **Enterprise Databases** | | | **ఎంటర్‌ప్రైజ్ డేటాబేసులు** |
+| MySQL Connect | `mysql_కనెక్ట్(...)` | `mysql_connect(...)` | MySQL కనెక్షన్ |
+| MySQL Query | `mysql_ప్రశ్న(...)` | `mysql_query(...)` | MySQL ప్రశ్నలు |
+| PostgreSQL Connect | `postgres_కనెక్ట్(...)` | `postgres_connect(...)` | PostgreSQL కనెక్షన్ |
+| PostgreSQL Query | `postgres_ప్రశ్న(...)` | `postgres_query(...)` | PostgreSQL ప్రశ్నలు |
 
 ## Quick Start | త్వరిత ప్రారంభం
 

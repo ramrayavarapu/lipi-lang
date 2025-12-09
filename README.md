@@ -138,6 +138,12 @@ python3 src/lipi.py examples/v2.0_features.lipi.py
 
 # Start the interactive REPL | ఇంటరాక్టివ్ REPL ప్రారంభించండి
 python3 src/lipi.py
+
+# Run with Telugu error messages (v3.0) | తెలుగు దోష సందేశాలతో రన్ చేయండి (v3.0)
+python3 src/lipi.py examples/telugu.lipi.py --lang te
+
+# View help | సహాయం చూడండి
+python3 src/lipi.py --help
 ```
 
 ## Examples | ఉదాహరణలు

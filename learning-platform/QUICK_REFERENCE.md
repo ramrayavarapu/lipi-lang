@@ -379,6 +379,260 @@ print "Multiplication table for " + సంఖ్య
 ముగింపు
 ```
 
+## 🌍 Real-World Examples | వాస్తవిక ఉదాహరణలు
+
+### Example 4: Age Validator
+```python
+# Telugu Version - వయసు ధ్రువీకరణ
+పేరు = "రాధ"
+వయసు = 16
+
+చెప్పు "పేరు: " + పేరు
+చెప్పు "వయసు: " + వయసు
+
+ఒకవేళ వయసు < 13:
+    చెప్పు "⚠️ చాలా చిన్నవారు - తల్లిదండ్రుల అనుమతి అవసరం"
+లేకపోతే:
+    ఒకవేళ వయసు < 18:
+        చెప్పు "✓ టీనేజర్ - పరిమిత యాక్సెస్"
+    లేకపోతే:
+        చెప్పు "✓ పూర్తి యాక్సెస్"
+    ముగింపు
+ముగింపు
+
+# English Version
+name = "Radha"
+age = 16
+
+print "Name: " + name
+print "Age: " + age
+
+if age < 13:
+    print "⚠️ Too young - parental consent required"
+else:
+    if age < 18:
+        print "✓ Teenager - limited access"
+    else:
+        print "✓ Full access"
+    end
+end
+```
+
+### Example 5: Sum of Numbers
+```python
+# Telugu - సంఖ్యల మొత్తం
+మొత్తం = 0
+సంఖ్య = 1
+
+వరకు సంఖ్య <= 100:
+    మొత్తం = మొత్తం + సంఖ్య
+    సంఖ్య = సంఖ్య + 1
+ముగింపు
+
+చెప్పు "1 నుండి 100 వరకు మొత్తం: " + మొత్తం
+
+# English - Sum of Numbers
+total = 0
+number = 1
+
+while number <= 100:
+    total = total + number
+    number = number + 1
+end
+
+print "Sum from 1 to 100: " + total
+```
+
+### Example 6: Password Strength Checker
+```python
+# Bilingual Password Checker
+పాస్‌వర్డ్ = "MySecret123"
+పొడవు = 12  # Length of password
+
+ఒకవేళ పొడవు < 6:
+    చెప్పు "❌ Weak password - చాలా చిన్నది"
+లేకపోతే:
+    ఒకవేళ పొడవు < 10:
+        చెప్పు "⚠️ Medium password - బాగుంది కానీ మెరుగుపరచవచ్చు"
+    లేకపోతే:
+        చెప్పు "✅ Strong password - చాలా బలమైనది!"
+    ముగింపు
+ముగింపు
+```
+
+### Example 7: Shopping Cart Total
+```python
+# Telugu Shopping Cart
+item1_ధర = 150
+item2_ధర = 300
+item3_ధర = 75
+
+ఉప_మొత్తం = item1_ధర + item2_ధర + item3_ధర
+పన్ను = ఉప_మొత్తం * 0.18  # 18% GST
+మొత్తం_ధర = ఉప_మొత్తం + పన్ను
+
+చెప్పు "ఉప మొత్తం: ₹" + ఉప_మొత్తం
+చెప్పు "GST (18%): ₹" + పన్ను
+చెప్పు "మొత్తం ధర: ₹" + మొత్తం_ధర
+
+ఒకవేళ మొత్తం_ధర > 500:
+    డిస్కౌంట్ = మొత్తం_ధర * 0.10
+    తుది_ధర = మొత్తం_ధర - డిస్కౌంట్
+    చెప్పు "🎉 10% డిస్కౌంట్ వర్తించబడింది!"
+    చెప్పు "చెల్లించవలసిన మొత్తం: ₹" + తుది_ధర
+ముగింపు
+```
+
+### Example 8: Temperature Converter
+```python
+# Celsius to Fahrenheit
+సెల్సియస్ = 37
+ఫారెన్‌హీట్ = (సెల్సియస్ * 9 / 5) + 32
+
+చెప్పు సెల్సియస్ + "°C = " + ఫారెన్‌హీట్ + "°F"
+
+ఒకవేళ సెల్సియస్ < 0:
+    చెప్పు "🥶 గడ్డకట్టే ఉష్ణోగ్రత!"
+లేకపోతే:
+    ఒకవేళ సెల్సియస్ < 15:
+        చెప్పు "🧥 చల్లగా ఉంది"
+    లేకపోతే:
+        ఒకవేళ సెల్సియస్ < 30:
+            చెప్పు "☀️ సౌకర్యవంతమైన ఉష్ణోగ్రత"
+        లేకపోతే:
+            చెప్పు "🔥 చాలా వేడిగా ఉంది!"
+        ముగింపు
+    ముగింపు
+ముగింపు
+```
+
+## ⚠️ Common Errors & Solutions | సాధారణ దోషాలు & పరిష్కారాలు
+
+### Error 1: Forgetting `ముగింపు/end`
+```python
+# ❌ WRONG
+ఒకవేళ వయసు > 18:
+    చెప్పు "పెద్దవారు"
+# Missing ముగింపు!
+
+# ✅ CORRECT
+ఒకవేళ వయసు > 18:
+    చెప్పు "పెద్దవారు"
+ముగింపు
+```
+
+### Error 2: Incorrect Indentation
+```python
+# ❌ WRONG
+ఒకవేళ x > 5:
+చెప్పు "Too big"  # Should be indented!
+ముగింపు
+
+# ✅ CORRECT
+ఒకవేళ x > 5:
+    చెప్పు "Too big"  # Properly indented
+ముగింపు
+```
+
+### Error 3: Mixing Quote Types
+```python
+# ❌ WRONG
+పేరు = "రాము'  # Mixed quotes!
+
+# ✅ CORRECT
+పేరు = "రాము"  # Matching quotes
+# or
+పేరు = 'రాము'  # Both work, but must match
+```
+
+### Error 4: String + Number Without Conversion
+```python
+# ❌ WRONG (in full interpreter)
+వయసు = 25
+చెప్పు "వయసు: " + వయసు  # May cause type error
+
+# ✅ CORRECT
+వయసు = 25
+చెప్పు "వయసు: " + str(వయసు)  # Convert to string
+
+# ⚠️ Note: Learning platform handles this automatically
+```
+
+### Error 5: Wrong Comparison Operator
+```python
+# ❌ WRONG
+ఒకవేళ వయసు = 18:  # Assignment, not comparison!
+    చెప్పు "Eighteen"
+ముగింపు
+
+# ✅ CORRECT
+ఒకవేళ వయసు == 18:  # Use == for comparison
+    చెప్పు "Eighteen"
+ముగింపు
+```
+
+### Error 6: Infinite Loop
+```python
+# ❌ WRONG
+సంఖ్య = 1
+వరకు సంఖ్య <= 10:
+    చెప్పు సంఖ్య
+    # Forgot to increment! Loop runs forever
+ముగింపు
+
+# ✅ CORRECT
+సంఖ్య = 1
+వరకు సంఖ్య <= 10:
+    చెప్పు సంఖ్య
+    సంఖ్య = సంఖ్య + 1  # Increment to avoid infinite loop
+ముగింపు
+```
+
+### Error 7: Undefined Variable
+```python
+# ❌ WRONG
+చెప్పు పేరు  # Variable not defined yet!
+
+# ✅ CORRECT
+పేరు = "రాము"  # Define first
+చెప్పు పేరు   # Then use
+```
+
+## 💡 Debugging Tips | డీబగ్గింగ్ చిట్కాలు
+
+**1. Print Everything (చెప్పు-Driven Development)**
+```python
+సంఖ్య = 10
+చెప్పు "Before calculation: " + సంఖ్య
+ఫలితం = సంఖ్య * 2
+చెప్పు "After calculation: " + ఫలితం
+```
+
+**2. Check One Thing at a Time**
+```python
+# Break complex conditions into steps
+వయసు = 17
+పేరు = "రాము"
+
+చెప్పు "Checking age..."
+ఒకవేళ వయసు >= 18:
+    చెప్పు "Age check passed"
+లేకపోతే:
+    చెప్పు "Age check failed"
+ముగింపు
+```
+
+**3. Comment Out Code to Isolate Problems**
+```python
+పేరు = "రాము"
+వయసు = 25
+
+చెప్పు పేరు
+# ఒకవేళ వయసు > 18:  # Comment this out to test
+#     చెప్పు "Adult"
+# ముగింపు
+```
+
 ## 📚 Learning Resources | నేర్చుకునే వనరులు
 
 1. **Learning Platform** - Complete the interactive lessons in `index.html`

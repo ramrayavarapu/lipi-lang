@@ -4,25 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lipi-Lang Learning Platform | లిపి-భాష నేర్చుకోండి</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Learn programming in Telugu and English with our interactive, gamified lipi-lang platform. Master variables, conditionals, and loops with bilingual lessons and earn XP!">
+    <meta name="keywords" content="lipi-lang, Telugu programming, bilingual coding, learn programming, Telugu, లిపి-భాష, తెలుగు ప్రోగ్రామింగ్">
+    <meta name="author" content="Lipi-Lang Team">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="Lipi-Lang Learning Platform - Learn Programming in Telugu & English">
+    <meta property="og:description" content="Interactive learning platform for lipi-lang. Complete lessons, earn XP, and master programming fundamentals in Telugu and English.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="te_IN">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Lipi-Lang Learning Platform">
+    <meta name="twitter:description" content="Learn programming in Telugu and English. Interactive lessons with XP system!">
+
+    <!-- Accessibility -->
+    <meta name="theme-color" content="#667eea">
+
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#lesson-content" class="skip-to-main" aria-label="Skip to main content">Skip to main content</a>
+
     <!-- Header -->
-    <header class="header">
+    <header class="header" role="banner">
         <div class="container">
             <div class="logo">
                 <h1>🎓 Lipi-Lang Learning Platform</h1>
                 <p class="subtitle">లిపి-భాష నేర్చుకోండి | Learn Telugu Programming</p>
             </div>
-            <div class="user-progress">
-                <div class="xp-container">
+            <div class="user-progress" role="status" aria-live="polite" aria-label="User progress information">
+                <div class="xp-container" aria-label="Experience points">
                     <span class="xp-label">XP:</span>
-                    <span id="current-xp" class="xp-value">0</span>
-                    <span class="xp-max">/ <span id="next-level-xp">100</span></span>
+                    <span id="current-xp" class="xp-value" aria-label="Current XP">0</span>
+                    <span class="xp-max">/ <span id="next-level-xp" aria-label="XP needed for next level">100</span></span>
                 </div>
-                <div class="level-container">
+                <div class="level-container" aria-label="Current level">
                     <span class="level-label">Level:</span>
-                    <span id="current-level" class="level-value">1</span>
+                    <span id="current-level" class="level-value" aria-label="Player level">1</span>
                 </div>
             </div>
         </div>
@@ -31,47 +56,47 @@
     <!-- Main Content -->
     <div class="container main-content">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" role="complementary" aria-label="Lessons navigation">
             <h2>📚 Lessons | పాఠాలు</h2>
-            <nav class="lessons-nav" id="lessons-nav">
-                <button class="lesson-btn active" data-lesson="0">
+            <nav class="lessons-nav" id="lessons-nav" role="navigation" aria-label="Course lessons">
+                <button class="lesson-btn active" data-lesson="0" aria-label="Lesson 1: Variables and Data Types, 10 XP" aria-pressed="true">
                     <div class="lesson-info">
                         <span class="lesson-title">Lesson 1: Variables</span>
                         <span class="lesson-title-te">వేరియబుల్స్ మరియు డేటా రకాలు</span>
                     </div>
                     <span class="lesson-xp">+10 XP</span>
                 </button>
-                <button class="lesson-btn locked" data-lesson="1">
+                <button class="lesson-btn locked" data-lesson="1" aria-label="Lesson 2: Conditionals, 15 XP, locked" aria-disabled="true">
                     <div class="lesson-info">
                         <span class="lesson-title">Lesson 2: Conditionals</span>
                         <span class="lesson-title-te">షరతులతో నిర్ణయాలు</span>
                     </div>
                     <span class="lesson-xp">+15 XP</span>
-                    <span class="lock-icon">🔒</span>
+                    <span class="lock-icon" aria-hidden="true">🔒</span>
                 </button>
-                <button class="lesson-btn locked" data-lesson="2">
+                <button class="lesson-btn locked" data-lesson="2" aria-label="Lesson 3: Loops and Iteration, 20 XP, locked" aria-disabled="true">
                     <div class="lesson-info">
                         <span class="lesson-title">Lesson 3: Loops</span>
                         <span class="lesson-title-te">లూప్స్ మరియు పునరావృతం</span>
                     </div>
                     <span class="lesson-xp">+20 XP</span>
-                    <span class="lock-icon">🔒</span>
+                    <span class="lock-icon" aria-hidden="true">🔒</span>
                 </button>
             </nav>
 
-            <div class="progress-summary">
+            <div class="progress-summary" role="region" aria-label="Learning progress summary">
                 <h3>Progress | పురోగతి</h3>
-                <div class="progress-bar">
+                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Overall lesson completion progress">
                     <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
                 </div>
-                <p id="progress-text">0 / 3 Lessons Completed</p>
+                <p id="progress-text" aria-live="polite">0 / 3 Lessons Completed</p>
             </div>
         </aside>
 
         <!-- Lesson Content Area -->
-        <main class="lesson-content" id="lesson-content">
+        <main class="lesson-content" id="lesson-content" role="main" aria-label="Lesson content">
             <!-- Lesson content will be dynamically loaded here -->
-            <div class="welcome-screen">
+            <div class="welcome-screen" role="region" aria-label="Welcome message">
                 <h2>Welcome to Lipi-Lang! | లిపి-భాషకు స్వాగతం!</h2>
                 <p class="intro-text">
                     Learn programming in Telugu and English together. This platform will teach you
@@ -81,7 +106,9 @@
                     తెలుగు మరియు ఇంగ్లీష్‌లో కలిసి ప్రోగ్రామింగ్ నేర్చుకోండి. ఈ ప్లాట్‌ఫారమ్ మీకు
                     లిపి-భాష ఉపయోగించి ప్రోగ్రామింగ్ ప్రాథమిక అంశాలను నేర్పుతుంది.
                 </p>
-                <button class="btn-primary" onclick="loadLesson(0)">Start Learning | ప్రారంభించండి</button>
+                <button class="btn-primary" onclick="loadLesson(0)" aria-label="Start first lesson on Variables and Data Types">
+                    Start Learning | ప్రారంభించండి
+                </button>
             </div>
         </main>
     </div>

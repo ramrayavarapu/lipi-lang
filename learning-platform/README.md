@@ -191,17 +191,55 @@ This platform is perfect for:
 - Screen resolution: 1280x720 or higher
 - Latest browser version
 
+**Browser Compatibility (Tested):**
+
+| Browser | Version | Status | Notes |
+|---------|---------|--------|-------|
+| Chrome | 90+ | ✅ Fully Supported | Recommended for best experience |
+| Firefox | 88+ | ✅ Fully Supported | All features working |
+| Edge | 90+ | ✅ Fully Supported | Chromium-based, excellent support |
+| Safari | 14+ | ✅ Fully Supported | macOS/iOS compatible |
+| IE 11 | Any | ❌ Not Supported | LocalStorage and ES6 issues |
+
 ## 🐛 Known Limitations | తెలిసిన పరిమితులు
 
-The practice editor is a simplified interpreter that supports:
-- ✅ Variable assignment
-- ✅ Basic print/చెప్పు statements
-- ✅ String concatenation with +
-- ❌ Conditionals (if/ఒకవేళ) - not yet supported
-- ❌ Loops - not yet supported
-- ❌ Functions - not yet supported
+### Practice Editor Limitations
 
-For full lipi-lang functionality, use the main interpreter at `../src/lipi.py`
+The in-browser practice editor is a **simplified interpreter** designed for learning basics. It currently supports:
+
+**✅ Supported Features:**
+- Variable assignment (e.g., `పేరు = "రాము"`)
+- Basic print/చెప్పు statements
+- String concatenation with + operator
+- Number variables
+- Basic string and number display
+
+**❌ Not Yet Supported:**
+- Conditionals (if/ఒకవేళ, else/లేకపోతే)
+- Loops (for/ప్రతి, while/వరకు)
+- Functions (function/పనిచేయి)
+- Arrays/Lists
+- File operations
+- HTTP requests
+- Database operations
+
+**Workaround:** For full lipi-lang functionality including all features above, use the main interpreter:
+```bash
+python3 ../src/lipi.py your_program.lipi.py
+```
+
+### Other Limitations
+
+**LocalStorage Constraints:**
+- Progress is saved per browser (switching browsers resets progress)
+- Private/Incognito mode doesn't persist progress
+- Browser cache clearing will reset progress
+- ~5MB storage limit (sufficient for platform needs)
+
+**Offline Limitations:**
+- Platform works offline after initial download
+- No cloud sync or multi-device progress tracking
+- No real-time collaboration features
 
 ## 📈 Future Enhancements | భవిష్యత్తు మెరుగుదలలు
 

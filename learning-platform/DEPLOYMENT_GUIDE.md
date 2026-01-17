@@ -5,11 +5,12 @@ Complete guide for rolling out the Lipi-Lang Learning Platform in your organizat
 ## 📋 Table of Contents
 
 1. [Quick Deployment](#quick-deployment)
-2. [Pilot Program](#pilot-program)
-3. [Full Rollout Strategy](#full-rollout-strategy)
-4. [Integration with Azure Training](#integration-with-azure-training)
-5. [Measuring Success](#measuring-success)
-6. [Troubleshooting](#troubleshooting)
+2. [Automated Deployment (GitHub Pages, Netlify)](#automated-deployment)
+3. [Pilot Program](#pilot-program)
+4. [Full Rollout Strategy](#full-rollout-strategy)
+5. [Integration with Azure Training](#integration-with-azure-training)
+6. [Measuring Success](#measuring-success)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -57,6 +58,207 @@ Provide these instructions to new starters:
 
 Questions? Contact: [Your IT Support]
 ```
+
+---
+
+## 🌐 Automated Deployment
+
+### Option 1: GitHub Pages (Free & Recommended)
+
+**Prerequisites:**
+- GitHub account
+- Git installed locally
+
+**Step-by-Step Setup:**
+
+```bash
+# 1. Navigate to your lipi-lang repository
+cd lipi-lang
+
+# 2. Ensure learning-platform is committed
+git add learning-platform/
+git commit -m "Add learning platform"
+
+# 3. Push to GitHub
+git push origin main
+```
+
+**Enable GitHub Pages:**
+
+1. Go to your GitHub repository
+2. Click **Settings** → **Pages**
+3. Under "Source", select branch: `main`
+4. Set folder to: `/learning-platform` (or `/` if platform is in root)
+5. Click **Save**
+
+**Access Your Platform:**
+- URL will be: `https://yourusername.github.io/lipi-lang/learning-platform/`
+- Wait 2-3 minutes for deployment
+- Share this URL with your team!
+
+**Automated Script for GitHub Pages:**
+
+Create `deploy-gh-pages.sh`:
+```bash
+#!/bin/bash
+# Automated GitHub Pages deployment script
+
+echo "🚀 Deploying Learning Platform to GitHub Pages..."
+
+# Check if on main branch
+BRANCH=$(git branch --show-current)
+if [ "$BRANCH" != "main" ]; then
+    echo "⚠️  Not on main branch. Switching..."
+    git checkout main
+fi
+
+# Pull latest changes
+git pull origin main
+
+# Add and commit learning platform changes
+git add learning-platform/
+git commit -m "Update learning platform $(date +%Y-%m-%d)"
+
+# Push to GitHub
+git push origin main
+
+echo "✅ Deployment initiated!"
+echo "📍 Check your GitHub Pages URL in 2-3 minutes:"
+echo "   https://yourusername.github.io/lipi-lang/learning-platform/"
+```
+
+Make it executable:
+```bash
+chmod +x deploy-gh-pages.sh
+./deploy-gh-pages.sh
+```
+
+### Option 2: Netlify (Drag & Drop)
+
+**Quick Deploy:**
+
+1. Go to [netlify.com](https://netlify.com) and sign up (free)
+2. Click **Add new site** → **Deploy manually**
+3. Drag the `learning-platform` folder into the browser
+4. Get instant URL: `https://your-site-name.netlify.app`
+
+**Continuous Deployment from Git:**
+
+```bash
+# 1. Create netlify.toml in learning-platform folder
+cat > learning-platform/netlify.toml <<EOF
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+EOF
+
+# 2. Connect repository on Netlify dashboard
+# 3. Set build directory to: learning-platform
+# 4. Deploy!
+```
+
+### Option 3: Vercel
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Navigate to learning-platform
+cd learning-platform
+
+# Deploy
+vercel
+
+# Follow prompts:
+# - Link to existing project? No
+# - What's your project name? lipi-lang-learning
+# - In which directory is your code located? ./
+# - Override settings? No
+
+# Get instant URL!
+```
+
+### Option 4: Internal Server (Nginx Example)
+
+Create `nginx.conf`:
+```nginx
+server {
+    listen 80;
+    server_name learning.yourcompany.com;
+
+    root /var/www/lipi-lang/learning-platform;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Enable CORS if needed
+    add_header Access-Control-Allow-Origin *;
+}
+```
+
+Deploy script `deploy-internal.sh`:
+```bash
+#!/bin/bash
+# Deploy to internal server
+
+SERVER="your-server.com"
+USER="deploy"
+TARGET="/var/www/lipi-lang/learning-platform"
+
+echo "🚀 Deploying to internal server..."
+
+# Sync files via rsync
+rsync -avz --delete \
+  learning-platform/ \
+  ${USER}@${SERVER}:${TARGET}
+
+# Restart nginx (if needed)
+ssh ${USER}@${SERVER} "sudo systemctl reload nginx"
+
+echo "✅ Deployed to https://learning.yourcompany.com"
+```
+
+### Option 5: Simple Python Server (Testing)
+
+For quick local testing:
+```bash
+cd learning-platform
+python3 -m http.server 8000
+
+# Access at: http://localhost:8000
+# Share on local network: http://YOUR_IP:8000
+```
+
+### Comparison Table
+
+| Method | Cost | Setup Time | Best For |
+|--------|------|------------|----------|
+| GitHub Pages | Free | 5 min | Open source, public access |
+| Netlify | Free | 2 min | Quick deploys, drag & drop |
+| Vercel | Free | 3 min | Modern deployments, CLI |
+| Internal Server | Varies | 30 min | Corporate, behind firewall |
+| Python Server | Free | 1 min | Local testing only |
+
+### Post-Deployment Checklist
+
+After deploying to any platform:
+
+- [ ] Test all 3 lessons load correctly
+- [ ] Verify XP system works
+- [ ] Check progress saves (LocalStorage)
+- [ ] Test on different browsers
+- [ ] Verify Telugu text renders properly
+- [ ] Test practice editor functionality
+- [ ] Check all documentation links work
+- [ ] Test on mobile devices
+- [ ] Monitor for JavaScript errors (F12 console)
+- [ ] Share URL with test users
 
 ---
 

@@ -391,6 +391,188 @@ Add a note about common errors:
 description: "Learn about loops. Note: Remember to increment your counter, or the loop will run forever!",
 ```
 
+### Tip 4: Animated Visuals with CSS
+Add smooth animations to your diagrams:
+```javascript
+visual: `
+    <style>
+        @keyframes flowDown {
+            from { transform: translateY(0); opacity: 0; }
+            to { transform: translateY(20px); opacity: 1; }
+        }
+        .flow-arrow {
+            animation: flowDown 1.5s infinite;
+        }
+    </style>
+    <div style="text-align: center;">
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 10px;">
+            Input
+        </div>
+        <div class="flow-arrow" style="font-size: 30px; margin: 10px 0;">⬇️</div>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
+            Output
+        </div>
+    </div>
+`
+```
+
+### Tip 5: Progress Indicators
+Show step-by-step progression visually:
+```javascript
+visual: `
+    <div style="display: flex; justify-content: space-between; max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; flex: 1;">
+            <div style="width: 50px; height: 50px; background: #4caf50; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">1</div>
+            <p style="margin-top: 10px;">Define</p>
+        </div>
+        <div style="flex: 0.5; display: flex; align-items: center;">
+            <div style="height: 2px; background: #4caf50; width: 100%;"></div>
+        </div>
+        <div style="text-align: center; flex: 1;">
+            <div style="width: 50px; height: 50px; background: #4caf50; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">2</div>
+            <p style="margin-top: 10px;">Process</p>
+        </div>
+        <div style="flex: 0.5; display: flex; align-items: center;">
+            <div style="height: 2px; background: #4caf50; width: 100%;"></div>
+        </div>
+        <div style="text-align: center; flex: 1;">
+            <div style="width: 50px; height: 50px; background: #4caf50; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">3</div>
+            <p style="margin-top: 10px;">Result</p>
+        </div>
+    </div>
+`
+```
+
+### Tip 6: Interactive Code Comparison
+Show before/after transformations:
+```javascript
+visual: `
+    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; max-width: 700px; margin: 0 auto;">
+        <div style="background: #ffebee; padding: 15px; border-radius: 10px; border: 2px solid #f44336;">
+            <strong style="color: #f44336;">❌ Before</strong>
+            <pre style="margin-top: 10px;">x = 5
+y = 10
+print x + y</pre>
+        </div>
+        <div style="display: flex; align-items: center; font-size: 30px;">
+            →
+        </div>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 10px; border: 2px solid #4caf50;">
+            <strong style="color: #4caf50;">✓ After</strong>
+            <pre style="margin-top: 10px;">మొత్తం = 5 + 10
+చెప్పు మొత్తం</pre>
+        </div>
+    </div>
+`
+```
+
+### Tip 7: Memory Diagram for Variables
+Visual representation of variable storage:
+```javascript
+visual: `
+    <div style="max-width: 500px; margin: 0 auto;">
+        <h4 style="text-align: center; margin-bottom: 20px;">Memory | మెమోరీ</h4>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #667eea; color: white;">
+                    <th style="padding: 10px; border: 1px solid #ddd;">Variable Name</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Memory Address</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">పేరు</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-family: monospace;">0x1A2B</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"రాము"</td>
+                </tr>
+                <tr style="background: #f5f5f5;">
+                    <td style="padding: 10px; border: 1px solid #ddd;">వయసు</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-family: monospace;">0x1A2C</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">25</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+`
+```
+
+### Tip 8: Include Emojis for Engagement
+Make learning fun with appropriate emojis:
+```javascript
+objectives: [
+    "📝 Write your first variable | మీ మొదటి వేరియబుల్ వ్రాయండి",
+    "🔍 Understand data types | డేటా రకాలను అర్థం చేసుకోండి",
+    "💡 Learn naming conventions | పేరు పెట్టే నియమాలను నేర్చుకోండి",
+    "✅ Practice with examples | ఉదాహరణలతో ప్రాక్టీస్ చేయండి"
+]
+```
+
+### Tip 9: Add Mini-Quizzes in Objectives
+Engage learners with questions:
+```javascript
+objectives: [
+    "Can you spot the error? చర = 'రాము | పొరపాటును గుర్తించగలరా?",
+    "What will this print? చెప్పు 5 + 3 | ఇది ఏమి ప్రింట్ చేస్తుంది?",
+    "True or False: Variables can change | సత్యం లేదా అసత్యం?"
+]
+```
+
+### Tip 10: Use Color Coding for Concepts
+Distinguish different types visually:
+```javascript
+visual: `
+    <div style="max-width: 600px; margin: 0 auto;">
+        <h4 style="text-align: center; margin-bottom: 20px;">Data Types | డేటా రకాలు</h4>
+        <div style="display: grid; gap: 15px;">
+            <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 20px; border-radius: 10px; border-left: 5px solid #2196f3;">
+                <strong style="color: #1976d2;">String (చరరాశి)</strong>
+                <p style="margin: 10px 0 0 0;">పేరు = "రాము"</p>
+            </div>
+            <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 20px; border-radius: 10px; border-left: 5px solid #9c27b0;">
+                <strong style="color: #7b1fa2;">Number (సంఖ్య)</strong>
+                <p style="margin: 10px 0 0 0;">వయసు = 25</p>
+            </div>
+            <div style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 20px; border-radius: 10px; border-left: 5px solid #ff9800;">
+                <strong style="color: #e65100;">Boolean (సత్యం/అబద్ధం)</strong>
+                <p style="margin: 10px 0 0 0;">ఆమోదించబడింది = true</p>
+            </div>
+        </div>
+    </div>
+`
+```
+
+### Tip 11: Add Bilingual Tooltips
+Help learners understand both languages:
+```javascript
+codeTelugu: `# Variable Definition | వేరియబుల్ నిర్వచనం
+పేరు = "రాము"      # పేరు means "name" in English
+వయసు = 25         # వయసు means "age" in English
+చెప్పు పేరు        # చెప్పు means "print" in English`
+```
+
+### Tip 12: Progressive Complexity
+Build lessons that grow in difficulty:
+```javascript
+// Lesson structure:
+// Part 1: Simple concept
+codeTelugu: `పేరు = "రాము"
+చెప్పు పేరు`
+
+// Part 2: Add complexity
+codeTelugu: `పేరు = "రాము"
+వయసు = 25
+చెప్పు పేరు + " వయసు: " + వయసు`
+
+// Part 3: Real application
+codeTelugu: `ఉత్పత్తి_పేరు = "Laptop"
+ధర = 45000
+పన్ను = ధర * 0.18
+మొత్తం = ధర + పన్ను
+చెప్పు "ఉత్పత్తి: " + ఉత్పత్తి_పేరు
+చెప్పు "మొత్తం (పన్నుతో): ₹" + మొత్తం`
+```
+
 ## 🆘 Need Help? | సహాయం అవసరమా?
 
 - Review existing lessons in `lessons.js` for reference

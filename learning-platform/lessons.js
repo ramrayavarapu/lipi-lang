@@ -332,3 +332,169 @@ const levels = [
     { level: 4, xpRequired: 450, xpToNext: 250 },
     { level: 5, xpRequired: 700, xpToNext: Infinity }
 ];
+
+// Validation and helper functions
+const LessonValidator = {
+    /**
+     * Validate a single lesson object
+     * @param {Object} lesson - Lesson object to validate
+     * @returns {Object} { valid: boolean, errors: string[] }
+     */
+    validateLesson(lesson) {
+        const errors = [];
+        const requiredFields = [
+            'id', 'title', 'titleTe', 'description', 'descriptionTe',
+            'xp', 'objectives', 'visual', 'codeTelugu', 'codeEnglish',
+            'practiceTemplate', 'transpilations'
+        ];
+
+        // Check required fields
+        requiredFields.forEach(field => {
+            if (lesson[field] === undefined || lesson[field] === null) {
+                errors.push(`Missing required field: ${field}`);
+            }
+        });
+
+        // Validate field types
+        if (typeof lesson.id !== 'number') {
+            errors.push('Lesson id must be a number');
+        }
+        if (typeof lesson.xp !== 'number' || lesson.xp <= 0) {
+            errors.push('Lesson xp must be a positive number');
+        }
+        if (!Array.isArray(lesson.objectives) || lesson.objectives.length === 0) {
+            errors.push('Lesson objectives must be a non-empty array');
+        }
+        if (typeof lesson.transpilations !== 'object') {
+            errors.push('Lesson transpilations must be an object');
+        } else {
+            const requiredTranspilations = ['python', 'javascript', 'csharp'];
+            requiredTranspilations.forEach(lang => {
+                if (!lesson.transpilations[lang]) {
+                    errors.push(`Missing transpilation for: ${lang}`);
+                }
+            });
+        }
+
+        return {
+            valid: errors.length === 0,
+            errors
+        };
+    },
+
+    /**
+     * Validate all lessons
+     * @returns {Object} { valid: boolean, errors: Object }
+     */
+    validateAllLessons() {
+        const allErrors = {};
+        let allValid = true;
+
+        lessons.forEach((lesson, index) => {
+            const result = this.validateLesson(lesson);
+            if (!result.valid) {
+                allValid = false;
+                allErrors[`Lesson ${index} (id: ${lesson.id})`] = result.errors;
+            }
+        });
+
+        // Check for duplicate IDs
+        const ids = lessons.map(l => l.id);
+        const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
+        if (duplicateIds.length > 0) {
+            allValid = false;
+            allErrors['Duplicate IDs'] = duplicateIds;
+        }
+
+        // Check for sequential IDs
+        const sortedIds = [...ids].sort((a, b) => a - b);
+        for (let i = 0; i < sortedIds.length; i++) {
+            if (sortedIds[i] !== i) {
+                allValid = false;
+                allErrors['Non-sequential IDs'] = `Expected ID ${i}, found ${sortedIds[i]}`;
+                break;
+            }
+        }
+
+        return { valid: allValid, errors: allErrors };
+    }
+};
+
+// Lesson accessor with error handling
+const LessonManager = {
+    /**
+     * Safely get a lesson by ID
+     * @param {number} lessonId - ID of the lesson to retrieve
+     * @returns {Object|null} Lesson object or null if not found
+     */
+    getLesson(lessonId) {
+        if (typeof lessonId !== 'number') {
+            console.error(`Invalid lesson ID type: ${typeof lessonId}`);
+            return null;
+        }
+
+        const lesson = lessons.find(l => l.id === lessonId);
+        if (!lesson) {
+            console.error(`Lesson not found: ID ${lessonId}`);
+            return null;
+        }
+
+        return lesson;
+    },
+
+    /**
+     * Get total number of lessons
+     * @returns {number} Total lesson count
+     */
+    getTotalLessons() {
+        return lessons.length;
+    },
+
+    /**
+     * Get all lesson IDs
+     * @returns {number[]} Array of lesson IDs
+     */
+    getAllLessonIds() {
+        return lessons.map(l => l.id);
+    },
+
+    /**
+     * Check if a lesson ID exists
+     * @param {number} lessonId - ID to check
+     * @returns {boolean} True if lesson exists
+     */
+    lessonExists(lessonId) {
+        return lessons.some(l => l.id === lessonId);
+    },
+
+    /**
+     * Get next lesson ID
+     * @param {number} currentLessonId - Current lesson ID
+     * @returns {number|null} Next lesson ID or null if none
+     */
+    getNextLessonId(currentLessonId) {
+        const nextId = currentLessonId + 1;
+        return this.lessonExists(nextId) ? nextId : null;
+    },
+
+    /**
+     * Get previous lesson ID
+     * @param {number} currentLessonId - Current lesson ID
+     * @returns {number|null} Previous lesson ID or null if none
+     */
+    getPreviousLessonId(currentLessonId) {
+        const prevId = currentLessonId - 1;
+        return this.lessonExists(prevId) && prevId >= 0 ? prevId : null;
+    }
+};
+
+// Run validation on page load (development mode)
+if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    const validation = LessonValidator.validateAllLessons();
+    if (!validation.valid) {
+        console.warn('⚠️ Lesson validation errors found:');
+        console.table(validation.errors);
+    } else {
+        console.log('✅ All lessons validated successfully');
+    }
+}

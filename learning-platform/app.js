@@ -1,7 +1,8 @@
 // Lipi-Lang Learning Platform - Main Application Logic
 
-// State management
-let state = {
+// Constants
+const STORAGE_KEY = 'lipiLangProgress';
+const DEFAULT_STATE = {
     currentLesson: -1,
     completedLessons: [],
     currentXP: 0,
@@ -9,18 +10,164 @@ let state = {
     unlockedLessons: [0] // First lesson is always unlocked
 };
 
+// State management
+let state = { ...DEFAULT_STATE };
+
+// Validation helper functions
+const Validators = {
+    /**
+     * Validate state object structure
+     * @param {Object} stateObj - State object to validate
+     * @returns {boolean} True if valid
+     */
+    isValidState(stateObj) {
+        if (!stateObj || typeof stateObj !== 'object') return false;
+
+        const requiredKeys = ['currentLesson', 'completedLessons', 'currentXP', 'currentLevel', 'unlockedLessons'];
+        const hasAllKeys = requiredKeys.every(key => key in stateObj);
+        if (!hasAllKeys) return false;
+
+        // Type validation
+        if (typeof stateObj.currentLesson !== 'number') return false;
+        if (!Array.isArray(stateObj.completedLessons)) return false;
+        if (typeof stateObj.currentXP !== 'number' || stateObj.currentXP < 0) return false;
+        if (typeof stateObj.currentLevel !== 'number' || stateObj.currentLevel < 1) return false;
+        if (!Array.isArray(stateObj.unlockedLessons)) return false;
+
+        return true;
+    },
+
+    /**
+     * Sanitize and fix state object
+     * @param {Object} stateObj - State object to sanitize
+     * @returns {Object} Sanitized state
+     */
+    sanitizeState(stateObj) {
+        const sanitized = { ...DEFAULT_STATE };
+
+        if (this.isValidState(stateObj)) {
+            sanitized.currentLesson = Math.max(-1, Math.min(stateObj.currentLesson, lessons.length - 1));
+            sanitized.completedLessons = stateObj.completedLessons.filter(id =>
+                typeof id === 'number' && id >= 0 && id < lessons.length
+            );
+            sanitized.currentXP = Math.max(0, stateObj.currentXP);
+            sanitized.currentLevel = Math.max(1, Math.min(5, stateObj.currentLevel));
+            sanitized.unlockedLessons = stateObj.unlockedLessons.filter(id =>
+                typeof id === 'number' && id >= 0 && id < lessons.length
+            );
+
+            // Ensure first lesson is always unlocked
+            if (!sanitized.unlockedLessons.includes(0)) {
+                sanitized.unlockedLessons.unshift(0);
+            }
+        }
+
+        return sanitized;
+    }
+};
+
+// DOM Helper functions
+const DOMHelpers = {
+    /**
+     * Safely get element by ID
+     * @param {string} id - Element ID
+     * @returns {HTMLElement|null} Element or null
+     */
+    getElement(id) {
+        const element = document.getElementById(id);
+        if (!element) {
+            console.warn(`Element not found: ${id}`);
+        }
+        return element;
+    },
+
+    /**
+     * Safely set text content
+     * @param {string} id - Element ID
+     * @param {string} text - Text to set
+     */
+    setText(id, text) {
+        const element = this.getElement(id);
+        if (element) {
+            element.textContent = String(text);
+        }
+    },
+
+    /**
+     * Safely set HTML content
+     * @param {string} id - Element ID
+     * @param {string} html - HTML to set
+     */
+    setHTML(id, html) {
+        const element = this.getElement(id);
+        if (element) {
+            element.innerHTML = html;
+        }
+    },
+
+    /**
+     * Safely add class to element
+     * @param {string} id - Element ID
+     * @param {string} className - Class name to add
+     */
+    addClass(id, className) {
+        const element = this.getElement(id);
+        if (element) {
+            element.classList.add(className);
+        }
+    },
+
+    /**
+     * Safely remove class from element
+     * @param {string} id - Element ID
+     * @param {string} className - Class name to remove
+     */
+    removeClass(id, className) {
+        const element = this.getElement(id);
+        if (element) {
+            element.classList.remove(className);
+        }
+    }
+};
+
 // Load state from localStorage
 function loadState() {
-    const saved = localStorage.getItem('lipiLangProgress');
-    if (saved) {
-        state = JSON.parse(saved);
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const parsedState = JSON.parse(saved);
+            state = Validators.sanitizeState(parsedState);
+            console.log('✅ State loaded from localStorage');
+        } else {
+            state = { ...DEFAULT_STATE };
+            console.log('📝 Using default state');
+        }
+    } catch (error) {
+        console.error('❌ Error loading state:', error);
+        state = { ...DEFAULT_STATE };
+        showNotification('⚠️ Progress could not be loaded. Starting fresh.', 'warning');
     }
     updateUI();
 }
 
 // Save state to localStorage
 function saveState() {
-    localStorage.setItem('lipiLangProgress', JSON.stringify(state));
+    try {
+        // Validate before saving
+        if (!Validators.isValidState(state)) {
+            console.error('❌ Invalid state, cannot save:', state);
+            return;
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        console.log('💾 State saved to localStorage');
+    } catch (error) {
+        console.error('❌ Error saving state:', error);
+        if (error.name === 'QuotaExceededError') {
+            showNotification('⚠️ Storage quota exceeded! Clear browser data.', 'warning');
+        } else {
+            showNotification('⚠️ Could not save progress', 'warning');
+        }
+    }
 }
 
 // Update UI elements based on current state
@@ -69,15 +216,27 @@ function updateUI() {
 
 // Load a specific lesson
 function loadLesson(lessonId) {
-    // Check if lesson is unlocked
-    if (!state.unlockedLessons.includes(lessonId)) {
-        showNotification('🔒 This lesson is locked! Complete previous lessons first.', 'warning');
+    // Validate lesson ID type
+    if (typeof lessonId !== 'number') {
+        console.error('Invalid lesson ID type:', typeof lessonId);
+        showNotification('❌ Invalid lesson ID', 'error');
         return;
     }
 
-    const lesson = lessons[lessonId];
+    // Use LessonManager to safely get lesson
+    const lesson = typeof LessonManager !== 'undefined'
+        ? LessonManager.getLesson(lessonId)
+        : lessons.find(l => l.id === lessonId);
+
     if (!lesson) {
         console.error('Lesson not found:', lessonId);
+        showNotification(`❌ Lesson ${lessonId} not found`, 'error');
+        return;
+    }
+
+    // Check if lesson is unlocked
+    if (!state.unlockedLessons.includes(lessonId)) {
+        showNotification('🔒 This lesson is locked! Complete previous lessons first.', 'warning');
         return;
     }
 

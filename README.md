@@ -172,7 +172,14 @@ cd learning-platform
 - ✅ Progress tracking with LocalStorage
 - ✅ No installation needed - runs in browser!
 
-📖 **See:** `learning-platform/README.md` for complete documentation
+**📚 Documentation:**
+- 📖 [Platform Overview & Setup](learning-platform/README.md) - Complete feature guide
+- 🔍 [Lipi-Lang Quick Reference](learning-platform/QUICK_REFERENCE.md) - All keywords and syntax
+- ✏️ [Lesson Creation Guide](learning-platform/LESSON_TEMPLATE.md) - Add your own lessons
+- 🚀 [Deployment Strategy](learning-platform/DEPLOYMENT_GUIDE.md) - Organizational rollout guide
+
+**Browser Compatibility:**
+- ✅ Chrome 90+ | ✅ Firefox 88+ | ✅ Edge 90+ | ✅ Safari 14+
 
 ## Examples | ఉదాహరణలు
 

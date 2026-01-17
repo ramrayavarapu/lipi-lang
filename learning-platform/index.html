@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lipi-Lang Learning Platform | లిపి-భాష నేర్చుకోండి</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>🎓 Lipi-Lang Learning Platform</h1>
+                <p class="subtitle">లిపి-భాష నేర్చుకోండి | Learn Telugu Programming</p>
+            </div>
+            <div class="user-progress">
+                <div class="xp-container">
+                    <span class="xp-label">XP:</span>
+                    <span id="current-xp" class="xp-value">0</span>
+                    <span class="xp-max">/ <span id="next-level-xp">100</span></span>
+                </div>
+                <div class="level-container">
+                    <span class="level-label">Level:</span>
+                    <span id="current-level" class="level-value">1</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>📚 Lessons | పాఠాలు</h2>
+            <nav class="lessons-nav" id="lessons-nav">
+                <button class="lesson-btn active" data-lesson="0">
+                    <div class="lesson-info">
+                        <span class="lesson-title">Lesson 1: Variables</span>
+                        <span class="lesson-title-te">వేరియబుల్స్ మరియు డేటా రకాలు</span>
+                    </div>
+                    <span class="lesson-xp">+10 XP</span>
+                </button>
+                <button class="lesson-btn locked" data-lesson="1">
+                    <div class="lesson-info">
+                        <span class="lesson-title">Lesson 2: Conditionals</span>
+                        <span class="lesson-title-te">షరతులతో నిర్ణయాలు</span>
+                    </div>
+                    <span class="lesson-xp">+15 XP</span>
+                    <span class="lock-icon">🔒</span>
+                </button>
+                <button class="lesson-btn locked" data-lesson="2">
+                    <div class="lesson-info">
+                        <span class="lesson-title">Lesson 3: Loops</span>
+                        <span class="lesson-title-te">లూప్స్ మరియు పునరావృతం</span>
+                    </div>
+                    <span class="lesson-xp">+20 XP</span>
+                    <span class="lock-icon">🔒</span>
+                </button>
+            </nav>
+
+            <div class="progress-summary">
+                <h3>Progress | పురోగతి</h3>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <p id="progress-text">0 / 3 Lessons Completed</p>
+            </div>
+        </aside>
+
+        <!-- Lesson Content Area -->
+        <main class="lesson-content" id="lesson-content">
+            <!-- Lesson content will be dynamically loaded here -->
+            <div class="welcome-screen">
+                <h2>Welcome to Lipi-Lang! | లిపి-భాషకు స్వాగతం!</h2>
+                <p class="intro-text">
+                    Learn programming in Telugu and English together. This platform will teach you
+                    the fundamentals of programming using lipi-lang, a bilingual programming language.
+                </p>
+                <p class="intro-text-te">
+                    తెలుగు మరియు ఇంగ్లీష్‌లో కలిసి ప్రోగ్రామింగ్ నేర్చుకోండి. ఈ ప్లాట్‌ఫారమ్ మీకు
+                    లిపి-భాష ఉపయోగించి ప్రోగ్రామింగ్ ప్రాథమిక అంశాలను నేర్పుతుంది.
+                </p>
+                <button class="btn-primary" onclick="loadLesson(0)">Start Learning | ప్రారంభించండి</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Lesson Templates -->
+    <script id="lesson-template" type="text/template">
+        <div class="lesson-header">
+            <h2 class="lesson-title-main">{{title}}</h2>
+            <h3 class="lesson-title-telugu">{{titleTe}}</h3>
+        </div>
+
+        <div class="lesson-description">
+            <p>{{description}}</p>
+            <p class="telugu-text">{{descriptionTe}}</p>
+        </div>
+
+        <div class="learning-objectives">
+            <h3>What You'll Learn | మీరు నేర్చుకునేవి:</h3>
+            <ul>
+                {{objectives}}
+            </ul>
+        </div>
+
+        <div class="visual-demo">
+            <h3>Visual Demonstration | దృశ్య ప్రదర్శన</h3>
+            <div class="demo-container">
+                {{visual}}
+            </div>
+        </div>
+
+        <div class="code-section">
+            <h3>Code Examples | కోడ్ ఉదాహరణలు</h3>
+
+            <div class="code-comparison">
+                <div class="code-block">
+                    <h4>Telugu లిపి-భాష</h4>
+                    <pre><code class="language-lipi">{{codeTelugu}}</code></pre>
+                </div>
+                <div class="code-block">
+                    <h4>English Lipi-Lang</h4>
+                    <pre><code class="language-lipi">{{codeEnglish}}</code></pre>
+                </div>
+            </div>
+
+            <div class="transpiler-demo">
+                <h4>See in Other Languages | ఇతర భాషలలో చూడండి</h4>
+                <div class="transpiler-buttons">
+                    <button class="transpiler-btn" onclick="showTranspiled('python', {{lessonId}})">Python</button>
+                    <button class="transpiler-btn" onclick="showTranspiled('javascript', {{lessonId}})">JavaScript</button>
+                    <button class="transpiler-btn" onclick="showTranspiled('csharp', {{lessonId}})">C#</button>
+                </div>
+                <div id="transpiled-output" class="transpiled-output"></div>
+            </div>
+        </div>
+
+        <div class="practice-section">
+            <h3>Try It Yourself | మీరే ప్రయత్నించండి</h3>
+            <textarea id="practice-editor" class="practice-editor" placeholder="Write your lipi-lang code here...
+మీ లిపి-భాష కోడ్ ఇక్కడ వ్రాయండి...">{{practiceTemplate}}</textarea>
+            <button class="btn-run" onclick="runCode()">Run Code | కోడ్ రన్ చేయండి</button>
+            <div id="output-area" class="output-area"></div>
+        </div>
+
+        <div class="lesson-footer">
+            <button class="btn-secondary" onclick="previousLesson()">← Previous</button>
+            <button class="btn-complete" onclick="completeLesson({{lessonId}})">Complete Lesson ✓</button>
+            <button class="btn-secondary" onclick="nextLesson()">Next →</button>
+        </div>
+    </script>
+
+    <script src="lessons.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

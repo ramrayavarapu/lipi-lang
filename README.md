@@ -146,6 +146,34 @@ python3 src/lipi.py examples/telugu.lipi.py --lang te
 python3 src/lipi.py --help
 ```
 
+### 🎓 Interactive Learning Platform | ఇంటరాక్టివ్ అభ్యాస వేదిక
+
+**NEW!** Learn lipi-lang through our interactive, gamified learning platform!
+
+**English:** We've created a complete learning platform with interactive lessons, XP progression, and visual demonstrations. Perfect for new programmers!
+
+**తెలుగు:** మేము ఇంటరాక్టివ్ పాఠాలు, XP పురోగతి మరియు దృశ్య ప్రదర్శనలతో పూర్తి అభ్యాస వేదికను సృష్టించాము. కొత్త ప్రోగ్రామర్లకు అనువైనది!
+
+**Quick Start:**
+```bash
+# Open the learning platform
+# అభ్యాస వేదికను తెరవండి
+cd learning-platform
+# Open index.html in your web browser
+# మీ వెబ్ బ్రౌజర్‌లో index.html తెరవండి
+```
+
+**Features:**
+- ✅ 3 interactive lessons (Variables, Conditionals, Loops)
+- ✅ Bilingual content (Telugu + English)
+- ✅ XP system and level progression
+- ✅ Visual demonstrations for each concept
+- ✅ Practice editor to try code in browser
+- ✅ Progress tracking with LocalStorage
+- ✅ No installation needed - runs in browser!
+
+📖 **See:** `learning-platform/README.md` for complete documentation
+
 ## Examples | ఉదాహరణలు
 
 ### Telugu Example | తెలుగు ఉదాహరణ

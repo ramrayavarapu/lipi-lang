@@ -80,8 +80,8 @@ const LipiInterpreter = (() => {
         }
 
         // Handle numbers
-        if (/^-?\d+(\.\d+)?$/.test(expr)) {
-            return parseFloat(expr);
+        if (/^-?\d+(\.\d+)?:?$/.test(expr)) {
+            return parseFloat(expr.replace(':', ''));
         }
 
         // Handle variables
@@ -113,7 +113,7 @@ const LipiInterpreter = (() => {
             return evaluateRange(expr, variables, strings);
         }
 
-        throw new Error(`Cannot evaluate expression: ${expr}`);
+        throw new Error(`Cannot evaluate expression: '${expr}' (length: ${expr.length})`);
     }
 
     /**

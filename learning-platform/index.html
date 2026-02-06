@@ -27,6 +27,9 @@
     <meta name="theme-color" content="#667eea">
 
     <link rel="stylesheet" href="styles.css">
+
+    <!-- Pyodide: CPython compiled to WebAssembly for in-browser execution -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.27.4/full/pyodide.js"></script>
 </head>
 <body>
     <!-- Skip to main content link for accessibility -->
@@ -38,6 +41,9 @@
             <div class="logo">
                 <h1>🎓 Lipi-Lang Learning Platform</h1>
                 <p class="subtitle">లిపి-భాష నేర్చుకోండి | Learn Telugu Programming</p>
+            </div>
+            <div id="pyodide-status" class="pyodide-status pyodide-status-pending" role="status" aria-live="polite">
+                Python runtime: not loaded
             </div>
             <div class="user-progress" role="status" aria-live="polite" aria-label="User progress information">
                 <div class="xp-container" aria-label="Experience points">
@@ -180,6 +186,7 @@
     </script>
 
     <script src="lessons.js"></script>
+    <script src="pyodide-runner.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

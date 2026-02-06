@@ -649,3 +649,58 @@ body {
         transform: translateX(400px);
     }
 }
+
+/* Pyodide Runtime Status Indicator */
+.pyodide-status {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 15px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.pyodide-status-pending {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.pyodide-status-loading {
+    background: #e3f2fd;
+    color: #1565c0;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.pyodide-status-ready {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.pyodide-status-error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.pyodide-status-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Error text in output area */
+.output-error {
+    color: #ff5252;
+    display: block;
+    margin-top: 4px;
+}
+
+/* Disabled run button while executing */
+.btn-run:disabled {
+    opacity: 0.6;
+    cursor: wait;
+    transform: none;
+}

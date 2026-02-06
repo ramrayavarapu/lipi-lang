@@ -343,42 +343,74 @@ function showTranspiled(language, lessonId) {
     }
 }
 
-// Simple lipi-lang interpreter for practice editor
-function runCode() {
+// Lipi-lang code runner using Pyodide (real Python interpreter) with JS fallback
+async function runCode() {
     const code = document.getElementById('practice-editor').value;
     const outputArea = document.getElementById('output-area');
+    const runBtn = document.querySelector('.btn-run');
 
     outputArea.classList.add('show');
-    outputArea.textContent = 'Running...\n';
 
+    // Try Pyodide-based execution first
+    if (typeof LipiPyodide !== 'undefined') {
+        outputArea.textContent = LipiPyodide.ready()
+            ? 'Running...\n'
+            : 'Loading Python runtime & running...\n';
+        if (runBtn) runBtn.disabled = true;
+
+        try {
+            const result = await LipiPyodide.runCode(code);
+
+            if (result.error) {
+                outputArea.innerHTML = '';
+                if (result.output) {
+                    const outSpan = document.createElement('span');
+                    outSpan.textContent = result.output;
+                    outputArea.appendChild(outSpan);
+                }
+                const errSpan = document.createElement('span');
+                errSpan.className = 'output-error';
+                errSpan.textContent = result.error;
+                outputArea.appendChild(errSpan);
+            } else {
+                outputArea.textContent = result.output || '(No output)';
+            }
+        } catch (err) {
+            // Pyodide failed to load entirely - fall back to simple interpreter
+            console.warn('Pyodide execution failed, using fallback:', err);
+            runCodeFallback(code, outputArea);
+        } finally {
+            if (runBtn) runBtn.disabled = false;
+        }
+        return;
+    }
+
+    // Fallback: simple JS-based interpreter for basic statements
+    runCodeFallback(code, outputArea);
+}
+
+// Simple JS-based interpreter fallback (handles print/variables only)
+function runCodeFallback(code, outputArea) {
+    outputArea.textContent = '';
     try {
-        // Simple interpreter - handles basic print/చెప్పు statements
         const lines = code.split('\n');
         let output = '';
         let variables = {};
 
         for (let line of lines) {
             line = line.trim();
-
-            // Skip comments and empty lines
             if (line.startsWith('#') || line === '') continue;
 
-            // Variable assignment
-            if (line.includes('=')) {
-                const [varName, value] = line.split('=').map(s => s.trim());
-                // Remove quotes from strings
+            if (line.includes('=') && !line.startsWith('చెప్పు ') && !line.startsWith('print ')) {
+                const [varName, ...rest] = line.split('=');
+                const value = rest.join('=').trim();
                 let processedValue = value.replace(/["']/g, '');
-                // Try to convert to number
                 if (!isNaN(processedValue)) {
                     processedValue = Number(processedValue);
                 }
-                variables[varName] = processedValue;
-            }
-            // Print statements (చెప్పు or print)
-            else if (line.startsWith('చెప్పు ') || line.startsWith('print ')) {
+                variables[varName.trim()] = processedValue;
+            } else if (line.startsWith('చెప్పు ') || line.startsWith('print ')) {
                 let content = line.replace(/^(చెప్పు|print)\s+/, '');
-
-                // Handle string concatenation
                 if (content.includes('+')) {
                     const parts = content.split('+').map(p => p.trim());
                     let result = '';
@@ -393,18 +425,12 @@ function runCode() {
                     }
                     output += result + '\n';
                 } else {
-                    // Simple print
                     content = content.replace(/["']/g, '');
-                    if (variables[content] !== undefined) {
-                        output += variables[content] + '\n';
-                    } else {
-                        output += content + '\n';
-                    }
+                    output += (variables[content] !== undefined ? variables[content] : content) + '\n';
                 }
             }
         }
-
-        outputArea.textContent = output || '(No output)';
+        outputArea.textContent = output || '(No output - basic mode: only print/variables supported)';
     } catch (error) {
         outputArea.textContent = 'Error: ' + error.message;
     }
@@ -448,6 +474,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show welcome screen or last lesson
     if (state.currentLesson >= 0) {
         loadLesson(state.currentLesson);
+    }
+
+    // Preload Pyodide in the background so it's ready when the user runs code
+    if (typeof LipiPyodide !== 'undefined') {
+        LipiPyodide.init().catch(err => {
+            console.warn('Pyodide preload failed (will retry on first run):', err.message);
+        });
     }
 });
 

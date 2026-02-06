@@ -198,6 +198,37 @@ cd learning-platform
 - ✨ Automated deployment scripts for multiple platforms | బహుళ ప్లాట్‌ఫారమ్‌ల కోసం ఆటోమేటెడ్ విస్తరణ స్క్రిప్ట్‌లు
 - ✨ SEO optimization for better discoverability | మెరుగైన కనుగొనడానికి SEO ఆప్టిమైజేషన్
 
+## Repository Structure | రిపోజిటరీ నిర్మాణం
+
+**English:** Professional project organization for production-ready development.
+
+**తెలుగు:** ఉత్పత్తి-సిద్ధ అభివృద్ధి కోసం వృత్తిపరమైన ప్రాజెక్ట్ సంస్థ.
+
+```
+lipi-lang/
+├── src/                    # Source code | మూల కోడ్
+│   └── lipi.py            # Main interpreter | ప్రధాన ఇంటర్ప్రెటర్
+├── examples/              # Sample programs | నమూనా ప్రోగ్రామ్లు
+│   ├── hello.lipi.py
+│   ├── bilingual.lipi.py
+│   ├── v2.0_features.lipi.py
+│   ├── v3.0_features.lipi.py
+│   └── calculator.lipi.py
+├── tests/                 # Test suite | టెస్ట్ సూట్
+│   ├── test_lipi.py
+│   └── security_check.py
+├── docs/                  # Documentation | డాక్యుమెంటేషన్
+│   ├── CONTRIBUTING.md
+│   ├── SECURITY.md
+│   ├── V3_GUIDE.md
+│   └── COMPETITIVE_ANALYSIS.md
+├── learning-platform/     # Interactive learning | ఇంటరాక్టివ్ అభ్యాసం
+│   ├── index.html
+│   ├── README.md
+│   └── QUICK_REFERENCE.md
+└── .github/workflows/     # CI/CD pipeline | CI/CD పైప్లైన్
+```
+
 ## Examples | ఉదాహరణలు
 
 ### Telugu Example | తెలుగు ఉదాహరణ
@@ -250,6 +281,33 @@ while count < 5:
     count = count + 1
 end
 ```
+
+## Featured Projects | ప్రత్యేక ప్రాజెక్టులు
+
+### 🧮 Lipi Calculator | లిపి కాలిక్యులేటర్
+
+**English:** A comprehensive calculator demonstrating bilingual programming with web UI, CLI interface, and advanced mathematical operations.
+
+**తెలుగు:** వెబ్ UI, CLI ఇంటర్ఫేస్ మరియు అధునాతన గణిత కార్యకలాపాలతో ద్విభాషా ప్రోగ్రామింగ్ను ప్రదర్శించే సమగ్ర కాలిక్యులేటర్.
+
+**Features | ఫీచర్లు:**
+- ✅ 15+ mathematical operations | 15+ గణిత కార్యకలాపాలు
+- ✅ Interactive web interface | ఇంటరాక్టివ్ వెబ్ ఇంటర్ఫేస్
+- ✅ Command-line interface | కమాండ్-లైన్ ఇంటర్ఫేస్
+- ✅ Bilingual code examples | ద్విభాషా కోడ్ ఉదాహరణలు
+- ✅ Error handling demonstrations | ఎర్రర్ హ్యాండ్లింగ్ ప్రదర్శనలు
+
+**Try it | దీన్ని ప్రయత్నించండి:**
+```bash
+# Run the calculator demo
+python3 src/lipi.py examples/calculator.lipi.py
+
+# Interactive web interface
+python3 examples/serve_calculator.py
+# Open http://localhost:8000/calculator_ui.html
+```
+
+See [README_CALCULATOR.md](README_CALCULATOR.md) for complete details | పూర్తి వివరాల కోసం [README_CALCULATOR.md](README_CALCULATOR.md) చూడండి
 
 ## Language Syntax | భాషా సింటాక్స్
 
@@ -332,39 +390,41 @@ end
 
 ## Current Version | ప్రస్తుత వెర్షన్
 
-**v2.0** - Production-ready with File I/O, HTTP/API, and Database connectivity
-**v2.0** - ఫైల్ I/O, HTTP/API మరియు డేటాబేస్ కనెక్టివిటీతో ఉత్పత్తి-సిద్ధం
+**v3.0** - Enterprise-ready with Modules, OOP, and Multi-Database Support
+**v3.0** - మాడ్యూల్స్, OOP మరియు మల్టీ-డేటాబేస్ మద్దతుతో ఎంటర్ప్రైజ్-సిద్ధం
 
-See `examples/v2.0_features.lipi.py` for complete demonstrations!
+See `examples/v3.0_features.lipi.py` for complete demonstrations! | పూర్తి ప్రదర్శనల కోసం `examples/v3.0_features.lipi.py` చూడండి!
 
-## Roadmap | రోడ్‌మ్యాప్
+## Roadmap | రోడ్మ్యాప్
 
-**English:** Completed features (v1.0-v2.0):
+**English:** Completed features (v1.0-v3.0):
 
-**తెలుగు:** పూర్తయిన ఫీచర్లు (v1.0-v2.0):
+**తెలుగు:** పూర్తయిన ఫీచర్లు (v1.0-v3.0):
 
 - [x] Functions/procedures | ఫంక్షన్లు/ప్రొసీజర్లు ✅ v1.0
 - [x] Arrays & dictionaries | అర్రేలు & డిక్షనరీలు ✅ v1.0
 - [x] Error handling (try/catch) | ఎర్రర్ హ్యాండ్లింగ్ ✅ v1.0
-- [x] File I/O | ఫైల్ ఇన్‌పుట్/అవుట్‌పుట్ ✅ v2.0
+- [x] File I/O | ఫైల్ ఇన్పుట్/అవుట్పుట్ ✅ v2.0
 - [x] Database connectivity (SQLite) | డేటాబేస్ కనెక్టివిటీ ✅ v2.0
 - [x] HTTP/API support | HTTP/API మద్దతు ✅ v2.0
+- [x] Full module import system | పూర్తి మాడ్యూల్ ఇంపోర్ట్ సిస్టమ్ ✅ v3.0
+- [x] Advanced OOP (classes, inheritance) | అధునాతన OOP ✅ v3.0
+- [x] Multi-database support (MySQL, PostgreSQL) | మల్టీ-డేటాబేస్ మద్దతు ✅ v3.0
 
-**English:** Future features (v3.0+):
+**English:** Future features (v4.0+):
 
-**తెలుగు:** భవిష్యత్ ఫీచర్లు (v3.0+):
+**తెలుగు:** భవిష్యత్ ఫీచర్లు (v4.0+):
 
-- [ ] Full module import system | పూర్తి మాడ్యూల్ ఇంపోర్ట్ సిస్టమ్
-- [ ] Advanced OOP (classes, inheritance) | అధునాతన OOP
-- [ ] Multi-database support (MySQL, PostgreSQL) | మల్టీ-డేటాబేస్ మద్దతు
 - [ ] Package manager | ప్యాకేజ్ మేనేజర్
 - [ ] Native compilation | నేటివ్ కంపైలేషన్
+- [ ] Standard library expansion | స్టాండర్డ్ లైబ్రరీ విస్తరణ
+- [ ] IDE/Editor plugins | IDE/ఎడిటర్ ప్లగిన్లు
 - [ ] More Indian language support (Hindi, Tamil, etc.) | మరిన్ని భారతీయ భాషల మద్దతు (హిందీ, తమిళం, మొదలైనవి)
 
 ## Security | భద్రత
 
 **English:** This project includes comprehensive security testing to prevent vulnerabilities:
-- ✅ 39 automated tests including security checks
+- ✅ 50+ automated tests including security checks
 - ✅ Automated security scanner
 - ✅ GitHub Actions CI/CD pipeline
 - ✅ Pre-commit hooks
@@ -373,11 +433,30 @@ See `examples/v2.0_features.lipi.py` for complete demonstrations!
 All code is tested before merge. See [SECURITY.md](docs/SECURITY.md) for details.
 
 **తెలుగు:** ఈ ప్రాజెక్ట్ దుర్బలత్వాలను నిరోధించడానికి సమగ్ర భద్రతా పరీక్షను కలిగి ఉంది:
-- ✅ 39 ఆటోమేటెడ్ టెస్ట్‌లు భద్రతా తనిఖీలతో సహా
+- ✅ 50+ ఆటోమేటెడ్ టెస్ట్లు భద్రతా తనిఖీలతో సహా
 - ✅ ఆటోమేటెడ్ సెక్యూరిటీ స్కానర్
-- ✅ GitHub Actions CI/CD పైప్‌లైన్
+- ✅ GitHub Actions CI/CD పైప్లైన్
 - ✅ ప్రీ-కమిట్ హుక్స్
 - ✅ కోడ్ ఎగ్జిక్యూషన్ దుర్బలత్వాలు లేవు
+
+## Community & Support | కమ్యూనిటీ & మద్దతు
+
+**English:** Join our growing community of bilingual programmers!
+
+**తెలుగు:** ద్విభాషా ప్రోగ్రామర్ల మా పెరుగుతున్న కమ్యూనిటీలో చేరండి!
+
+**Ways to Get Involved | పాల్గొనే మార్గాలు:**
+- ⭐ Star the repository | రిపోజిటరీకి స్టార్ ఇవ్వండి
+- 🐛 Report bugs or suggest features | బగ్లను రిపోర్ట్ చేయండి లేదా ఫీచర్లను సూచించండి
+- 📝 Improve documentation | డాక్యుమెంటేషన్ను మెరుగుపరచండి
+- 💡 Share your projects | మీ ప్రాజెక్టులను షేర్ చేయండి
+- 🎓 Help with learning resources | అభ్యాస వనరులతో సహాయం చేయండి
+
+**Resources | వనరులు:**
+- 📖 [Developer Guide](docs/V3_GUIDE.md) - Complete v3.0 documentation | పూర్తి v3.0 డాక్యుమెంటేషన్
+- 🔍 [Quick Reference](learning-platform/QUICK_REFERENCE.md) - All keywords and syntax | అన్ని కీవర్డ్లు మరియు సింటాక్స్
+- 🚀 [Deployment Guide](learning-platform/DEPLOYMENT_GUIDE.md) - Rollout strategies | రోల్అవుట్ వ్యూహాలు
+- 🎯 [Competitive Analysis](docs/COMPETITIVE_ANALYSIS.md) - See how lipi-lang leads | లిపి-భాష ఎలా ముందుంది చూడండి
 
 ## Contributing | సహకారం
 

@@ -2,13 +2,18 @@
 The bilingual (Telugu + English) programming language.
 ద్విభాషా (తెలుగు + ఇంగ్లీష్) ప్రోగ్రామింగ్ భాష.
 
+> Copyright (c) 2025 Ram Rayavarapu. Licensed under the MIT License.
+> కాపీరైట్ (c) 2025 రామ్ రాయవరపు. MIT లైసెన్స్ కింద లైసెన్స్ పొందింది.
+
 ---
 
-## 🎯 తెలుగు విద్యార్థులకు (For Telugu Students)
+## తెలుగు విద్యార్థులకు (For Telugu Students)
 
 **మీరు ఇంగ్లీష్ తెలియకపోయినా ప్రోగ్రామింగ్ నేర్చుకోవచ్చు!**
+**You can learn programming even without knowing English!**
 
 లిపి భాషలో మీరు పూర్తిగా తెలుగులో కోడ్ రాయవచ్చు:
+In Lipi you can write code entirely in Telugu:
 
 ```python
 పేరు = "రాము"
@@ -23,17 +28,17 @@ The bilingual (Telugu + English) programming language.
 ముగింపు
 ```
 
-**ఎలా ఉపయోగించాలి:**
-1. Python 3 ఇన్‌స్టాల్ చేసుకోండి
-2. ఈ రిపోజిటరీ డౌన్‌లోడ్ చేసుకోండి
-3. `python3 src/lipi.py మీ_ప్రోగ్రామ్.lipi.py` అని రన్ చేయండి
+**ఎలా ఉపయోగించాలి (How to use):**
+1. Python 3 ఇన్‌స్టాల్ చేసుకోండి (Install Python 3)
+2. ఈ రిపోజిటరీ డౌన్‌లోడ్ చేసుకోండి (Download this repository)
+3. `python3 src/lipi.py మీ_ప్రోగ్రామ్.lipi.py` అని రన్ చేయండి (Run the command)
 
-**ముఖ్యమైన కీవర్డ్స్:**
-- `చెప్పు` - ప్రింట్ చేయడానికి (output చూపించడానికి)
-- `యెడల` - if (షరతు కోసం)
-- `లేకపోతే:` - else (లేకపోతే)
-- `వరకు` - while loop (పునరావృతం కోసం)
-- `ముగింపు` - end (బ్లాక్ ముగించడానికి)
+**ముఖ్యమైన కీవర్డ్స్ (Important Keywords):**
+- `చెప్పు` - ప్రింట్ చేయడానికి (to print output)
+- `యెడల` - if (షరతు కోసం / for conditions)
+- `లేకపోతే:` - else (లేకపోతే / otherwise)
+- `వరకు` - while loop (పునరావృతం కోసం / for repetition)
+- `ముగింపు` - end (బ్లాక్ ముగించడానికి / to close a block)
 
 ---
 
@@ -49,16 +54,23 @@ The bilingual (Telugu + English) programming language.
 
 **తెలుగు:** lipi-lang **v3.0** అనేది Python లో వ్రాయబడిన **ఎంటర్‌ప్రైజ్-సిద్ధ ఇంటర్ప్రెటర్**, ఇది మాడ్యూల్స్, వారసత్వంతో ఆబ్జెక్ట్-ఓరియెంటెడ్ ప్రోగ్రామింగ్, బహుళ డేటాబేస్ బ్యాకెండ్లు (SQLite, MySQL, PostgreSQL), ఫైల్ I/O, HTTP APIలు మరియు సమగ్ర ఎర్రర్ హ్యాండ్లింగ్‌కు పూర్తి మద్దతుతో తెలుగు/ఇంగ్లీష్ కోడ్‌ను నేరుగా అమలు చేస్తుంది. ఇంటర్ప్రెటర్ `.lipi.py` ఫైల్‌లను చదువుతుంది, తెలుగు మరియు ఇంగ్లీష్ కీవర్డ్‌లను పార్స్ చేస్తుంది మరియు వెంటనే స్టేట్‌మెంట్స్‌ను అమలు చేస్తుంది. భవిష్యత్తు వెర్షన్‌లు మెరుగైన పనితీరు కోసం కంపైలేషన్ మరియు ట్రాన్స్‌పైలేషన్ ఎంపికలను పరిచయం చేస్తాయి.
 
-**Architecture:** Pure Python interpreter → Future: Bytecode VM / JIT / Transpiler to Python/JS
+**Architecture | నిర్మాణం:** Pure Python interpreter → Future: Bytecode VM / JIT / Transpiler to Python/JS
+**నిర్మాణం:** స్వచ్ఛమైన Python ఇంటర్ప్రెటర్ → భవిష్యత్తు: బైట్‌కోడ్ VM / JIT / Python/JS కి ట్రాన్స్‌పైలర్
+
+### Runtime Note | రన్‌టైమ్ గమనిక
+
+**English:** The lipi-lang interpreter runs as a **Python-based CLI tool**. It does **not** run directly in web browsers. The learning platform (under `learning-platform/`) is a separate browser-based HTML/JS application for interactive lessons only; actual Lipi code execution requires Python 3.
+
+**తెలుగు:** లిపి-భాష ఇంటర్ప్రెటర్ **Python-ఆధారిత CLI సాధనం**గా రన్ అవుతుంది. ఇది వెబ్ బ్రౌజర్‌లలో నేరుగా రన్ **కాదు**. అభ్యాస వేదిక (`learning-platform/`) ఇంటరాక్టివ్ పాఠాల కోసం మాత్రమే ప్రత్యేక బ్రౌజర్-ఆధారిత HTML/JS అప్లికేషన్; అసలైన లిపి కోడ్ అమలుకు Python 3 అవసరం.
 
 ## Features | ఫీచర్లు
 
-✅ **Three Ways to Code: | మూడు విధాలుగా కోడ్ రాయండి:**
+**Three Ways to Code | మూడు విధాలుగా కోడ్ రాయండి:**
 1. **Pure Telugu | పూర్తిగా తెలుగు** - Write entirely in Telugu | పూర్తిగా తెలుగులో రాయండి
 2. **Pure English | పూర్తిగా ఇంగ్లీష్** - Write entirely in English | పూర్తిగా ఇంగ్లీష్‌లో రాయండి
 3. **Bilingual | ద్విభాషా** - Mix Telugu and English keywords in the same program! | ఒకే ప్రోగ్రామ్‌లో తెలుగు మరియు ఇంగ్లీష్ కీవర్డ్‌లను మిక్స్ చేయండి!
 
-✅ **Language Support: | భాషా మద్దతు:**
+**Language Support | భాషా మద్దతు:**
 
 ### Basic Keywords | ప్రాథమిక కీవర్డ్లు
 
@@ -87,7 +99,7 @@ The bilingual (Telugu + English) programming language.
 | DB Connect (SQLite) | `డేటాబేస్_కనెక్ట్(path)` | `db_connect(path)` | డేటాబేస్ కనెక్ట్ |
 | DB Query | `డేటాబేస్_ప్రశ్న(db, sql)` | `db_query(db, sql)` | SQL ప్రశ్నలు |
 
-### ✨ NEW in v3.0: Enterprise Features | v3.0లో కొత్తది: ఎంటర్‌ప్రైజ్ ఫీచర్లు
+### v3.0 Enterprise Features | v3.0 ఎంటర్‌ప్రైజ్ ఫీచర్లు
 
 | Feature<br/>ఫీచర్ | Telugu<br/>తెలుగు | English<br/>ఇంగ్లీష్ | Usage<br/>ఉపయోగం |
 |---------|--------|---------|---------|
@@ -105,6 +117,12 @@ The bilingual (Telugu + English) programming language.
 | PostgreSQL Query | `postgres_ప్రశ్న(...)` | `postgres_query(...)` | PostgreSQL ప్రశ్నలు |
 
 ## Quick Start | త్వరిత ప్రారంభం
+
+### Prerequisites | ముందస్తు అవసరాలు
+
+**English:** Python 3.8 or higher is required. The interpreter runs as a CLI tool, not in browsers.
+
+**తెలుగు:** Python 3.8 లేదా అంతకంటే ఎక్కువ అవసరం. ఇంటర్ప్రెటర్ CLI సాధనంగా రన్ అవుతుంది, బ్రౌజర్‌లలో కాదు.
 
 ### Installation | ఇన్‌స్టాలేషన్
 
@@ -146,57 +164,44 @@ python3 src/lipi.py examples/telugu.lipi.py --lang te
 python3 src/lipi.py --help
 ```
 
-### 🎓 Interactive Learning Platform | ఇంటరాక్టివ్ అభ్యాస వేదిక
+### Interactive Learning Platform | ఇంటరాక్టివ్ అభ్యాస వేదిక
 
-**NEW!** Production-ready, enterprise-grade learning platform with comprehensive accessibility and deployment support!
-
-**English:** We've created a complete learning platform with interactive lessons, XP progression, visual demonstrations, and professional deployment options. Perfect for new programmers and organizational onboarding!
+**English:** A separate browser-based learning platform with interactive lessons, XP progression, visual demonstrations, and professional deployment options. This platform teaches Lipi concepts visually but does not execute Lipi code natively; actual code execution requires the Python interpreter above.
 
 **తెలుగు:** మేము ఇంటరాక్టివ్ పాఠాలు, XP పురోగతి, దృశ్య ప్రదర్శనలు మరియు ప్రొఫెషనల్ డిప్లాయ్‌మెంట్ ఎంపికలతో పూర్తి అభ్యాస వేదికను సృష్టించాము. కొత్త ప్రోగ్రామర్లకు అనువైనది!
 
-**Quick Start:**
+**Quick Start | త్వరిత ప్రారంభం:**
 ```bash
-# Open the learning platform
-# అభ్యాస వేదికను తెరవండి
+# Open the learning platform | అభ్యాస వేదికను తెరవండి
 cd learning-platform
-# Open index.html in your web browser
-# మీ వెబ్ బ్రౌజర్‌లో index.html తెరవండి
+# Open index.html in your web browser | మీ వెబ్ బ్రౌజర్‌లో index.html తెరవండి
 ```
 
-**Core Features: | ప్రధాన ఫీచర్లు:**
-- ✅ 3 interactive lessons (Variables, Conditionals, Loops) | 3 ఇంటరాక్టివ్ పాఠాలు (వేరియబుల్స్, షరతులు, లూప్స్)
-- ✅ Bilingual content (Telugu + English) | ద్విభాషా కంటెంట్ (తెలుగు + ఇంగ్లీష్)
-- ✅ XP system and level progression | XP సిస్టమ్ మరియు స్థాయి పురోగతి
-- ✅ Visual demonstrations for each concept | ప్రతి భావనకు దృశ్య ప్రదర్శనలు
-- ✅ Practice editor to try code in browser | బ్రౌజర్‌లో కోడ్ ప్రయత్నించడానికి ప్రాక్టీస్ ఎడిటర్
-- ✅ Progress tracking with LocalStorage | LocalStorage తో పురోగతి ట్రాకింగ్
-- ✅ No installation needed - runs in browser! | ఇన్‌స్టాలేషన్ అవసరం లేదు - బ్రౌజర్‌లో రన్ అవుతుంది!
+**Core Features | ప్రధాన ఫీచర్లు:**
+- 3 interactive lessons (Variables, Conditionals, Loops) | 3 ఇంటరాక్టివ్ పాఠాలు (వేరియబుల్స్, షరతులు, లూప్స్)
+- Bilingual content (Telugu + English) | ద్విభాషా కంటెంట్ (తెలుగు + ఇంగ్లీష్)
+- XP system and level progression | XP సిస్టమ్ మరియు స్థాయి పురోగతి
+- Visual demonstrations for each concept | ప్రతి భావనకు దృశ్య ప్రదర్శనలు
+- Practice editor to try code in browser | బ్రౌజర్‌లో కోడ్ ప్రయత్నించడానికి ప్రాక్టీస్ ఎడిటర్
+- Progress tracking with LocalStorage | LocalStorage తో పురోగతి ట్రాకింగ్
+- No installation needed - runs in browser! | ఇన్‌స్టాలేషన్ అవసరం లేదు - బ్రౌజర్‌లో రన్ అవుతుంది!
 
-**Production-Ready Features: | ఉత్పత్తి-సిద్ధ ఫీచర్లు:**
-- 🌙 **Dark Mode** - Automatic & manual theme switching | **డార్క్ మోడ్** - ఆటోమేటిక్ & మాన్యువల్ థీమ్ మార్పిడి
-- ♿ **Full Accessibility** - WCAG compliant with ARIA labels | **పూర్తి ప్రాప్యత** - ARIA లేబుల్స్‌తో WCAG అనుకూలత
-- 🔍 **SEO Optimized** - Complete meta tags for discoverability | **SEO ఆప్టిమైజ్డ్** - కనుగొనడానికి పూర్తి మెటా ట్యాగ్‌లు
-- 🛡️ **Error Handling** - Comprehensive validation & sanitization | **ఎర్రర్ హ్యాండ్లింగ్** - సమగ్ర ధ్రువీకరణ & శుద్ధీకరణ
-- 📱 **Responsive Design** - Works on desktop, tablet, mobile | **రెస్పాన్సివ్ డిజైన్** - డెస్క్‌టాప్, టాబ్లెట్, మొబైల్‌లో పనిచేస్తుంది
-- 🚀 **Easy Deployment** - GitHub Pages, Netlify, Vercel ready | **సులభ విస్తరణ** - GitHub Pages, Netlify, Vercel సిద్ధం
+**Production-Ready Features | ఉత్పత్తి-సిద్ధ ఫీచర్లు:**
+- **Dark Mode** - Automatic & manual theme switching | **డార్క్ మోడ్** - ఆటోమేటిక్ & మాన్యువల్ థీమ్ మార్పిడి
+- **Full Accessibility** - WCAG compliant with ARIA labels | **పూర్తి ప్రాప్యత** - ARIA లేబుల్స్‌తో WCAG అనుకూలత
+- **SEO Optimized** - Complete meta tags for discoverability | **SEO ఆప్టిమైజ్డ్** - కనుగొనడానికి పూర్తి మెటా ట్యాగ్‌లు
+- **Error Handling** - Comprehensive validation & sanitization | **ఎర్రర్ హ్యాండ్లింగ్** - సమగ్ర ధ్రువీకరణ & శుద్ధీకరణ
+- **Responsive Design** - Works on desktop, tablet, mobile | **రెస్పాన్సివ్ డిజైన్** - డెస్క్‌టాప్, టాబ్లెట్, మొబైల్‌లో పనిచేస్తుంది
+- **Easy Deployment** - GitHub Pages, Netlify, Vercel ready | **సులభ విస్తరణ** - GitHub Pages, Netlify, Vercel సిద్ధం
 
-**📚 Documentation: | డాక్యుమెంటేషన్:**
-- 📖 [Platform Overview & Setup](learning-platform/README.md) - Complete feature guide | వేదిక అవలోకనం & సెటప్ - పూర్తి ఫీచర్ గైడ్
-- 🔍 [Lipi-Lang Quick Reference](learning-platform/QUICK_REFERENCE.md) - All keywords and syntax (with real-world examples!) | లిపి-భాష త్వరిత సూచన - అన్ని కీవర్డ్‌లు మరియు సింటాక్స్ (నిజ-ప్రపంచ ఉదాహరణలతో!)
-- ✏️ [Lesson Creation Guide](learning-platform/LESSON_TEMPLATE.md) - Add your own lessons (12 advanced tips!) | పాఠ సృష్టి గైడ్ - మీ స్వంత పాఠాలను జోడించండి (12 అధునాతన చిట్కాలు!)
-- 🚀 [Deployment Strategy](learning-platform/DEPLOYMENT_GUIDE.md) - Organizational rollout guide (automated scripts!) | విస్తరణ వ్యూహం - సంస్థాగత రోల్అవుట్ గైడ్ (ఆటోమేటెడ్ స్క్రిప్ట్‌లు!)
+**Documentation | డాక్యుమెంటేషన్:**
+- [Platform Overview & Setup](learning-platform/README.md) - Complete feature guide | వేదిక అవలోకనం & సెటప్ - పూర్తి ఫీచర్ గైడ్
+- [Lipi-Lang Quick Reference](learning-platform/QUICK_REFERENCE.md) - All keywords and syntax | లిపి-భాష త్వరిత సూచన - అన్ని కీవర్డ్‌లు మరియు సింటాక్స్
+- [Lesson Creation Guide](learning-platform/LESSON_TEMPLATE.md) - Add your own lessons | పాఠ సృష్టి గైడ్ - మీ స్వంత పాఠాలను జోడించండి
+- [Deployment Strategy](learning-platform/DEPLOYMENT_GUIDE.md) - Organizational rollout guide | విస్తరణ వ్యూహం - సంస్థాగత రోల్అవుట్ గైడ్
 
-**Browser Compatibility: | బ్రౌజర్ అనుకూలత:**
-- ✅ Chrome 90+ | ✅ Firefox 88+ | ✅ Edge 90+ | ✅ Safari 14+
-
-**What's New (Latest Update): | కొత్తవి (తాజా నవీకరణ):**
-- ✨ Dark mode support with smooth transitions | మృదువైన పరివర్తనలతో డార్క్ మోడ్ మద్దతు
-- ✨ Full ARIA accessibility labels for screen readers | స్క్రీన్ రీడర్‌ల కోసం పూర్తి ARIA ప్రాప్యత లేబుల్స్
-- ✨ Comprehensive error handling and validation | సమగ్ర ఎర్రర్ హ్యాండ్లింగ్ మరియు ధ్రువీకరణ
-- ✨ 8 real-world code examples added | 8 నిజ-ప్రపంచ కోడ్ ఉదాహరణలు జోడించబడ్డాయి
-- ✨ Common errors guide with solutions | పరిష్కారాలతో సాధారణ దోషాల గైడ్
-- ✨ Automated deployment scripts for multiple platforms | బహుళ ప్లాట్‌ఫారమ్‌ల కోసం ఆటోమేటెడ్ విస్తరణ స్క్రిప్ట్‌లు
-- ✨ SEO optimization for better discoverability | మెరుగైన కనుగొనడానికి SEO ఆప్టిమైజేషన్
+**Browser Compatibility | బ్రౌజర్ అనుకూలత:**
+- Chrome 90+ | Firefox 88+ | Edge 90+ | Safari 14+
 
 ## Repository Structure | రిపోజిటరీ నిర్మాణం
 
@@ -263,19 +268,19 @@ end
 
 ### Bilingual Example (Telugu + English Together!) | ద్విభాషా ఉదాహరణ (తెలుగు + ఇంగ్లీష్ కలిపి!)
 ```python
-# Mix Telugu and English freely!
+# Mix Telugu and English freely! | తెలుగు మరియు ఇంగ్లీష్ స్వేచ్ఛగా మిక్స్ చేయండి!
 పేరు = "రామ్"
 name = "Ram"
 
 చెప్పు "నమస్తే!"
 print "Hello!"
 
-# Telugu if with English print inside
+# Telugu if with English print inside | తెలుగు if లో ఇంగ్లీష్ print
 యెడల వయసు > 18:
     print "Adult"
 ముగింపు
 
-# English while with Telugu print inside
+# English while with Telugu print inside | ఇంగ్లీష్ while లో తెలుగు print
 while count < 5:
     చెప్పు "Count: " + count
     count = count + 1
@@ -390,6 +395,33 @@ end
 
 ## Current Version | ప్రస్తుత వెర్షన్
 
+**English:** **v3.0** - Enterprise-ready with modules, OOP, multi-database support, file I/O, HTTP/API, and bilingual error messages.
+
+**తెలుగు:** **v3.0** - మాడ్యూల్స్, OOP, మల్టీ-డేటాబేస్ మద్దతు, ఫైల్ I/O, HTTP/API మరియు ద్విభాషా దోష సందేశాలతో ఎంటర్‌ప్రైజ్-సిద్ధం.
+
+See `examples/` for complete demonstrations! | పూర్తి ప్రదర్శనల కోసం `examples/` చూడండి!
+
+## Roadmap | రోడ్‌మ్యాప్
+
+**Completed features | పూర్తయిన ఫీచర్లు (v1.0-v3.0):**
+
+- [x] Functions/procedures | ఫంక్షన్లు/ప్రొసీజర్లు (v1.0)
+- [x] Arrays & dictionaries | అర్రేలు & డిక్షనరీలు (v1.0)
+- [x] Error handling (try/catch) | ఎర్రర్ హ్యాండ్లింగ్ (v1.0)
+- [x] File I/O | ఫైల్ ఇన్‌పుట్/అవుట్‌పుట్ (v2.0)
+- [x] Database connectivity (SQLite) | డేటాబేస్ కనెక్టివిటీ (v2.0)
+- [x] HTTP/API support | HTTP/API మద్దతు (v2.0)
+- [x] Module import system | మాడ్యూల్ ఇంపోర్ట్ సిస్టమ్ (v3.0)
+- [x] OOP with inheritance | వారసత్వంతో OOP (v3.0)
+- [x] MySQL & PostgreSQL support | MySQL & PostgreSQL మద్దతు (v3.0)
+- [x] Bilingual error messages | ద్విభాషా దోష సందేశాలు (v3.0)
+
+**Future features | భవిష్యత్ ఫీచర్లు (v4.0+):**
+
+- [ ] Package manager | ప్యాకేజ్ మేనేజర్
+- [ ] Native compilation | నేటివ్ కంపైలేషన్
+- [ ] Browser-native execution (Pyodide/WASM) | బ్రౌజర్-స్థానిక అమలు
+- [ ] Execution timeout and memory limits | అమలు సమయ పరిమితి మరియు మెమరీ పరిమితులు
 **v3.0** - Enterprise-ready with Modules, OOP, and Multi-Database Support
 **v3.0** - మాడ్యూల్స్, OOP మరియు మల్టీ-డేటాబేస్ మద్దతుతో ఎంటర్ప్రైజ్-సిద్ధం
 

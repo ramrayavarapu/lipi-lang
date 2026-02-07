@@ -6,6 +6,7 @@ const LipiPyodide = (() => {
     let isLoading = false;
     let isReady = false;
     let onReadyCallbacks = [];
+    let useFallbackInterpreter = false;
 
     // The lipi.py interpreter source will be fetched and stored here
     let lipiInterpreterSource = null;
@@ -13,6 +14,7 @@ const LipiPyodide = (() => {
     /**
      * Initialize Pyodide and load the lipi.py interpreter.
      * Shows a loading indicator while Pyodide downloads (~10MB WASM).
+     * Falls back to JavaScript interpreter if Pyodide is unavailable.
      */
     async function init() {
         if (isReady) return;
@@ -22,9 +24,16 @@ const LipiPyodide = (() => {
         }
 
         isLoading = true;
-        updateLoadingStatus('Loading Python runtime...', 'loading');
 
+        // Try to load Pyodide first
         try {
+            updateLoadingStatus('Loading Python runtime...', 'loading');
+
+            // Check if loadPyodide is available
+            if (typeof loadPyodide === 'undefined') {
+                throw new Error('Pyodide not available');
+            }
+
             // Load Pyodide
             pyodide = await loadPyodide({
                 indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.27.4/full/'
@@ -34,6 +43,10 @@ const LipiPyodide = (() => {
 
             // Fetch the lipi.py interpreter source
             lipiInterpreterSource = await fetchInterpreterSource();
+
+            if (!lipiInterpreterSource) {
+                throw new Error('Could not load lipi.py');
+            }
 
             // Write lipi.py to the Pyodide virtual filesystem
             pyodide.FS.writeFile('/home/pyodide/lipi.py', lipiInterpreterSource);
@@ -98,19 +111,28 @@ def run_lipi_code(code):
     return {'output': output, 'error': error_msg}
 `);
 
+            useFallbackInterpreter = false;
             isReady = true;
             isLoading = false;
             updateLoadingStatus('Python runtime ready', 'ready');
 
-            // Notify waiting callers
-            onReadyCallbacks.forEach(cb => cb());
-            onReadyCallbacks = [];
+            console.log('✅ Lipi-lang running via Pyodide (Python)');
 
         } catch (err) {
+            // Fall back to JavaScript interpreter
+            console.warn('Pyodide unavailable, using native JavaScript interpreter:', err.message);
+            
+            useFallbackInterpreter = true;
+            isReady = true;
             isLoading = false;
-            updateLoadingStatus('Failed to load Python runtime: ' + err.message, 'error');
-            throw err;
+            updateLoadingStatus('JavaScript runtime ready', 'ready');
+
+            console.log('✅ Lipi-lang running via JavaScript interpreter');
         }
+
+        // Notify waiting callers
+        onReadyCallbacks.forEach(cb => cb());
+        onReadyCallbacks = [];
     }
 
     /**
@@ -142,14 +164,14 @@ def run_lipi_code(code):
      */
     function getEmbeddedInterpreterSource() {
         // This is a safety fallback - the real lipi.py should be served alongside
-        // the learning platform. If we reach this, log a warning.
-        console.warn('Could not fetch lipi.py - using embedded fallback interpreter');
-        // Return empty string to signal we need the inline approach
+        // the learning platform. If we reach this, we'll use the JS interpreter.
+        console.warn('Could not fetch lipi.py - will use native JavaScript interpreter');
+        // Return null to signal we should use JS interpreter
         return null;
     }
 
     /**
-     * Execute lipi-lang code through the real Python interpreter.
+     * Execute lipi-lang code through the real Python interpreter or JS fallback.
      * @param {string} code - lipi-lang source code
      * @returns {Promise<{output: string, error: string|null}>}
      */
@@ -158,6 +180,24 @@ def run_lipi_code(code):
             await init();
         }
 
+        // Use JavaScript fallback interpreter if Pyodide unavailable
+        if (useFallbackInterpreter) {
+            try {
+                // Ensure the LipiInterpreter is loaded
+                if (typeof LipiInterpreter === 'undefined') {
+                    return { 
+                        output: '', 
+                        error: 'JavaScript interpreter not loaded. Please check that lipi-interpreter.js is included.' 
+                    };
+                }
+                
+                return LipiInterpreter.execute(code);
+            } catch (err) {
+                return { output: '', error: 'Execution error: ' + err.message };
+            }
+        }
+
+        // Use Pyodide Python interpreter
         // Escape the code string for Python
         const escapedCode = code
             .replace(/\\/g, '\\\\')

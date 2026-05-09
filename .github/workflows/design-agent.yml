@@ -8,12 +8,13 @@ on:
     types: [opened, labeled]
 
 permissions:
-  issues: write
+  contents: read  # required for actions/checkout
+  issues: write   # required to create issues and comments
 
 jobs:
   generate-design:
     if: |
-      (github.event.action == 'opened' && contains(toJson(github.event.issue.labels), 'enhancement')) ||
+      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'enhancement')) ||
       (github.event.action == 'labeled' && github.event.label.name == 'needs-design')
     runs-on: ubuntu-latest
 
@@ -55,7 +56,7 @@ Template:
 
           payload = json.dumps({
               "model": "gpt-4o",
-              "max_tokens": 2000,
+              "max_tokens": 4096,
               "messages": [
                   {"role": "system", "content": system_prompt},
                   {"role": "user",   "content": user_message}

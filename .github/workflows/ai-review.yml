@@ -30,25 +30,50 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          DIFF_CONTENT=$(cat diff.txt | head -c 3000)
+          python3 - <<'PYEOF'
+          import json, urllib.request, urllib.error, os, sys
 
-          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
-            -H "x-api-key: $ANTHROPIC_API_KEY" \
-            -H "anthropic-version: 2023-06-01" \
-            -H "content-type: application/json" \
-            -d "{
-              \"model\": \"claude-sonnet-4-6\",
-              \"max_tokens\": 800,
-              \"messages\": [
-                {
-                  \"role\": \"user\",
-                  \"content\": \"You are a senior code reviewer. Review this code diff for: 1) Security vulnerabilities, 2) Regression risks, 3) Missing tests, 4) Cost implications. If you find CRITICAL issues, include the word CRITICAL in your response. Be concise.\\n\\nDiff:\\n$DIFF_CONTENT\"
-                }
-              ]
-            }")
+          diff = open('diff.txt').read(3000)
 
-          echo "$RESPONSE" > review_response.json
-          cat review_response.json
+          payload = json.dumps({
+              "model": "claude-sonnet-4-6",
+              "max_tokens": 800,
+              "messages": [{
+                  "role": "user",
+                  "content": (
+                      "You are a senior code reviewer. Review this code diff for: "
+                      "1) Security vulnerabilities, 2) Regression risks, "
+                      "3) Missing tests, 4) Cost implications. "
+                      "If you find CRITICAL issues, include the word CRITICAL in your response. "
+                      "Be concise.\n\nDiff:\n" + diff
+                  )
+              }]
+          }).encode()
+
+          req = urllib.request.Request(
+              'https://api.anthropic.com/v1/messages',
+              data=payload,
+              headers={
+                  'x-api-key': os.environ['ANTHROPIC_API_KEY'],
+                  'anthropic-version': '2023-06-01',
+                  'content-type': 'application/json',
+              }
+          )
+
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  data = json.load(resp)
+          except urllib.error.HTTPError as e:
+              print(f'❌ Anthropic API error {e.code}: {e.read().decode()}')
+              sys.exit(1)
+          except Exception as e:
+              print(f'❌ Request failed: {e}')
+              sys.exit(1)
+
+          with open('review_response.json', 'w') as f:
+              json.dump(data, f)
+          print(json.dumps(data, indent=2))
+          PYEOF
 
       - name: Parse and display review
         run: |

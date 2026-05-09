@@ -32,6 +32,7 @@ jobs:
           if [ $MISSING -eq 1 ]; then
             echo ""
             echo "🚫 Docs check FAILED. All required documentation must be present."
+            echo "   See STANDARDS.md Definition of Done."
             exit 1
           fi
 
@@ -41,6 +42,19 @@ jobs:
       - name: Check system.yaml is not empty
         run: |
           if [ ! -s "docs/architecture/system.yaml" ]; then
-            echo "❌ docs/architecture/system.yaml is empty"
+            echo "❌ docs/architecture/system.yaml is empty — update it if architecture changed."
             exit 1
           fi
+
+      - name: Check system.yaml is valid YAML
+        run: |
+          python3 -c "
+          import yaml, sys
+          with open('docs/architecture/system.yaml') as f:
+              try:
+                  yaml.safe_load(f)
+                  print('✅ system.yaml is valid YAML')
+              except yaml.YAMLError as e:
+                  print(f'❌ system.yaml has invalid YAML: {e}')
+                  sys.exit(1)
+          "

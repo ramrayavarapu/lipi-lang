@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Engineering Standards
+    url: https://github.com/ramrayavarapu/lipi-lang/blob/main/STANDARDS.md
+    about: Read the engineering standards before opening an issue — Rule 1 requires a design before any code is written.

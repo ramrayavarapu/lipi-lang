@@ -1,160 +1,130 @@
-# Agentic Engineering Standards
+# Engineering Standards
 
-This repository follows a structured AI-assisted engineering model.
+This document defines how all software changes are made in this repository.
+It is designed to be **AI-assisted, human-governed**.
 
----
-
-## Rule 1: Design (ChatGPT)
-
-All work MUST start with a design.
-
-The design MUST include:
-
-### Functional
-
-- What is being built
-- Why it is needed
-- Expected user outcome
-
-### Technical
-
-- Impact on existing system
-- Components affected
-- Data flow
-
-### Risk
-
-- Functional risks
-- Technical risks
-- Failure scenarios
-
-### Testing
-
-- Unit test approach
-- Integration test approach
-- User experience validation
+Every rule exists to protect users, prevent regressions, and keep the system safe to deploy.
 
 ---
 
-### 💰 Cost Impact (MANDATORY)
+## Rule 1 — Design (ChatGPT)
 
-Every design MUST evaluate cost implications.
+Before any code is written, a design must exist.
 
-#### 1. Infrastructure Cost
+**ChatGPT is responsible for producing the architecture and design.**
 
-- Will this increase compute usage (CPU, memory, runtime)?
-- Will this increase storage (DB, files, logs)?
-- Will this increase network calls (APIs, external services)?
+Every design must answer:
 
-#### 2. Third-Party Cost
+- What are we building, and why?
+- How does it fit into the existing system?
+- What components and data flows are affected?
+- What could go wrong, and how do we handle it?
+- What will it cost to run at scale?
 
-- Does this use paid APIs (LLMs, SaaS, etc.)?
-- Estimated cost per request / per user
-- Rate limits or quota considerations
+A design is submitted as a GitHub issue using the **Design Proposal** template.
 
-#### 3. Scaling Cost
-
-- What happens at: 10 users / 1,000 users / 100,000 users
-
-#### 4. Cost Optimisation Strategy
-
-Design must include at least one of:
-
-- Caching strategy
-- Batching requests
-- Reducing API calls
-- Using cheaper alternatives where possible
-- Lazy loading / on-demand execution
-
-#### 5. Cost Risk
-
-- What could unexpectedly increase cost?
-- How will it be detected?
-
-#### 6. Monitoring Plan
-
-- What metrics will track cost?
-- Where will this be monitored?
-
-🚫 A design WITHOUT cost consideration is considered INCOMPLETE.
+No code is written without a completed, approved design.
 
 ---
 
-## Rule 2: Build (Claude)
+## Rule 2 — Build (Claude)
 
-### 2a: Code
+### Rule 2a — Code via Pull Request
 
-- All code must be delivered via Pull Request
-- No direct commits to main
+Claude writes all code and submits it via Pull Request.
+**Nothing is committed directly to main — ever.**
 
-### 2b: Safety
+Every PR references the design issue it implements.
 
-Claude must ensure:
+### Rule 2b — Safety First
 
-- No security vulnerabilities introduced
-- No regression introduced
-- Existing functionality continues to work
+Before submitting a PR, Claude must verify:
 
-### 2c: Testing
+- No security vulnerabilities have been introduced
+- Existing functionality still works (no regression)
+- All inputs are validated at system boundaries
+- No secrets, credentials, or API keys are present in code
 
-Claude must add:
+### Rule 2c — Automated Tests
 
-- Unit tests (mandatory)
-- Integration tests (where applicable)
-- Behaviour validation
+Every PR must include tests that prove the change works end-to-end:
 
-Code without tests is incomplete.
+| Test type | What it covers |
+|-----------|---------------|
+| **Unit tests** | Individual functions and business logic |
+| **Backend API tests** | Endpoints respond correctly, error cases handled |
+| **User experience tests** | Key user flows behave as expected |
 
-### 2d: Infrastructure
+Tests live in:
 
-Claude may generate:
+```
+tests/
+  unit/        ← logic and functions
+  api/         ← endpoint and integration tests
+  ux/          ← user flow and behaviour tests
+```
 
-- GitHub workflows
-- Config files
+Code without tests is not complete.
 
-All must follow repo standards.
+### Rule 2d — Infrastructure as Code
 
----
+When infrastructure changes are needed, Claude generates:
 
-## Rule 3: Review (GitHub Copilot + Human)
+- Terraform configuration files
+- GitHub Actions workflow files
+- Any other config-as-code (Docker, k8s manifests, etc.)
 
-- AI review is performed first (security, quality, regression, performance)
-- Human reviewer makes final decision
-
----
-
-## CI Requirements
-
-All PRs must pass:
-
-- build-check
-- secret-scan
-- docs-check
-- ai-review
-
-Failure in any = PR cannot be merged.
+These follow the same PR process as application code — no manual changes to infrastructure.
 
 ---
 
-## Security Rules
+## Rule 3 — Review (GitHub Copilot + Human)
 
-- Never commit secrets
-- Never hardcode credentials
-- Use environment variables or secret managers
-- Validate all inputs
-- Fail safely
+Every PR is reviewed twice before merge:
+
+1. **GitHub Copilot** runs an automated review checking for:
+   - Security vulnerabilities
+   - Regressions in existing behaviour
+   - Code quality and coverage gaps
+
+2. **A human** reads the review, inspects the diff, and approves the merge.
+
+**A PR cannot be merged without both.**
+
+---
+
+## CI — What runs on every PR
+
+| Workflow | What it does | Blocks merge on failure |
+|----------|-------------|------------------------|
+| `build-check` | Runs all tests — unit, API, and UX | Yes |
+| `secret-scan` | Blocks commits containing credentials or API keys | Yes |
+| `docs-check` | Ensures architecture docs are present and up to date | Yes |
+
+All three must pass. Failure in any blocks the merge.
 
 ---
 
 ## Definition of Done
 
-A change is complete only if:
+A change is complete only when all of the following are true:
 
-- [ ] Design exists
-- [ ] Cost impact evaluated
-- [ ] Code implemented
-- [ ] Tests added
-- [ ] CI passes
-- [ ] Reviewed
-- [ ] Documented
-- [ ] Safe to deploy
+- [ ] Design issue exists and is linked in the PR
+- [ ] Cost impact assessed in the design
+- [ ] Code implemented by Claude via PR
+- [ ] Unit, API, and UX tests added
+- [ ] All CI checks pass
+- [ ] Copilot review completed
+- [ ] Human reviewer approved
+- [ ] `docs/architecture/system.yaml` updated if architecture changed
+- [ ] `README.md` updated if behaviour changed
+
+---
+
+## Non-negotiables
+
+- Never commit secrets or credentials
+- Never push directly to main
+- Never skip tests
+- Never skip the design step
+- Every change needs a human approval

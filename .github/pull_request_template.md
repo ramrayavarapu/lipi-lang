@@ -1,41 +1,60 @@
 ## What does this PR do?
 
-<!-- Briefly describe the change -->
+<!-- One sentence summary of the change -->
 
 ---
 
-## Design Reference
+## Design Reference (Rule 1)
 
-<!-- Link to or paste the design document / ChatGPT design session -->
+Closes # <!-- link to the Design Proposal issue -->
 
-Design exists: [ ] Yes  [ ] No ← PR cannot proceed without this
-
----
-
-## Cost Impact Assessed
-
-[ ] Yes — summary below
-[ ] Not applicable (explain why)
-
-**Cost summary:**
-
-<!-- e.g. No new API calls. Existing Lambda, no change to invocation count. -->
+Design exists: [ ] Yes  [ ] No ← **PR cannot proceed without this**
 
 ---
 
-## Definition of Done Checklist
+## Safety Checklist (Rule 2b)
 
-- [ ] Design exists and is referenced above
-- [ ] Cost impact evaluated
-- [ ] Code implemented via this PR (no direct main commits)
-- [ ] Unit tests added or updated
-- [ ] CI checks all passing (build-check, secret-scan, docs-check, ai-review)
-- [ ] No secrets or credentials in code
-- [ ] system.yaml updated if architecture changed
-- [ ] README updated if behaviour changed
+- [ ] No security vulnerabilities introduced
+- [ ] No regression in existing functionality
+- [ ] All inputs validated at system boundaries
+- [ ] No secrets, credentials, or API keys in code
 
 ---
 
-## AI Review Notes
+## Tests Added (Rule 2c)
 
-<!-- Paste any relevant output from Claude/Copilot review, or note "AI review passed via CI" -->
+| Test type | Added / Updated | Notes |
+|-----------|----------------|-------|
+| Unit tests | [ ] | |
+| API tests | [ ] | |
+| UX / flow tests | [ ] | |
+
+All tests pass locally: [ ] Yes
+
+---
+
+## Infrastructure Changes (Rule 2d)
+
+- [ ] Terraform files updated
+- [ ] GitHub Actions workflows updated
+- [ ] No infrastructure changes in this PR
+
+---
+
+## Cost Impact
+
+[ ] Assessed in the design issue
+[ ] Not applicable — explain: 
+
+---
+
+## Definition of Done
+
+- [ ] Design issue linked above
+- [ ] Cost impact assessed
+- [ ] All three test types added or confirmed not applicable
+- [ ] CI checks passing (build-check, secret-scan, docs-check)
+- [ ] `docs/architecture/system.yaml` updated if architecture changed
+- [ ] `README.md` updated if user-facing behaviour changed
+- [ ] Copilot review completed (Rule 3)
+- [ ] Ready for human approval

@@ -22,11 +22,17 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+          # PAT is required here — GITHUB_TOKEN pushes do not trigger
+          # pull_request CI workflows (GitHub security restriction).
+          # CLAUDE_AUTOFIX_PAT is a fine-grained PAT with Contents: write
+          # and Workflows: write. Its pushes are treated as user pushes,
+          # so CI re-runs automatically after the autofix commit.
+          token: ${{ secrets.CLAUDE_AUTOFIX_PAT }}
 
       - name: Collect Copilot review comments and generate fixes
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CLAUDE_AUTOFIX_PAT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REVIEW_BODY: ${{ github.event.review.body }}
           REVIEW_ID: ${{ github.event.review.id }}

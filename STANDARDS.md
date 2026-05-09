@@ -74,18 +74,24 @@ These follow the same PR process as application code — no manual changes to in
 
 ---
 
-## Rule 3 — Review (GitHub Copilot + Human)
+## Rule 3 — Review (GitHub Copilot)
 
-Every PR is reviewed twice before merge:
+Every PR is automatically reviewed by **GitHub Copilot** (requested by `request-copilot-review` workflow on PR open).
 
-1. **GitHub Copilot** runs an automated review checking for:
-   - Security vulnerabilities
-   - Regressions in existing behaviour
-   - Code quality and coverage gaps
+Copilot checks for:
+- Security vulnerabilities
+- Regressions in existing behaviour
+- Code quality and coverage gaps
 
-2. **A human** reads the review, inspects the diff, and approves the merge.
+If Copilot **requests changes**, Claude automatically picks up the comments (`claude-autofix` workflow), fixes the issues, and commits back to the PR branch.
 
-**A PR cannot be merged without both.**
+This loop continues until Copilot approves or no further automated fixes are possible.
+
+## Rule 4 — Final Review and Merge (Human)
+
+After Copilot approves and all CI checks pass, **a human** reads the full diff, reviews the AI review output, and makes the final merge decision.
+
+**A PR cannot be merged without human approval.**
 
 ---
 
@@ -96,8 +102,16 @@ Every PR is reviewed twice before merge:
 | `build-check` | Runs all tests — unit, API, and UX | Yes |
 | `secret-scan` | Blocks commits containing credentials or API keys | Yes |
 | `docs-check` | Ensures architecture docs are present and up to date | Yes |
+| `claude-preliminary-review` | Claude pre-check — advisory only | No |
+| `request-copilot-review` | Requests Copilot as reviewer automatically | No |
 
-All three must pass. Failure in any blocks the merge.
+On Copilot `changes_requested`:
+
+| Workflow | What it does |
+|----------|-------------|
+| `claude-autofix` | Reads Copilot comments, fixes issues, commits back to branch |
+
+All blocking checks must pass before merge. Human approval is always required.
 
 ---
 

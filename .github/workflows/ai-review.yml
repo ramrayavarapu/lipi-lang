@@ -1,4 +1,9 @@
-name: AI Review
+name: Claude Preliminary Review (informational)
+
+# Runs Claude as a fast pre-check before Copilot's full review.
+# This step always passes — it is advisory only.
+# The authoritative review is done by GitHub Copilot (Rule 3).
+# Merge is gated by required human approval in branch protection settings.
 
 on:
   pull_request:

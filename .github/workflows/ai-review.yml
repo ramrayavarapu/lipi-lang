@@ -21,7 +21,10 @@ jobs:
 
       - name: Generate diff
         run: |
-          git diff origin/main...HEAD > diff.txt
+          # Use the explicit merge-base so this works even if origin/main isn't
+          # fetched as a local branch (full history is available via fetch-depth: 0).
+          BASE_SHA=$(git merge-base origin/main HEAD)
+          git diff "$BASE_SHA"...HEAD > diff.txt
           echo "--- Diff size: $(wc -l < diff.txt) lines ---"
 
       - name: Check diff is not empty
@@ -38,7 +41,15 @@ jobs:
           python3 - <<'PYEOF'
           import json, urllib.request, urllib.error, os, sys
 
-          diff = open('diff.txt').read(3000)
+          api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
+          if not api_key:
+              print('ℹ️ ANTHROPIC_API_KEY not set — skipping AI review')
+              # Write empty review so subsequent steps don't fail
+              with open('review_response.json', 'w') as f:
+                  json.dump({'content': [{'type': 'text', 'text': 'AI review skipped — API key not configured.'}]}, f)
+              sys.exit(0)
+
+          diff = open('diff.txt').read(8000)
 
           payload = json.dumps({
               "model": "claude-sonnet-4-6",
@@ -59,7 +70,7 @@ jobs:
               'https://api.anthropic.com/v1/messages',
               data=payload,
               headers={
-                  'x-api-key': os.environ['ANTHROPIC_API_KEY'],
+                  'x-api-key': api_key,
                   'anthropic-version': '2023-06-01',
                   'content-type': 'application/json',
               }

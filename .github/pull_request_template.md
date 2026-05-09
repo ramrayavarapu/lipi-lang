@@ -53,7 +53,7 @@ All tests pass locally: [ ] Yes
 - [ ] Design issue linked above
 - [ ] Cost impact assessed
 - [ ] All three test types added or confirmed not applicable
-- [ ] CI checks passing (build-check, secret-scan, docs-check)
+- [ ] CI checks passing (build-check, secret-scan, docs-check, ai-review)
 - [ ] `docs/architecture/system.yaml` updated if architecture changed
 - [ ] `README.md` updated if user-facing behaviour changed
 - [ ] Copilot review completed (Rule 3)

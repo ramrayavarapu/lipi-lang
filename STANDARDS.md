@@ -54,11 +54,10 @@ Every PR must include tests that prove the change works end-to-end:
 Tests live in:
 
 ```
-tests/
-  unit/        ← logic and functions
-  api/         ← endpoint and integration tests
-  ux/          ← user flow and behaviour tests
+tests/             ← all test files in a flat layout
 ```
+
+Sub-directories (`unit/`, `api/`, `ux/`) may be introduced as the test suite grows, but are not required from the start. What matters is that all three test types are present.
 
 Code without tests is not complete.
 
@@ -102,7 +101,7 @@ After Copilot approves and all CI checks pass, **a human** reads the full diff, 
 | `build-check` | Runs all tests — unit, API, and UX | Yes |
 | `secret-scan` | Blocks commits containing credentials or API keys | Yes |
 | `docs-check` | Ensures architecture docs are present and up to date | Yes |
-| `claude-preliminary-review` | Claude pre-check — advisory only | No |
+| `ai-review` | Claude preliminary review — advisory only | No |
 | `request-copilot-review` | Requests Copilot as reviewer automatically | No |
 
 On Copilot `changes_requested`:

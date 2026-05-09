@@ -10,10 +10,12 @@ permissions:
 
 jobs:
   autofix:
-    # Only run when Copilot requests changes — not on approvals or comments
+    # Only run when Copilot requests changes on PRs from the same repo (not forks).
+    # Fork PRs cannot access secrets safely — skip them to prevent exfiltration.
     if: |
       github.event.review.state == 'changes_requested' &&
-      contains(github.event.review.user.login, 'copilot')
+      contains(github.event.review.user.login, 'copilot') &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
 
     steps:

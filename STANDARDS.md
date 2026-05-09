@@ -7,23 +7,19 @@ Every rule exists to protect users, prevent regressions, and keep the system saf
 
 ---
 
-## Rule 1 — Design (ChatGPT)
+## Rule 1 — Design (ChatGPT — Automated)
 
 Before any code is written, a design must exist.
 
 **ChatGPT is responsible for producing the architecture and design.**
 
-Every design must answer:
+This step is **automated**: when a Feature Request issue is opened, the `design-agent` workflow calls GPT-4o and automatically creates a filled Design Proposal issue. The proposal is linked back to the feature request.
 
-- What are we building, and why?
-- How does it fit into the existing system?
-- What components and data flows are affected?
-- What could go wrong, and how do we handle it?
-- What will it cost to run at scale?
+A human must **review and approve** the Design Proposal before Claude starts building. The `needs-approval` label signals it is pending review.
 
-A design is submitted as a GitHub issue using the **Design Proposal** template.
+To trigger design generation manually on any issue, add the `needs-design` label.
 
-No code is written without a completed, approved design.
+No code is written without an approved design.
 
 ---
 

@@ -1,0 +1,40 @@
+name: Build Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found — skipping install"
+          fi
+
+      - name: Ensure tests directory exists
+        run: |
+          if [ ! -d "tests" ]; then
+            echo "❌ Tests directory missing. Code without tests is incomplete."
+            exit 1
+          fi
+          if [ -z "$(ls -A tests/)" ]; then
+            echo "❌ Tests directory is empty. Add unit tests."
+            exit 1
+          fi
+
+      - name: Run unit tests
+        run: python -m unittest discover tests -v

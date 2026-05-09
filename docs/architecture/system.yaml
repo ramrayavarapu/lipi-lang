@@ -1,0 +1,54 @@
+system: lipi-lang
+version: "1.0"
+purpose: >
+  Telugu-based programming language interpreter.
+  Enables writing and executing code using Telugu script,
+  making programming accessible to Telugu speakers.
+
+owner: ramrayavarapu
+repository: https://github.com/ramrayavarapu/lipi-lang
+
+components:
+  - name: parser
+    type: language-parser
+    description: Tokenises and parses Telugu-script source code
+    language: python
+  - name: executor
+    type: runtime-engine
+    description: Executes parsed abstract syntax tree
+    language: python
+  - name: runtime
+    type: stdlib
+    description: Standard library functions available in lipi-lang
+    language: python
+
+interfaces:
+  - type: cli
+    description: Command-line interpreter for running .lipi files
+
+dependencies:
+  - name: python
+    version: ">=3.11"
+  - name: unittest
+    purpose: test framework (stdlib)
+
+security:
+  input_validation: required
+  secrets: none (no external API calls)
+  auth: none
+
+testing:
+  unit_tests: required
+  integration_tests: recommended
+  coverage_target: ">= 70%"
+
+cost_profile:
+  infrastructure: minimal (local execution only)
+  third_party_apis: none
+  scaling_model: not applicable (local interpreter)
+
+agentic_engineering:
+  enabled: true
+  ai_review: claude-sonnet-4-6
+  standards: STANDARDS.md
+  future_ready_for_prayag: true

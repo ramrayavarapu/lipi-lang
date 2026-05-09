@@ -1,0 +1,74 @@
+name: AI Review
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate diff
+        run: |
+          git diff origin/main...HEAD > diff.txt
+          echo "--- Diff size: $(wc -l < diff.txt) lines ---"
+
+      - name: Check diff is not empty
+        run: |
+          if [ ! -s diff.txt ]; then
+            echo "No meaningful diff found — skipping AI review"
+            exit 0
+          fi
+
+      - name: Call Claude for AI review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          DIFF_CONTENT=$(cat diff.txt | head -c 3000)
+
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-sonnet-4-6\",
+              \"max_tokens\": 800,
+              \"messages\": [
+                {
+                  \"role\": \"user\",
+                  \"content\": \"You are a senior code reviewer. Review this code diff for: 1) Security vulnerabilities, 2) Regression risks, 3) Missing tests, 4) Cost implications. If you find CRITICAL issues, include the word CRITICAL in your response. Be concise.\\n\\nDiff:\\n$DIFF_CONTENT\"
+                }
+              ]
+            }")
+
+          echo "$RESPONSE" > review_response.json
+          cat review_response.json
+
+      - name: Parse and display review
+        run: |
+          python3 -c "
+          import json, sys
+          with open('review_response.json') as f:
+              data = json.load(f)
+          content = data.get('content', [])
+          review = ' '.join([b.get('text','') for b in content if b.get('type')=='text'])
+          print('=== AI REVIEW OUTPUT ===')
+          print(review)
+          with open('review_summary.txt', 'w') as f:
+              f.write(review)
+          "
+
+      - name: Fail if critical issues found
+        run: |
+          if grep -i "CRITICAL" review_summary.txt; then
+            echo ""
+            echo "🚫 AI Review found CRITICAL issues. Human reviewer must address before merge."
+            exit 1
+          fi
+          echo "✅ AI Review passed — no critical issues detected"

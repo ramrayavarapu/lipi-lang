@@ -91,7 +91,9 @@ jobs:
 
       - name: Fail if critical issues found
         run: |
-          if grep -i "CRITICAL" review_summary.txt; then
+          # Case-sensitive: Claude is instructed to write uppercase CRITICAL for genuine issues.
+          # -i would false-positive on "critical" used in normal English context.
+          if grep "CRITICAL" review_summary.txt; then
             echo ""
             echo "🚫 AI Review found CRITICAL issues. Human reviewer must address before merge."
             exit 1

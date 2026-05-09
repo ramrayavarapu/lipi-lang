@@ -13,9 +13,23 @@ permissions:
 
 jobs:
   generate-design:
+    # Only run for repo owner, members, and collaborators.
+    # Prevents any GitHub user from triggering OpenAI API calls on a public repo.
     if: |
-      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'enhancement')) ||
-      (github.event.action == 'labeled' && github.event.label.name == 'needs-design')
+      (
+        github.event.action == 'opened' &&
+        contains(github.event.issue.labels.*.name, 'enhancement') &&
+        (
+          github.event.issue.author_association == 'OWNER' ||
+          github.event.issue.author_association == 'MEMBER' ||
+          github.event.issue.author_association == 'COLLABORATOR'
+        )
+      ) ||
+      (
+        github.event.action == 'labeled' &&
+        github.event.label.name == 'needs-design' &&
+        github.event.sender.login == github.repository_owner
+      )
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +44,12 @@ jobs:
           FEATURE_NUMBER: ${{ github.event.issue.number }}
         run: |
           python3 - <<'PYEOF'
-          import os, json, urllib.request, sys
+          import os, json, urllib.request, urllib.error, sys
+
+          api_key = os.environ.get('OPENAI_API_KEY', '').strip()
+          if not api_key:
+              print('❌ OPENAI_API_KEY secret is not set. Add it in repo Settings → Secrets.')
+              sys.exit(1)
 
           # Load the design agent system prompt
           system_prompt = open('.ai/chatgpt-design-agent.md').read()
@@ -41,18 +60,19 @@ jobs:
           parts = raw_template.split('---')
           template_body = parts[2].strip() if len(parts) >= 3 else raw_template
 
-          user_message = f"""Feature Request #{os.environ['FEATURE_NUMBER']}: {os.environ['FEATURE_TITLE']}
+          # Cap input length to limit prompt injection surface and token cost.
+          # User-controlled content is clearly delimited and sandboxed by the system prompt.
+          title = os.environ.get('FEATURE_TITLE', '')[:200]
+          body  = os.environ.get('FEATURE_BODY',  '')[:2000]
 
-{os.environ['FEATURE_BODY']}
-
----
-
-Produce a complete Design Proposal by filling in every section of this template.
-Do not skip any section. Return only the filled template — no preamble.
-
-Template:
-
-{template_body}"""
+          user_message = (
+              f"Feature Request #{os.environ['FEATURE_NUMBER']}: {title}\n\n"
+              f"{body}\n\n"
+              "---\n\n"
+              "Produce a complete Design Proposal by filling in every section of this template.\n"
+              "Do not skip any section. Return only the filled template — no preamble.\n\n"
+              f"Template:\n\n{template_body}"
+          )
 
           payload = json.dumps({
               "model": "gpt-4o",
@@ -67,7 +87,7 @@ Template:
               'https://api.openai.com/v1/chat/completions',
               data=payload,
               headers={
-                  'Authorization': f'Bearer {os.environ["OPENAI_API_KEY"]}',
+                  'Authorization': f'Bearer {api_key}',
                   'Content-Type': 'application/json'
               }
           )
@@ -75,6 +95,9 @@ Template:
           try:
               with urllib.request.urlopen(req) as resp:
                   data = json.load(resp)
+          except urllib.error.HTTPError as e:
+              print(f'❌ OpenAI API error {e.code}: {e.read().decode()}')
+              sys.exit(1)
           except Exception as e:
               print(f'❌ OpenAI API call failed: {e}')
               sys.exit(1)

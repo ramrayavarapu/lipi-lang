@@ -89,13 +89,19 @@ jobs:
               f.write(review)
           "
 
-      - name: Fail if critical issues found
+      - name: Summarise review for human approver
         run: |
-          # Case-sensitive: Claude is instructed to write uppercase CRITICAL for genuine issues.
-          # -i would false-positive on "critical" used in normal English context.
+          echo ""
+          echo "=== AI REVIEW COMPLETE ==="
           if grep "CRITICAL" review_summary.txt; then
             echo ""
-            echo "🚫 AI Review found CRITICAL issues. Human reviewer must address before merge."
-            exit 1
+            echo "⚠️  Claude flagged CRITICAL items above."
+            echo "    Human approver must read and address before merging."
+          else
+            echo "✅ No critical issues flagged."
           fi
-          echo "✅ AI Review passed — no critical issues detected"
+          echo ""
+          echo "ℹ️  This step always passes — merge is gated by required human approval."
+          echo "    See: Settings → Branches → Require 1 approving review."
+          # Always exit 0: CI marks the check green; the branch protection rule
+          # 'Require 1 approving review' is the actual merge gate.

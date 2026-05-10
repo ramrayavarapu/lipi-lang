@@ -21,9 +21,15 @@ jobs:
 
       - name: Generate diff
         run: |
-          # Use the explicit merge-base so this works even if origin/main isn't
-          # fetched as a local branch (full history is available via fetch-depth: 0).
-          BASE_SHA=$(git merge-base origin/main HEAD)
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+
+          # Ensure base commit exists locally; fetch base branch if needed.
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "Base SHA ${BASE_SHA} not found locally — fetching origin/${BASE_REF}"
+            git fetch --no-tags origin "${BASE_REF}"
+          fi
+
           git diff "$BASE_SHA"...HEAD > diff.txt
           echo "--- Diff size: $(wc -l < diff.txt) lines ---"
 

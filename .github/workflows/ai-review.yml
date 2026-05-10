@@ -24,10 +24,15 @@ jobs:
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           BASE_REF="${{ github.event.pull_request.base.ref }}"
 
-          # Ensure base commit exists locally; fetch base branch if needed.
+          # Ensure base commit exists locally; fetch exact SHA first, then base ref.
           if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-            echo "Base SHA ${BASE_SHA} not found locally - fetching origin/${BASE_REF}"
-            git fetch --no-tags origin "${BASE_REF}"
+            echo "Base SHA ${BASE_SHA} not found locally - fetching that commit"
+            git fetch --no-tags origin "${BASE_SHA}" || git fetch --no-tags origin "${BASE_REF}"
+          fi
+
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "Unable to fetch base SHA ${BASE_SHA}; cannot generate diff"
+            exit 1
           fi
 
           git diff "$BASE_SHA"...HEAD > diff.txt

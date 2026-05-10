@@ -26,7 +26,7 @@ jobs:
 
           # Ensure base commit exists locally; fetch base branch if needed.
           if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-            echo "Base SHA ${BASE_SHA} not found locally — fetching origin/${BASE_REF}"
+            echo "Base SHA ${BASE_SHA} not found locally - fetching origin/${BASE_REF}"
             git fetch --no-tags origin "${BASE_REF}"
           fi
 

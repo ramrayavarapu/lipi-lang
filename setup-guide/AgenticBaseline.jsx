@@ -3,6 +3,9 @@ import { useState } from "react";
 // NOTE: The STANDARDS.md content below is an abbreviated example for the setup guide.
 // Always refer to the actual STANDARDS.md file in the repository root for the
 // authoritative and up-to-date engineering standards.
+
+const DEFAULT_FILE = "STANDARDS.md";
+
 const files = {
   "STANDARDS.md": `# Engineering Standards
 
@@ -180,9 +183,10 @@ const steps = [
 ];
 
 export default function AgenticBaseline() {
-  const [activeFile, setActiveFile] = useState("STANDARDS.md");
+  const [activeFile, setActiveFile] = useState(DEFAULT_FILE);
   const [activeTab, setActiveTab] = useState("files");
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
 
   const currentFile = files[activeFile] || "(file content — see repo)";
   const currentMeta = fileTree.find(f => f.path === activeFile);
@@ -193,15 +197,18 @@ export default function AgenticBaseline() {
     try {
       if (!navigator.clipboard) {
         // Fallback for browsers without clipboard API
-        console.warn('Clipboard API not available');
+        setCopyError(true);
+        setTimeout(() => setCopyError(false), 3000);
         return;
       }
       await navigator.clipboard.writeText(currentFile);
       setCopied(true);
+      setCopyError(false);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
-      // Could show user feedback here
+      // Show visual error feedback to user
+      setCopyError(true);
+      setTimeout(() => setCopyError(false), 3000);
     }
   };
 
@@ -318,13 +325,13 @@ export default function AgenticBaseline() {
                 <span style={{ fontSize: "11px", color: "#8b949e" }}>{activeFile}</span>
               </div>
               <button onClick={copyContent} style={{
-                background: copied ? "#1c2d1c" : "#21262d",
-                border: `1px solid ${copied ? "#2d5a2d" : "#30363d"}`,
+                background: copyError ? "#2d1c1c" : (copied ? "#1c2d1c" : "#21262d"),
+                border: `1px solid ${copyError ? "#5a2d2d" : (copied ? "#2d5a2d" : "#30363d")}`,
                 borderRadius: "4px", padding: "4px 12px",
-                fontSize: "10px", color: copied ? "#56d364" : "#8b949e",
+                fontSize: "10px", color: copyError ? "#f85149" : (copied ? "#56d364" : "#8b949e"),
                 cursor: "pointer", letterSpacing: "0.05em",
               }}>
-                {copied ? "✓ COPIED" : "COPY"}
+                {copyError ? "✗ COPY FAILED" : (copied ? "✓ COPIED" : "COPY")}
               </button>
             </div>
             <pre style={{

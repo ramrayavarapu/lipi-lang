@@ -40,7 +40,7 @@ jobs:
           REVIEW_ID: ${{ github.event.review.id }}
         run: |
           python3 - <<'PYEOF'
-          import os, json, urllib.request, urllib.error, sys, re, textwrap
+          import os, json, urllib.request, urllib.error, sys, re
 
           token     = os.environ['GITHUB_TOKEN']
           repo      = os.environ['GITHUB_REPOSITORY']
@@ -130,24 +130,22 @@ jobs:
                   )
                   skipped_large_files.append(file_path)
                   continue
-              prompt = textwrap.dedent(
-                  f"""
-                  You are fixing issues raised by a GitHub Copilot code review.
-
-                  File: {file_path}
-
-                  Copilot review comments on this file:
-                  {comments_block}
-
-                  Current file content:
-                  {original}
-
-                  Output the COMPLETE fixed file content between these markers and nothing else:
-                  ===FIXED_CONTENT_START===
-                  [your fixed file content here]
-                  ===FIXED_CONTENT_END===
-                  """
-              ).strip()
+              prompt = '\n'.join([
+                  'You are fixing issues raised by a GitHub Copilot code review.',
+                  '',
+                  f'File: {file_path}',
+                  '',
+                  'Copilot review comments on this file:',
+                  comments_block,
+                  '',
+                  'Current file content:',
+                  original,
+                  '',
+                  'Output the COMPLETE fixed file content between these markers and nothing else:',
+                  '===FIXED_CONTENT_START===',
+                  '[your fixed file content here]',
+                  '===FIXED_CONTENT_END===',
+              ])
 
               response = call_claude(prompt)
 

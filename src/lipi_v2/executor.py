@@ -88,7 +88,7 @@ class ExecutionEngine:
         if op == "Mult":
             return left * right
         if op == "Div":
-            if right == 0:
+            if isinstance(right, (int, float)) and right == 0:
                 raise V2LipiError("runtime_error", "division by zero", line=line)
             return left / right
         if op == "Mod":

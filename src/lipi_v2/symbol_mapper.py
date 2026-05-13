@@ -96,7 +96,7 @@ class SymbolMapper:
                 if not in_string:
                     in_string = True
                     string_char = ch
-                elif string_char == ch:
+                elif string_char == ch and not self._is_escaped_quote(line, i):
                     in_string = False
                     string_char = None
                 out.append(ch)
@@ -120,3 +120,12 @@ class SymbolMapper:
             i = match.end()
 
         return "".join(out)
+
+    @staticmethod
+    def _is_escaped_quote(line: str, quote_index: int) -> bool:
+        slashes = 0
+        j = quote_index - 1
+        while j >= 0 and line[j] == "\\":
+            slashes += 1
+            j -= 1
+        return slashes % 2 == 1

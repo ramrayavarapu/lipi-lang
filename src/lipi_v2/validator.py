@@ -1,5 +1,7 @@
 """Pre-execution validation for V2 runtime."""
 
+import re
+
 from .errors import V2LipiError
 
 
@@ -7,6 +9,7 @@ BLOCK_STARTERS = ("if", "while", "function", "for")
 BLOCK_MIDDLE = ("else:",)
 BLOCK_END = "end"
 UNSUPPORTED_TOKENS = ("exec(", "__import__(", "eval(")
+BLOCK_START_PATTERN = re.compile(r"^(if|while|function|for)(\b|\s|\()", flags=re.UNICODE)
 
 
 def validate_normalized_lines(lines: list[str]) -> None:
@@ -22,7 +25,7 @@ def validate_normalized_lines(lines: list[str]) -> None:
             if token in line:
                 raise V2LipiError("unsupported_token", token, line=idx)
 
-        if line.endswith(":") and any(line.startswith(f"{prefix} ") for prefix in BLOCK_STARTERS):
+        if line.endswith(":") and BLOCK_START_PATTERN.match(line):
             stack.append(line)
             continue
 

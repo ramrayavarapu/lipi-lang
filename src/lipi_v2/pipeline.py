@@ -11,6 +11,38 @@ from .symbol_mapper import SymbolMapper
 from .validator import validate_normalized_lines
 
 
+def _assignment_index(line: str) -> int:
+    in_string = False
+    string_char = None
+    for i, ch in enumerate(line):
+        if ch in {'"', "'"}:
+            if not in_string:
+                in_string = True
+                string_char = ch
+            elif string_char == ch and not _is_escaped_quote(line, i):
+                in_string = False
+                string_char = None
+            continue
+        if in_string:
+            continue
+        if ch == "=":
+            prev_char = line[i - 1] if i > 0 else ""
+            next_char = line[i + 1] if i + 1 < len(line) else ""
+            if prev_char in "<>!=" or next_char == "=":
+                continue
+            return i
+    return -1
+
+
+def _is_escaped_quote(line: str, quote_index: int) -> bool:
+    slashes = 0
+    j = quote_index - 1
+    while j >= 0 and line[j] == "\\":
+        slashes += 1
+        j -= 1
+    return slashes % 2 == 1
+
+
 def _normalize_with_symbols(source: str, debug_mapper: DebugMapper):
     normalized = normalize_source(source, KEYWORD_MAP)
     symbol_mapper = SymbolMapper(seed_aliases=SYMBOL_SEED_MAP)
@@ -20,8 +52,9 @@ def _normalize_with_symbols(source: str, debug_mapper: DebugMapper):
         stripped = line.strip()
 
         # First-defined-wins on assignment LHS.
-        if "=" in stripped and not any(op in stripped for op in ("==", "!=", ">=", "<=")):
-            lhs, rhs = stripped.split("=", 1)
+        assignment_at = _assignment_index(stripped)
+        if assignment_at != -1:
+            lhs, rhs = stripped[:assignment_at], stripped[assignment_at + 1:]
             canonical = symbol_mapper.define_symbol(lhs.strip())
             rewritten = f"{canonical} = {rhs.strip()}"
             rewritten = symbol_mapper.normalize_identifiers_in_line(rewritten)

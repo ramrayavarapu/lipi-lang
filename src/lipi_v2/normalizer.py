@@ -25,7 +25,7 @@ def _replace_keywords(line: str, keyword_map: dict[str, str]) -> str:
             if not in_string:
                 in_string = True
                 string_char = ch
-            elif string_char == ch:
+            elif string_char == ch and not _is_escaped_quote(line, i):
                 in_string = False
                 string_char = None
             out.append(ch)
@@ -48,6 +48,15 @@ def _replace_keywords(line: str, keyword_map: dict[str, str]) -> str:
         i = match.end()
 
     return "".join(out)
+
+
+def _is_escaped_quote(line: str, quote_index: int) -> bool:
+    slashes = 0
+    j = quote_index - 1
+    while j >= 0 and line[j] == "\\":
+        slashes += 1
+        j -= 1
+    return slashes % 2 == 1
 
 
 def normalize_source(source: str, keyword_map: dict[str, str] | None = None) -> NormalizationResult:

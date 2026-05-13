@@ -1867,7 +1867,7 @@ Examples:
   python lipi.py script.lipi.py                     # Run script in compat mode
   python lipi.py script.lipi.py --lang te           # Run script with Telugu errors
   python lipi.py script.lipi --mode v2              # Run v2 pipeline mode
-  python lipi.py run script.lipi --mode v2 --lang te# New run command
+  python lipi.py run script.lipi --mode v2 --lang te # New run command
   python lipi.py --lang te                          # Start REPL with Telugu errors
   python lipi.py                                    # Start REPL with English errors
             """

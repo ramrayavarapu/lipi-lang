@@ -2,6 +2,8 @@
 
 This document describes the new **V2 multilingual runtime pipeline** implemented as a separate track from the existing interpreter in `src/lipi.py`.
 
+> **Naming note:** this “V2 runtime track” is an internal architecture track inside the current `v3.0` codebase. It is not a product version rollback.
+
 ## Scope
 
 - V2 is a modular pipeline runtime.

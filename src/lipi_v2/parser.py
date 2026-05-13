@@ -139,4 +139,4 @@ class Parser:
                 args=[self._convert_expr(arg, line_no) for arg in node.args],
             )
 
-        raise V2LipiError("parser_error", f"unsupported expression", line=line_no)
+        raise V2LipiError("parser_error", f"unsupported expression type: {type(node).__name__}", line=line_no)

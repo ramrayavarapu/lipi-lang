@@ -3,7 +3,7 @@
 from .errors import V2LipiError
 
 
-BLOCK_STARTERS = ("if ", "while ", "function ", "for ")
+BLOCK_STARTERS = ("if", "while", "function", "for")
 BLOCK_MIDDLE = ("else:",)
 BLOCK_END = "end"
 UNSUPPORTED_TOKENS = ("exec(", "__import__(", "eval(")
@@ -22,7 +22,7 @@ def validate_normalized_lines(lines: list[str]) -> None:
             if token in line:
                 raise V2LipiError("unsupported_token", token, line=idx)
 
-        if any(line.startswith(prefix) and line.endswith(":") for prefix in BLOCK_STARTERS):
+        if line.endswith(":") and any(line.startswith(f"{prefix} ") for prefix in BLOCK_STARTERS):
             stack.append(line)
             continue
 

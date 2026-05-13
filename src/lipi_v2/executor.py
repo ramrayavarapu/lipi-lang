@@ -3,6 +3,8 @@
 from .ast_nodes import Assignment, BinaryOp, Call, Compare, ExprStmt, If, Literal, Print, Program, Variable, While
 from .errors import V2LipiError
 
+MAX_LOOP_ITERATIONS = 100000
+
 
 class ExecutionEngine:
     """Language-neutral AST interpreter."""
@@ -37,7 +39,7 @@ class ExecutionEngine:
             safety_counter = 0
             while self._truthy(self._eval_expr(stmt.condition)):
                 safety_counter += 1
-                if safety_counter > 100000:
+                if safety_counter > MAX_LOOP_ITERATIONS:
                     raise V2LipiError("runtime_error", "loop safety limit exceeded", line=stmt.line)
                 for inner in stmt.body:
                     self._exec_stmt(inner)

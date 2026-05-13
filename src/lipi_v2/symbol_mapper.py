@@ -5,6 +5,7 @@ import re
 from .dictionary import RESERVED_WORDS
 
 IDENTIFIER_PATTERN = re.compile(r"[_\w\u0C00-\u0C7F]+", flags=re.UNICODE)
+TELUGU_CHAR_PATTERN = re.compile(r"[\u0C00-\u0C7F]")
 
 
 class SymbolMapper:
@@ -15,6 +16,7 @@ class SymbolMapper:
         self.alias_to_canonical: dict[str, str] = {}
         self.canonical_to_aliases: dict[str, set[str]] = {}
         self.group_to_canonical: dict[str, str] = {}
+        self.alias_language_cache: dict[str, str] = {}
 
     def _group_key(self, name: str) -> str | None:
         for left, right in self.seed_aliases.items():
@@ -64,15 +66,23 @@ class SymbolMapper:
 
     def preferred_alias(self, canonical: str, lang: str = "en") -> str:
         aliases = self.canonical_to_aliases.get(canonical, {canonical})
+        alias_lang = {alias: self._alias_language(alias) for alias in aliases}
         if lang == "te":
-            telugu = [a for a in aliases if any("\u0C00" <= c <= "\u0C7F" for c in a)]
+            telugu = [a for a in aliases if alias_lang[a] == "te"]
             if telugu:
                 return sorted(telugu)[0]
         if lang == "en":
-            english = [a for a in aliases if all(not ("\u0C00" <= c <= "\u0C7F") for c in a)]
+            english = [a for a in aliases if alias_lang[a] == "en"]
             if english:
                 return sorted(english)[0]
         return canonical
+
+    def _alias_language(self, alias: str) -> str:
+        if alias in self.alias_language_cache:
+            return self.alias_language_cache[alias]
+        language = "te" if TELUGU_CHAR_PATTERN.search(alias) else "en"
+        self.alias_language_cache[alias] = language
+        return language
 
     def normalize_identifiers_in_line(self, line: str) -> str:
         in_string = False

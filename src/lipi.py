@@ -44,6 +44,7 @@ import sqlite3
 import urllib.request
 import urllib.parse
 import json
+from lipi_v2 import run_v2_file
 
 # v3.0: Optional MySQL support
 try:
@@ -1788,8 +1789,11 @@ def execute_block(lines, env):
 # ---------------------------
 # File Runner
 # ---------------------------
-def run_lipi_file(path):
+def run_lipi_file(path, mode="compat", lang="en"):
     """Run a Lipi source file"""
+    if mode == "v2":
+        return run_v2_file(path, lang=lang)
+
     env = {}
 
     # v3.0: Set current module path for imports
@@ -1836,28 +1840,47 @@ def repl():
 if __name__ == "__main__":
     # Parse command-line arguments
     import argparse
-    parser = argparse.ArgumentParser(
-        description='Lipi Language v3.0 - Bilingual (Telugu + English) Programming',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python lipi.py script.lipi.py           # Run script in English error mode
-  python lipi.py script.lipi.py --lang te # Run script with Telugu errors
-  python lipi.py --lang te                # Start REPL with Telugu errors
-  python lipi.py                          # Start REPL with English errors
-        """
-    )
-    parser.add_argument('file', nargs='?', help='Lipi script file to run')
-    parser.add_argument('--lang', choices=['en', 'te'], default='en',
-                        help='Error message language: en (English) or te (Telugu). Default: en')
+    argv = sys.argv[1:]
 
-    args = parser.parse_args()
-
-    # Set error language preference
-    ERROR_LANGUAGE[0] = args.lang
-
-    # Run file or REPL
-    if args.file:
-        run_lipi_file(args.file)
+    # New command-group style: lipi.py run <file> [--lang] [--mode]
+    if argv and argv[0] == "run":
+        run_parser = argparse.ArgumentParser(
+            description='Lipi Language Runtime - run command',
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+        )
+        run_parser.add_argument("command")
+        run_parser.add_argument("file", help="Lipi script file to run (.lipi.py or .lipi)")
+        run_parser.add_argument("--lang", choices=["en", "te"], default="en",
+                                help="Error message language: en (English) or te (Telugu). Default: en")
+        run_parser.add_argument("--mode", choices=["compat", "v2"], default="compat",
+                                help="Runtime mode: compat (existing interpreter) or v2 (pipeline runtime)")
+        args = run_parser.parse_args()
+        ERROR_LANGUAGE[0] = args.lang
+        run_lipi_file(args.file, mode=args.mode, lang=args.lang)
     else:
-        repl()
+        # Backward-compatible CLI
+        parser = argparse.ArgumentParser(
+            description='Lipi Language v3.0 - Bilingual (Telugu + English) Programming',
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            epilog="""
+Examples:
+  python lipi.py script.lipi.py                     # Run script in compat mode
+  python lipi.py script.lipi.py --lang te           # Run script with Telugu errors
+  python lipi.py script.lipi --mode v2              # Run v2 pipeline mode
+  python lipi.py run script.lipi --mode v2 --lang te# New run command
+  python lipi.py --lang te                          # Start REPL with Telugu errors
+  python lipi.py                                    # Start REPL with English errors
+            """
+        )
+        parser.add_argument('file', nargs='?', help='Lipi script file to run')
+        parser.add_argument('--lang', choices=['en', 'te'], default='en',
+                            help='Error message language: en (English) or te (Telugu). Default: en')
+        parser.add_argument('--mode', choices=['compat', 'v2'], default='compat',
+                            help='Runtime mode: compat (existing interpreter) or v2 (pipeline runtime)')
+        args = parser.parse_args()
+        ERROR_LANGUAGE[0] = args.lang
+
+        if args.file:
+            run_lipi_file(args.file, mode=args.mode, lang=args.lang)
+        else:
+            repl()

@@ -1,18 +1,29 @@
 name: Claude Preliminary Review (advisory)
 
 # Runs Claude as a fast pre-check before Copilot's full review.
-# This step is ADVISORY ONLY — it always exits 0.
-# Reading the review output is the human approver's responsibility (Rule 4).
-# The authoritative review is done by GitHub Copilot (Rule 3).
-# Merge is gated by required human approval in branch protection settings.
+# The review is posted as a PR comment so the human approver sees it
+# before deciding whether to approve (Rule 4).
+#
+# This check ALWAYS exits 0 — it is advisory only.
+# API/network errors produce an advisory fallback message rather than
+# blocking the merge. To enforce that the check completes before a human
+# can merge, add "ai-review" to the required status checks in:
+#   Settings → Branches → Branch protection rules → Require status checks.
 
 on:
   pull_request:
     branches:
       - main
 
+permissions:
+  contents: read
+  pull-requests: write   # needed to post and update the review comment
+
 jobs:
   ai-review:
+    # Skip fork PRs — they receive a read-only token and no repo secrets,
+    # so the Claude call and comment write would both fail.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -21,65 +32,78 @@ jobs:
           fetch-depth: 0
 
       - name: Generate diff
+        id: diff_gen
         run: |
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           BASE_REF="${{ github.event.pull_request.base.ref }}"
 
-          # Ensure base commit exists locally; fetch exact SHA first, then base ref.
           if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
             echo "Base SHA ${BASE_SHA} not found locally - attempting fetch by SHA"
-            if ! git fetch --no-tags origin "${BASE_SHA}"; then
+            if ! git fetch --no-tags --deepen=50 origin "${BASE_SHA}"; then
               echo "Fetch by SHA failed - falling back to fetch by base ref origin/${BASE_REF}"
-              git fetch --no-tags origin "${BASE_REF}"
+              git fetch --no-tags --deepen=50 origin "${BASE_REF}" || true
             fi
           fi
 
           if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-            echo "Unable to fetch base SHA ${BASE_SHA}; cannot generate diff"
-            exit 1
-          fi
-
-          git diff "$BASE_SHA"...HEAD > diff.txt
-          echo "--- Diff size: $(wc -l < diff.txt) lines ---"
-
-      - name: Check diff is not empty
-        run: |
-          if [ ! -s diff.txt ]; then
-            echo "No meaningful diff found — skipping AI review"
-            exit 0
+            echo "⚠️ Unable to resolve base SHA — diff generation skipped."
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+          else
+            git diff "$BASE_SHA"...HEAD > diff.txt
+            echo "--- Diff size: $(wc -l < diff.txt) lines ---"
+            if [ ! -s diff.txt ]; then
+              echo "empty=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "empty=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       - name: Call Claude for AI review
+        if: steps.diff_gen.outputs.empty == 'false'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           python3 - <<'PYEOF'
           import json, urllib.request, urllib.error, os, sys
 
+          def write_summary(text):
+              with open('review_summary.txt', 'w') as f:
+                  f.write(text)
+
           api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
           if not api_key:
+              write_summary(
+                  'AI review skipped — `ANTHROPIC_API_KEY` secret is not configured.\n\n'
+                  'Add it in **Settings → Secrets → Actions** to enable Claude review.'
+              )
               print('ℹ️ ANTHROPIC_API_KEY not set — skipping AI review')
-              # Write empty review so subsequent steps don't fail
-              with open('review_response.json', 'w') as f:
-                  json.dump({'content': [{'type': 'text', 'text': 'AI review skipped — API key not configured.'}]}, f)
               sys.exit(0)
 
           diff_full = open('diff.txt').read()
           DIFF_LIMIT = 8000
-          if len(diff_full) > DIFF_LIMIT:
-              print(f'⚠️  Diff is {len(diff_full)} bytes — truncating to {DIFF_LIMIT} bytes for review. Large PRs may miss issues in the truncated portion.')
+          truncated = len(diff_full) > DIFF_LIMIT
+          if truncated:
+              print(f'⚠️  Diff is {len(diff_full)} bytes — truncating to {DIFF_LIMIT} bytes.')
           diff = diff_full[:DIFF_LIMIT]
+          truncation_note = (
+              f'\n\n> ⚠️ Diff was truncated to {DIFF_LIMIT} bytes. Large PRs may have issues in the unseen portion.'
+              if truncated else ''
+          )
 
           payload = json.dumps({
               "model": "claude-sonnet-4-6",
-              "max_tokens": 800,
+              "max_tokens": 1024,
               "messages": [{
                   "role": "user",
                   "content": (
-                      "You are a senior code reviewer. Review this code diff for: "
-                      "1) Security vulnerabilities, 2) Regression risks, "
-                      "3) Missing tests, 4) Cost implications. "
-                      "Clearly label any blocking issues. Be concise.\n\nDiff:\n" + diff
+                      "You are a senior code reviewer. Review this code diff for:\n"
+                      "1) Security vulnerabilities\n"
+                      "2) Regression risks\n"
+                      "3) Missing tests\n"
+                      "4) Cost implications\n\n"
+                      "Format your response as markdown with clear sections. "
+                      "Label issues as **Blocking** or **Advisory**. Be concise.\n\n"
+                      "Diff:\n" + diff
                   )
               }]
           }).encode()
@@ -98,37 +122,73 @@ jobs:
               with urllib.request.urlopen(req) as resp:
                   data = json.load(resp)
           except urllib.error.HTTPError as e:
-              print(f'❌ Anthropic API error {e.code}: {e.read().decode()}')
-              sys.exit(1)
+              msg = f'AI review unavailable — Anthropic API returned HTTP {e.code}.'
+              write_summary(msg)
+              print(f'⚠️ {msg}')
+              sys.exit(0)
           except Exception as e:
-              print(f'❌ Request failed: {e}')
-              sys.exit(1)
+              msg = f'AI review unavailable — request failed: {e}'
+              write_summary(msg)
+              print(f'⚠️ {msg}')
+              sys.exit(0)
 
-          with open('review_response.json', 'w') as f:
-              json.dump(data, f)
-          print(json.dumps(data, indent=2))
-          PYEOF
-
-      - name: Parse and display review
-        run: |
-          python3 -c "
-          import json, sys
-          with open('review_response.json') as f:
-              data = json.load(f)
           content = data.get('content', [])
-          review = ' '.join([b.get('text','') for b in content if b.get('type')=='text'])
+          review = '\n'.join([b.get('text', '') for b in content if b.get('type') == 'text'])
+          review += truncation_note
+          write_summary(review)
+
           print('=== AI REVIEW OUTPUT ===')
           print(review)
-          with open('review_summary.txt', 'w') as f:
-              f.write(review)
-          "
+          PYEOF
 
-      - name: Summarise review for human approver
-        run: |
-          echo ""
-          echo "=== AI REVIEW COMPLETE ==="
-          echo "ℹ️  This check is advisory — read the review above before approving."
-          echo "    Merge is gated by required human approval (Rule 4)."
-          echo "    See: Settings → Branches → Require 1 approving review."
-          # Always exit 0: the check is informational.
-          # The human approver reads the output and decides whether to merge.
+      - name: Write skipped review summary
+        if: steps.diff_gen.outputs.empty == 'true'
+        run: echo "No diff — AI review skipped (no changes detected)." > review_summary.txt
+
+      - name: Post review as PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.existsSync('review_summary.txt')
+              ? fs.readFileSync('review_summary.txt', 'utf8').trim()
+              : 'AI review output not available.';
+
+            const marker = '<!-- claude-ai-review -->';
+            const body = [
+              marker,
+              '## 🤖 Claude AI Review (Rule 4 — read before approving)',
+              '',
+              review,
+              '',
+              '---',
+              '_This review is advisory. You are responsible for reading it before approving._',
+              '_Merge is gated by your approval — **do not approve without reading this.**_',
+            ].join('\n');
+
+            // Find and update an existing comment from a previous run, or create a new one.
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+              console.log(`✅ Updated existing AI review comment #${existing.id}`);
+            } else {
+              const { data: created } = await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body,
+              });
+              console.log(`✅ Posted AI review comment #${created.id}`);
+            }

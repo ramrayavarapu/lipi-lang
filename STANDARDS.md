@@ -101,7 +101,7 @@ After Copilot approves and all CI checks pass, **a human** reads the full diff, 
 | `build-check` | Runs all tests — unit, API, and UX | Yes |
 | `secret-scan` | Blocks commits containing credentials or API keys | Yes |
 | `docs-check` | Ensures architecture docs are present and up to date | Yes |
-| `ai-review` | Claude preliminary review — advisory only | No |
+| `ai-review` | Claude preliminary review — posts result as PR comment | Yes (must complete) |
 | `request-copilot-review` | Requests Copilot as reviewer automatically | No |
 
 On Copilot `changes_requested`:
@@ -111,6 +111,19 @@ On Copilot `changes_requested`:
 | `claude-autofix` | Reads Copilot comments, fixes issues, commits back to branch |
 
 All blocking checks must pass before merge. Human approval is always required.
+
+### Branch protection setup (required once per repo)
+
+`ai-review` posts its output as a PR comment and must complete before a human
+can merge. To enforce this in GitHub:
+
+1. Go to **Settings → Branches → Add branch protection rule** for `main`
+2. Enable **Require status checks to pass before merging**
+3. Add these required checks: `build-check`, `secret-scan`, `docs-check`, `ai-review`
+4. Enable **Require a pull request before merging** → set **Required approvals** to `1`
+
+This guarantees the order: CI runs → AI review posts its comment → human reads
+the comment → human approves → merge is unblocked.
 
 ---
 

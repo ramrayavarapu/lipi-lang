@@ -45,6 +45,7 @@ Reference the specific design issue.
 - Do not refactor unrelated code
 - No direct commits to main — always via PR
 - PR title must reference the design issue: `[#123] Add X feature`
+- Every commit message must also reference the design issue: `[#123] description of change`
 
 ### Step 6: Safety checks (Rule 2b)
 

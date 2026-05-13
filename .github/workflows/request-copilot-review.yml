@@ -26,16 +26,18 @@ jobs:
               return;
             }
 
-            // Check if Copilot review already requested
+            // Check if Copilot review already requested.
+            // Match known Copilot bot identities: 'copilot[bot]', 'github-copilot[bot]', etc.
+            const COPILOT_LOGINS = new Set(['copilot[bot]', 'github-copilot[bot]', 'github-copilot']);
+            const isCopilot = (login) => COPILOT_LOGINS.has(login.toLowerCase()) || login.toLowerCase().startsWith('copilot');
+
             const { data: reviewers } = await github.rest.pulls.listRequestedReviewers({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: pr.number
             });
 
-            const alreadyRequested = reviewers.users.some(
-              u => u.login.toLowerCase().includes('copilot')
-            );
+            const alreadyRequested = reviewers.users.some(u => isCopilot(u.login));
 
             if (alreadyRequested) {
               console.log('Copilot review already requested — skipping');

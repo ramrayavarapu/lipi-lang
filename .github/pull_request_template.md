@@ -6,9 +6,11 @@
 
 ## Design Reference (Rule 1)
 
-Closes # <!-- link to the Design Proposal issue -->
+Closes # <!-- link to the Design Proposal issue number -->
 
 Design exists: [ ] Yes  [ ] No ← **PR cannot proceed without this**
+
+<!-- No design yet? Open one: https://github.com/ramrayavarapu/lipi-lang/issues/new?template=design_proposal.md -->
 
 ---
 
@@ -23,11 +25,11 @@ Design exists: [ ] Yes  [ ] No ← **PR cannot proceed without this**
 
 ## Tests Added (Rule 2c)
 
-| Test type | Added / Updated | Notes |
-|-----------|----------------|-------|
-| Unit tests | [ ] | |
-| API tests | [ ] | |
-| UX / flow tests | [ ] | |
+| Test type | Added / Updated | N/A | Notes |
+|-----------|----------------|-----|-------|
+| Unit tests | [ ] | [ ] | |
+| API tests | [ ] | [ ] | if N/A, explain why: |
+| UX / flow tests | [ ] | [ ] | if N/A, explain why: |
 
 All tests pass locally: [ ] Yes
 

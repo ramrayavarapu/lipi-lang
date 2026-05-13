@@ -1,3 +1,8 @@
-# All files require review by the repo owner
-# This enforces the human-in-the-loop governance model
+# All files require review by the repo owner.
+# This enforces the human-in-the-loop governance model (Rule 4).
+#
+# IMPORTANT — bus factor: add a second reviewer or team below so merges are
+# not blocked when @ramrayavarapu is unavailable.
+# Example: * @ramrayavarapu @backup-reviewer
+# Example: * @ramrayavarapu @your-org/reviewers
 * @ramrayavarapu

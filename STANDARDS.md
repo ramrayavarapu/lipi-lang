@@ -130,6 +130,36 @@ A change is complete only when all of the following are true:
 
 ---
 
+## AI Agent Cost Monitoring
+
+This repository uses three AI APIs. All costs must be assessed before work begins and reviewed quarterly.
+
+| Agent | API | Trigger | Cost control |
+|-------|-----|---------|-------------|
+| ChatGPT Design Agent | OpenAI GPT-4o | Feature Request opened | Authorised users only (OWNER / MEMBER / COLLABORATOR). Set a monthly budget alert in the OpenAI dashboard. |
+| Claude Build + Review | Anthropic Claude | PR opened / Copilot review submitted | Key scoped to this repo. Monitor usage in the Anthropic console. |
+| GitHub Copilot | GitHub Copilot API | PR opened | Covered by the GitHub subscription. |
+
+**Budget alerts**: Set spend alerts in both the OpenAI and Anthropic dashboards.
+If a month's AI spend exceeds the expected budget, pause automated agents by removing the relevant secret until the cause is identified.
+
+---
+
+## API Key Security and Rotation
+
+All secrets are stored in GitHub Actions secrets (`Settings → Secrets → Actions`). Follow these rules:
+
+1. **Never hardcode** API keys in code, workflow files, or documentation.
+2. **Least privilege**: each key must have the minimum required permissions.
+   - `OPENAI_API_KEY` — GPT-4o chat completions only
+   - `ANTHROPIC_API_KEY` — Claude messages API only
+   - `CLAUDE_AUTOFIX_PAT` — fine-grained PAT with `Contents: write` and `Workflows: write` on this repo only
+3. **Rotation schedule**: rotate all keys every 90 days. Add a calendar reminder.
+4. **Compromise procedure**: if a key is suspected leaked, revoke it immediately in the provider's dashboard, then add a new secret in GitHub before re-enabling the workflow.
+5. **Access audit**: review who has access to repo secrets quarterly (`Settings → Collaborators & teams`).
+
+---
+
 ## Non-negotiables
 
 - Never commit secrets or credentials

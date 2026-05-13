@@ -19,6 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pip install --quiet coverage
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           else
@@ -36,15 +37,35 @@ jobs:
             exit 1
           fi
 
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         run: |
           echo "--- Running unit tests ---"
           if [ -d "tests/unit" ]; then
-            python -m unittest discover tests/unit -v
+            python -m coverage run -m unittest discover tests/unit -v
           else
-            # Fall back to flat tests/ layout
-            python -m unittest discover tests -v
+            python -m coverage run -m unittest discover tests -v
           fi
+          python -m coverage report --include="src/*" || python -m coverage report
+          # Warn (do not fail) if coverage is below the 70% target in system.yaml
+          python3 - <<'PYEOF'
+          import subprocess, sys
+          result = subprocess.run(
+              ['python', '-m', 'coverage', 'json', '-o', '/tmp/coverage.json', '--include=src/*'],
+              capture_output=True
+          )
+          if result.returncode != 0:
+              print('ℹ️  Could not parse coverage data — skipping coverage threshold check')
+              sys.exit(0)
+          import json
+          data = json.load(open('/tmp/coverage.json'))
+          pct = data.get('totals', {}).get('percent_covered', 0)
+          print(f'Coverage: {pct:.1f}%')
+          if pct < 70:
+              print(f'⚠️  Coverage {pct:.1f}% is below the 70% target in system.yaml.')
+              print('   Add tests to raise coverage before merging.')
+          else:
+              print(f'✅ Coverage {pct:.1f}% meets the ≥70% target.')
+          PYEOF
 
       - name: Run API tests
         run: |

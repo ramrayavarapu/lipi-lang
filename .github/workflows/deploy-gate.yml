@@ -25,7 +25,7 @@ jobs:
           repo   = os.environ['GITHUB_REPOSITORY']
           sha    = os.environ['COMMIT_SHA']
 
-          REQUIRED = {'build-check', 'secret-scan', 'docs-check'}
+          REQUIRED = {'build-check', 'secret-scan', 'docs-check', 'ai-review'}
 
           def gh_get(path):
               req = urllib.request.Request(
@@ -53,8 +53,14 @@ jobs:
               status, concl = results.get(check, ('missing', ''))
               if status == 'completed' and concl == 'success':
                   print(f'✅ {check}: passed')
+              elif status == 'missing':
+                  print(f'❌ {check}: not found — check has not run on this commit')
+                  all_passed = False
+              elif status in ('queued', 'in_progress'):
+                  print(f'❌ {check}: still {status} — deploy gate must run after all checks complete')
+                  all_passed = False
               else:
-                  print(f'❌ {check}: {status}/{concl or "not complete"}')
+                  print(f'❌ {check}: {status}/{concl or "no conclusion"}')
                   all_passed = False
 
           if not all_passed:

@@ -120,6 +120,9 @@ jobs:
                   continue
 
               comments_block = '\n'.join(f'- {c}' for c in comments)
+              FILE_LIMIT = 8000
+              if len(original) > FILE_LIMIT:
+                  print(f'⚠️  {file_path} is {len(original)} bytes — truncating to {FILE_LIMIT} bytes for Claude. Fix may be incomplete for large files.')
               prompt = f"""You are fixing issues raised by a GitHub Copilot code review.
 
 File: {file_path}
@@ -128,7 +131,7 @@ Copilot review comments on this file:
 {comments_block}
 
 Current file content:
-{original[:4000]}
+{original[:FILE_LIMIT]}
 
 Output the COMPLETE fixed file content between these markers and nothing else:
 ===FIXED_CONTENT_START===
@@ -138,8 +141,8 @@ Output the COMPLETE fixed file content between these markers and nothing else:
               response = call_claude(prompt)
 
               match = re.search(
-                  r'===FIXED_CONTENT_START===\n(.*?)\n===FIXED_CONTENT_END===',
-                  response, re.DOTALL
+                  r'===FIXED_CONTENT_START===\r?\n(.*?)\r?\n===FIXED_CONTENT_END===',
+                  response.strip(), re.DOTALL
               )
               if not match:
                   print(f'⚠️ Claude did not return parseable content for {file_path} — skipping')

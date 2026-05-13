@@ -1,9 +1,4 @@
-name: Claude Preliminary Review (informational)
-
-# Runs Claude as a fast pre-check before Copilot's full review.
-# This step always passes — it is advisory only.
-# The authoritative review is done by GitHub Copilot (Rule 3).
-# Merge is gated by required human approval in branch protection settings.
+name: Claude Preliminary Review
 
 on:
   pull_request:
@@ -63,7 +58,11 @@ jobs:
                   json.dump({'content': [{'type': 'text', 'text': 'AI review skipped — API key not configured.'}]}, f)
               sys.exit(0)
 
-          diff = open('diff.txt').read(8000)
+          diff_full = open('diff.txt').read()
+          DIFF_LIMIT = 8000
+          if len(diff_full) > DIFF_LIMIT:
+              print(f'⚠️  Diff is {len(diff_full)} bytes — truncating to {DIFF_LIMIT} bytes for review. Large PRs may miss issues in the truncated portion.')
+          diff = diff_full[:DIFF_LIMIT]
 
           payload = json.dumps({
               "model": "claude-sonnet-4-6",
@@ -123,15 +122,14 @@ jobs:
         run: |
           echo ""
           echo "=== AI REVIEW COMPLETE ==="
-          if grep "CRITICAL" review_summary.txt; then
+          if grep -q "CRITICAL" review_summary.txt; then
             echo ""
-            echo "⚠️  Claude flagged CRITICAL items above."
-            echo "    Human approver must read and address before merging."
+            echo "🚫 Claude flagged CRITICAL issues — see review above."
+            echo "   Address all CRITICAL findings before merging."
+            echo "   Re-run this check after fixes are pushed."
+            exit 1
           else
             echo "✅ No critical issues flagged."
+            echo "ℹ️  Merge is still gated by required human approval."
+            echo "    See: Settings → Branches → Require 1 approving review."
           fi
-          echo ""
-          echo "ℹ️  This step always passes — merge is gated by required human approval."
-          echo "    See: Settings → Branches → Require 1 approving review."
-          # Always exit 0: CI marks the check green; the branch protection rule
-          # 'Require 1 approving review' is the actual merge gate.

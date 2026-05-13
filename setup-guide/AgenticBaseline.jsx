@@ -239,7 +239,7 @@ export default function AgenticBaseline() {
           </div>
           <div style={{ fontSize: "20px", fontWeight: 700, color: "#f0f6fc" }}>lipi-lang baseline</div>
           <div style={{ fontSize: "11px", color: "#8b949e", marginTop: "2px" }}>
-            ramrayavarapu/lipi-lang · Test before org-wide rollout
+            [YOUR_ORG]/[YOUR_REPO] · Review branch protection rules before enabling org-wide
           </div>
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>

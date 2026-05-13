@@ -3,7 +3,6 @@ name: Design Proposal (Rule 1)
 about: Architecture or design from ChatGPT — required before any code is written
 title: '[DESIGN] '
 labels: design, needs-approval
-assignees: ramrayavarapu
 ---
 
 ## What are we building?

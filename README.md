@@ -486,6 +486,7 @@ All code is tested before merge. See [SECURITY.md](docs/SECURITY.md) for details
 
 **Resources | వనరులు:**
 - 📖 [Developer Guide](docs/V3_GUIDE.md) - Complete v3.0 documentation | పూర్తి v3.0 డాక్యుమెంటేషన్
+- 🧠 [V2 Runtime Track](docs/V2_RUNTIME.md) - Multilingual pipeline runtime mode | బహుభాషా పైప్‌లైన్ రన్‌టైమ్ మోడ్
 - 🔍 [Quick Reference](learning-platform/QUICK_REFERENCE.md) - All keywords and syntax | అన్ని కీవర్డ్లు మరియు సింటాక్స్
 - 🚀 [Deployment Guide](learning-platform/DEPLOYMENT_GUIDE.md) - Rollout strategies | రోల్అవుట్ వ్యూహాలు
 - 🎯 [Competitive Analysis](docs/COMPETITIVE_ANALYSIS.md) - See how lipi-lang leads | లిపి-భాష ఎలా ముందుంది చూడండి

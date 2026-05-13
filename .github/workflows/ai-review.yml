@@ -4,11 +4,11 @@ name: Claude Preliminary Review (advisory)
 # The review is posted as a PR comment so the human approver sees it
 # before deciding whether to approve (Rule 4).
 #
-# This check is ADVISORY ONLY — it always exits 0.
-# To enforce ordering: add "ai-review" to the required status checks in
-# Settings → Branches → Branch protection rules → Require status checks to
-# pass before merging. This prevents the merge button from becoming active
-# until this review has completed and the human has read it.
+# This check ALWAYS exits 0 — it is advisory only.
+# API/network errors produce an advisory fallback message rather than
+# blocking the merge. To enforce that the check completes before a human
+# can merge, add "ai-review" to the required status checks in:
+#   Settings → Branches → Branch protection rules → Require status checks.
 
 on:
   pull_request:
@@ -21,6 +21,9 @@ permissions:
 
 jobs:
   ai-review:
+    # Skip fork PRs — they receive a read-only token and no repo secrets,
+    # so the Claude call and comment write would both fail.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,6 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Generate diff
+        id: diff_gen
         run: |
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           BASE_REF="${{ github.event.pull_request.base.ref }}"
@@ -37,41 +41,42 @@ jobs:
             echo "Base SHA ${BASE_SHA} not found locally - attempting fetch by SHA"
             if ! git fetch --no-tags --deepen=50 origin "${BASE_SHA}"; then
               echo "Fetch by SHA failed - falling back to fetch by base ref origin/${BASE_REF}"
-              git fetch --no-tags --deepen=50 origin "${BASE_REF}"
+              git fetch --no-tags --deepen=50 origin "${BASE_REF}" || true
             fi
           fi
 
           if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-            echo "Unable to fetch base SHA ${BASE_SHA}; cannot generate diff"
-            exit 1
-          fi
-
-          git diff "$BASE_SHA"...HEAD > diff.txt
-          echo "--- Diff size: $(wc -l < diff.txt) lines ---"
-
-      - name: Check diff is not empty
-        id: diff_check
-        run: |
-          if [ ! -s diff.txt ]; then
-            echo "No meaningful diff found — skipping AI review"
+            echo "⚠️ Unable to resolve base SHA — diff generation skipped."
             echo "empty=true" >> "$GITHUB_OUTPUT"
           else
-            echo "empty=false" >> "$GITHUB_OUTPUT"
+            git diff "$BASE_SHA"...HEAD > diff.txt
+            echo "--- Diff size: $(wc -l < diff.txt) lines ---"
+            if [ ! -s diff.txt ]; then
+              echo "empty=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "empty=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       - name: Call Claude for AI review
-        if: steps.diff_check.outputs.empty == 'false'
+        if: steps.diff_gen.outputs.empty == 'false'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           python3 - <<'PYEOF'
           import json, urllib.request, urllib.error, os, sys
 
+          def write_summary(text):
+              with open('review_summary.txt', 'w') as f:
+                  f.write(text)
+
           api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
           if not api_key:
+              write_summary(
+                  'AI review skipped — `ANTHROPIC_API_KEY` secret is not configured.\n\n'
+                  'Add it in **Settings → Secrets → Actions** to enable Claude review.'
+              )
               print('ℹ️ ANTHROPIC_API_KEY not set — skipping AI review')
-              with open('review_response.json', 'w') as f:
-                  json.dump({'content': [{'type': 'text', 'text': 'AI review skipped — ANTHROPIC_API_KEY secret is not configured.'}]}, f)
               sys.exit(0)
 
           diff_full = open('diff.txt').read()
@@ -117,26 +122,28 @@ jobs:
               with urllib.request.urlopen(req) as resp:
                   data = json.load(resp)
           except urllib.error.HTTPError as e:
-              print(f'❌ Anthropic API error {e.code}: {e.read().decode()}')
-              sys.exit(1)
+              msg = f'AI review unavailable — Anthropic API returned HTTP {e.code}.'
+              write_summary(msg)
+              print(f'⚠️ {msg}')
+              sys.exit(0)
           except Exception as e:
-              print(f'❌ Request failed: {e}')
-              sys.exit(1)
+              msg = f'AI review unavailable — request failed: {e}'
+              write_summary(msg)
+              print(f'⚠️ {msg}')
+              sys.exit(0)
 
           content = data.get('content', [])
           review = '\n'.join([b.get('text', '') for b in content if b.get('type') == 'text'])
           review += truncation_note
-
-          with open('review_summary.txt', 'w') as f:
-              f.write(review)
+          write_summary(review)
 
           print('=== AI REVIEW OUTPUT ===')
           print(review)
           PYEOF
 
       - name: Write skipped review summary
-        if: steps.diff_check.outputs.empty == 'true'
-        run: echo "No diff — AI review skipped." > review_summary.txt
+        if: steps.diff_gen.outputs.empty == 'true'
+        run: echo "No diff — AI review skipped (no changes detected)." > review_summary.txt
 
       - name: Post review as PR comment
         uses: actions/github-script@v7

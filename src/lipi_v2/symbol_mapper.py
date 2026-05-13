@@ -24,6 +24,7 @@ class SymbolMapper:
         self.alias_language_cache: dict[str, str] = {}
 
     def _group_key(self, name: str) -> str | None:
+        """Build deterministic alias-group key by sorting known seed alias pairs."""
         for left, right in self.seed_aliases.items():
             if name in (left, right):
                 return GROUP_KEY_SEPARATOR.join(sorted((left, right)))

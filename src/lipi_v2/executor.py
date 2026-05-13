@@ -1,12 +1,15 @@
 """AST execution engine for V2 runtime."""
 
+import os
+
 from .ast_nodes import Assignment, BinaryOp, Call, Compare, ExprStmt, If, Literal, Print, Program, Variable, While
 from .errors import V2LipiError
 
 # Guardrail for runaway while-loops in the interpreter.
 # 100000 was chosen as a high default that permits normal workloads while
 # preventing accidental non-terminating loops from hanging execution.
-MAX_LOOP_ITERATIONS = 100000
+# Can be overridden with LIPI_V2_MAX_LOOP_ITERATIONS.
+MAX_LOOP_ITERATIONS = int(os.getenv("LIPI_V2_MAX_LOOP_ITERATIONS", "100000"))
 
 
 class ExecutionEngine:

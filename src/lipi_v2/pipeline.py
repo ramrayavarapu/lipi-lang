@@ -67,6 +67,6 @@ def run_v2_file(path: str, lang: str = "en") -> dict[str, object] | None:
     try:
         return run_v2_source(source, lang=lang)
     except V2LipiError as err:
-        # best-effort mapping with fresh mapper if unavailable
+        # Format and print localized V2 error.
         print(format_v2_error(err, lang=lang))
         return None

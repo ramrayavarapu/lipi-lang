@@ -9,7 +9,8 @@ BLOCK_STARTERS = ("if", "while", "function", "for")
 BLOCK_MIDDLE = ("else:",)
 BLOCK_END = "end"
 UNSUPPORTED_TOKENS = ("exec(", "__import__(", "eval(")
-BLOCK_START_PATTERN = re.compile(rf"^({'|'.join(BLOCK_STARTERS)})(\b|\s|\()", flags=re.UNICODE)
+_BLOCK_START_PATTERN_STR = rf"^({'|'.join(BLOCK_STARTERS)})(\b|\s|\()"
+BLOCK_START_PATTERN = re.compile(_BLOCK_START_PATTERN_STR, flags=re.UNICODE)
 
 
 def validate_normalized_lines(lines: list[str]) -> None:

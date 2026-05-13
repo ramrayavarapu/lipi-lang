@@ -130,7 +130,8 @@ jobs:
                   )
                   skipped_large_files.append(file_path)
                   continue
-              prompt = textwrap.dedent(f"""
+              prompt = textwrap.dedent(
+                  f"""
                   You are fixing issues raised by a GitHub Copilot code review.
 
                   File: {file_path}
@@ -144,7 +145,9 @@ jobs:
                   Output the COMPLETE fixed file content between these markers and nothing else:
                   ===FIXED_CONTENT_START===
                   [your fixed file content here]
-                  ===FIXED_CONTENT_END===""").strip()
+                  ===FIXED_CONTENT_END===
+                  """
+              ).strip()
 
               response = call_claude(prompt)
 

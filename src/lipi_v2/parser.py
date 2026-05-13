@@ -1,7 +1,6 @@
 """Parser for normalized V2 source -> AST."""
 
 import ast as pyast
-import re
 
 from .ast_nodes import (
     Assignment,
@@ -17,6 +16,7 @@ from .ast_nodes import (
     While,
 )
 from .errors import V2LipiError
+from .text_utils import find_assignment_index, transform_identifiers_outside_strings
 
 
 class Parser:
@@ -91,7 +91,7 @@ class Parser:
             expr = self._parse_expr(line[len("call "):].strip(), line_no)
             return self._bind(ExprStmt(line=line_no, expr=expr), line_no), i + 1
 
-        assign_index = self._assignment_index(line)
+        assign_index = find_assignment_index(line)
         if assign_index != -1:
             name, expr = line[:assign_index], line[assign_index + 1:]
             node = Assignment(line=line_no, name=name.strip(), expr=self._parse_expr(expr.strip(), line_no))
@@ -101,7 +101,9 @@ class Parser:
         return self._bind(ExprStmt(line=line_no, expr=self._parse_expr(line, line_no)), line_no), i + 1
 
     def _parse_expr(self, expr: str, line_no: int):
-        pythonish = self._rewrite_literals(expr)
+        pythonish = transform_identifiers_outside_strings(
+            expr, lambda token: {"true": "True", "false": "False", "null": "None"}.get(token, token)
+        )
         try:
             node = pyast.parse(pythonish, mode="eval").body
             return self._convert_expr(node, line_no)
@@ -137,68 +139,3 @@ class Parser:
             )
 
         raise V2LipiError("parser_error", f"unsupported expression type: {type(node).__name__}", line=line_no)
-
-    @staticmethod
-    def _assignment_index(line: str) -> int:
-        in_string = False
-        string_char = None
-        for i, ch in enumerate(line):
-            if ch in {'"', "'"}:
-                if not in_string:
-                    in_string = True
-                    string_char = ch
-                elif string_char == ch and not Parser._is_escaped_quote(line, i):
-                    in_string = False
-                    string_char = None
-                continue
-            if in_string:
-                continue
-            if ch == "=":
-                prev_char = line[i - 1] if i > 0 else ""
-                next_char = line[i + 1] if i + 1 < len(line) else ""
-                if prev_char in "<>!=" or next_char == "=":
-                    continue
-                return i
-        return -1
-
-    @staticmethod
-    def _rewrite_literals(expr: str) -> str:
-        identifier = re.compile(r"[_\w\u0C00-\u0C7F]+", flags=re.UNICODE)
-        out = []
-        i = 0
-        in_string = False
-        string_char = None
-        while i < len(expr):
-            ch = expr[i]
-            if ch in {'"', "'"}:
-                if not in_string:
-                    in_string = True
-                    string_char = ch
-                elif string_char == ch and not Parser._is_escaped_quote(expr, i):
-                    in_string = False
-                    string_char = None
-                out.append(ch)
-                i += 1
-                continue
-            if in_string:
-                out.append(ch)
-                i += 1
-                continue
-            match = identifier.match(expr, i)
-            if not match:
-                out.append(ch)
-                i += 1
-                continue
-            token = match.group(0)
-            out.append({"true": "True", "false": "False", "null": "None"}.get(token, token))
-            i = match.end()
-        return "".join(out)
-
-    @staticmethod
-    def _is_escaped_quote(line: str, quote_index: int) -> bool:
-        slashes = 0
-        j = quote_index - 1
-        while j >= 0 and line[j] == "\\":
-            slashes += 1
-            j -= 1
-        return slashes % 2 == 1

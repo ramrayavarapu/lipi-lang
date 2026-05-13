@@ -3,8 +3,8 @@
 import re
 
 from .dictionary import RESERVED_WORDS
+from .text_utils import transform_identifiers_outside_strings
 
-IDENTIFIER_PATTERN = re.compile(r"[_\w\u0C00-\u0C7F]+", flags=re.UNICODE)
 TELUGU_CHAR_PATTERN = re.compile(r"[\u0C00-\u0C7F]")
 
 
@@ -85,47 +85,4 @@ class SymbolMapper:
         return language
 
     def normalize_identifiers_in_line(self, line: str) -> str:
-        in_string = False
-        string_char = None
-        out = []
-        i = 0
-
-        while i < len(line):
-            ch = line[i]
-            if ch in {'"', "'"}:
-                if not in_string:
-                    in_string = True
-                    string_char = ch
-                elif string_char == ch and not self._is_escaped_quote(line, i):
-                    in_string = False
-                    string_char = None
-                out.append(ch)
-                i += 1
-                continue
-
-            if in_string:
-                out.append(ch)
-                i += 1
-                continue
-
-            match = IDENTIFIER_PATTERN.match(line, i)
-            if not match:
-                out.append(ch)
-                i += 1
-                continue
-
-            token = match.group(0)
-            canonical = self.resolve_reference(token)
-            out.append(canonical)
-            i = match.end()
-
-        return "".join(out)
-
-    @staticmethod
-    def _is_escaped_quote(line: str, quote_index: int) -> bool:
-        slashes = 0
-        j = quote_index - 1
-        while j >= 0 and line[j] == "\\":
-            slashes += 1
-            j -= 1
-        return slashes % 2 == 1
+        return transform_identifiers_outside_strings(line, self.resolve_reference)

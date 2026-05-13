@@ -3,7 +3,6 @@ name: Feature Request
 about: Suggest a new feature or improvement
 title: '[FEATURE] '
 labels: enhancement
-assignees: ramrayavarapu
 ---
 
 ## What do you want to build?

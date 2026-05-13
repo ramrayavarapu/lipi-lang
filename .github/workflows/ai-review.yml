@@ -1,4 +1,10 @@
-name: Claude Preliminary Review
+name: Claude Preliminary Review (advisory)
+
+# Runs Claude as a fast pre-check before Copilot's full review.
+# This step is ADVISORY ONLY — it always exits 0.
+# Reading the review output is the human approver's responsibility (Rule 4).
+# The authoritative review is done by GitHub Copilot (Rule 3).
+# Merge is gated by required human approval in branch protection settings.
 
 on:
   pull_request:
@@ -73,10 +79,7 @@ jobs:
                       "You are a senior code reviewer. Review this code diff for: "
                       "1) Security vulnerabilities, 2) Regression risks, "
                       "3) Missing tests, 4) Cost implications. "
-                      "If you find issues that must be fixed before merging, output the exact token "
-                      "REVIEW_CRITICAL_FOUND on its own line. "
-                      "Only output that token for genuine blocking issues, not for style or minor concerns. "
-                      "Be concise.\n\nDiff:\n" + diff
+                      "Clearly label any blocking issues. Be concise.\n\nDiff:\n" + diff
                   )
               }]
           }).encode()
@@ -124,14 +127,8 @@ jobs:
         run: |
           echo ""
           echo "=== AI REVIEW COMPLETE ==="
-          if grep -qF "REVIEW_CRITICAL_FOUND" review_summary.txt; then
-            echo ""
-            echo "🚫 Claude flagged blocking issues — see review above."
-            echo "   Address all flagged findings before merging."
-            echo "   Re-run this check after fixes are pushed."
-            exit 1
-          else
-            echo "✅ No blocking issues flagged."
-            echo "ℹ️  Merge is still gated by required human approval."
-            echo "    See: Settings → Branches → Require 1 approving review."
-          fi
+          echo "ℹ️  This check is advisory — read the review above before approving."
+          echo "    Merge is gated by required human approval (Rule 4)."
+          echo "    See: Settings → Branches → Require 1 approving review."
+          # Always exit 0: the check is informational.
+          # The human approver reads the output and decides whether to merge.

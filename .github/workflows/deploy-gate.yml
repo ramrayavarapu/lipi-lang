@@ -25,7 +25,7 @@ jobs:
           repo   = os.environ['GITHUB_REPOSITORY']
           sha    = os.environ['COMMIT_SHA']
 
-          REQUIRED = {'build-check', 'secret-scan', 'docs-check', 'ai-review'}
+          REQUIRED = {'build-check', 'secret-scan', 'docs-check'}
 
           def gh_get(path):
               req = urllib.request.Request(

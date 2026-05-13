@@ -82,7 +82,7 @@ jobs:
           try:
               with open('diff.txt', 'r', encoding='utf-8', errors='replace') as diff_file:
                   diff_full = diff_file.read()
-          except Exception as e:
+          except OSError as e:
               write_summary(f'AI review skipped — could not read diff: {e}')
               print(f'⚠️ Could not read diff.txt: {e}')
               sys.exit(0)

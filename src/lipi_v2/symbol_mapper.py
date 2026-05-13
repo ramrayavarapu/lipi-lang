@@ -9,7 +9,11 @@ TELUGU_CHAR_PATTERN = re.compile(r"[\u0C00-\u0C7F]")
 
 
 class SymbolMapper:
-    """Tracks Telugu↔English symbol aliases with first-defined canonical selection."""
+    """Tracks multilingual symbols using first-defined-wins canonicalization.
+
+    The first encountered symbol in an alias group becomes canonical, and all
+    known aliases (including seed aliases) resolve to that canonical name.
+    """
 
     def __init__(self, seed_aliases: dict[str, str] | None = None):
         self.seed_aliases = seed_aliases or {}

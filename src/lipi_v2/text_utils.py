@@ -55,7 +55,10 @@ def transform_identifiers_outside_strings(text: str, transform: Callable[[str], 
 
 
 def find_assignment_index(line: str) -> int:
-    """Find standalone assignment '=' index outside strings and comparison operators."""
+    """Find standalone assignment '=' index outside strings and comparisons.
+
+    Returns assignment index when found, otherwise -1.
+    """
     in_string = False
     string_char = None
     for i, ch in enumerate(line):

@@ -3,6 +3,7 @@
 from .ast_nodes import Assignment, BinaryOp, Call, Compare, ExprStmt, If, Literal, Print, Program, Variable, While
 from .errors import V2LipiError
 
+# Guardrail for runaway while-loops in the interpreter.
 MAX_LOOP_ITERATIONS = 100000
 
 

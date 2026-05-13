@@ -7,6 +7,8 @@ from .text_utils import transform_identifiers_outside_strings
 
 @dataclass
 class NormalizationResult:
+    """Result of source normalization containing canonicalized line-by-line output."""
+
     normalized_lines: list[str]
 
 

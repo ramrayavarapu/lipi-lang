@@ -21,7 +21,7 @@ class Expr(Node):
 
 @dataclass
 class Literal(Expr):
-    value: object = None
+    value: int | float | str | bool | None = None
 
 
 @dataclass

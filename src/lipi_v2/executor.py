@@ -9,7 +9,23 @@ from .errors import V2LipiError
 # 100000 was chosen as a high default that permits normal workloads while
 # preventing accidental non-terminating loops from hanging execution.
 # Can be overridden with LIPI_V2_MAX_LOOP_ITERATIONS.
-MAX_LOOP_ITERATIONS = int(os.getenv("LIPI_V2_MAX_LOOP_ITERATIONS", "100000"))
+DEFAULT_MAX_LOOP_ITERATIONS = 100000
+
+
+def _resolve_max_loop_iterations() -> int:
+    value = os.getenv("LIPI_V2_MAX_LOOP_ITERATIONS")
+    if value is None:
+        return DEFAULT_MAX_LOOP_ITERATIONS
+    try:
+        parsed = int(value)
+    except ValueError:
+        return DEFAULT_MAX_LOOP_ITERATIONS
+    if parsed <= 0:
+        return DEFAULT_MAX_LOOP_ITERATIONS
+    return parsed
+
+
+MAX_LOOP_ITERATIONS = _resolve_max_loop_iterations()
 
 
 class ExecutionEngine:
@@ -77,7 +93,7 @@ class ExecutionEngine:
         if isinstance(expr, Compare):
             left = self._eval_expr(expr.left)
             right = self._eval_expr(expr.right)
-            return self._compare(left, right, expr.op)
+            return self._compare(left, right, expr.op, expr.line)
 
         if isinstance(expr, Call):
             if expr.name == "len" and len(expr.args) == 1:
@@ -103,7 +119,7 @@ class ExecutionEngine:
             return left ** right
         raise V2LipiError("type_error", f"unsupported binary op: {op}", line=line)
 
-    def _compare(self, left, right, op):
+    def _compare(self, left, right, op, line):
         if op == "Eq":
             return left == right
         if op == "NotEq":
@@ -116,4 +132,4 @@ class ExecutionEngine:
             return left >= right
         if op == "LtE":
             return left <= right
-        raise V2LipiError("type_error", f"unsupported compare op: {op}")
+        raise V2LipiError("type_error", f"unsupported compare op: {op}", line=line)

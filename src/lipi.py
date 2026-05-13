@@ -1795,6 +1795,8 @@ def run_lipi_file(path, mode="compat", lang="en"):
         return run_v2_file(path, lang=lang)
 
     env = {}
+    previous_lang = ERROR_LANGUAGE[0]
+    ERROR_LANGUAGE[0] = lang
 
     # v3.0: Set current module path for imports
     runtime.current_module_path = os.path.abspath(path)
@@ -1811,6 +1813,7 @@ def run_lipi_file(path, mode="compat", lang="en"):
     finally:
         # Reset module path
         runtime.current_module_path = None
+        ERROR_LANGUAGE[0] = previous_lang
 
 
 # ---------------------------

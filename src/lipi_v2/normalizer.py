@@ -19,7 +19,7 @@ def _replace_keywords(line: str, keyword_map: dict[str, str]) -> str:
 
 def normalize_source(source: str, keyword_map: dict[str, str] | None = None) -> NormalizationResult:
     """Normalize Telugu/mixed source to canonical English-form keywords."""
-    mapping = keyword_map or KEYWORD_MAP
+    mapping = KEYWORD_MAP if keyword_map is None else keyword_map
     lines = source.splitlines()
     normalized = [_replace_keywords(line, mapping) for line in lines]
     return NormalizationResult(normalized_lines=normalized)

@@ -39,6 +39,16 @@ components:
     description: Standard library functions available in lipi-lang
     language: python
 
+  - name: lipi_v2-pipeline
+    type: runtime-engine
+    description: Modular normalized parser/executor pipeline used by `--mode v2`
+    language: python
+
+  - name: lipi_v2-localization
+    type: localization
+    description: English/Telugu V2 error localization catalog
+    language: python
+
   # Prayag.io template — add/remove components as needed:
   #
   # - name: api
@@ -61,7 +71,7 @@ components:
 # ── Interfaces ────────────────────────────────────────────────
 interfaces:
   - type: cli
-    description: Command-line interpreter for running .lipi files
+    description: Command-line interpreter for running .lipi.py files in compat mode or `--mode v2`
 
   # - type: rest-api
   #   description: [describe API surface]

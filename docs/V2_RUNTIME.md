@@ -37,8 +37,8 @@ python src/lipi.py examples/hello.lipi.py
 V2 mode with `.lipi` or `.lipi.py`:
 
 ```bash
-python src/lipi.py examples/hello.lipi --mode v2
-python src/lipi.py run examples/hello.lipi --mode v2 --lang te
+python src/lipi.py examples/hello.lipi.py --mode v2
+python src/lipi.py run examples/hello.lipi.py --mode v2 --lang te
 ```
 
 ## Current coverage

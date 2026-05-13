@@ -137,5 +137,11 @@ class Parser:
                 name=node.func.id,
                 args=[self._convert_expr(arg, line_no) for arg in node.args],
             )
+        if isinstance(node, pyast.UnaryOp) and isinstance(node.op, (pyast.USub, pyast.UAdd)):
+            operand = self._convert_expr(node.operand, line_no)
+            if isinstance(operand, Literal) and isinstance(operand.value, (int, float)):
+                if isinstance(node.op, pyast.USub):
+                    return Literal(line=line_no, value=-operand.value)
+                return Literal(line=line_no, value=+operand.value)
 
         raise V2LipiError("parser_error", f"unsupported expression type: {type(node).__name__}", line=line_no)

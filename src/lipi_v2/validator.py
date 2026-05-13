@@ -3,14 +3,36 @@
 import re
 
 from .errors import V2LipiError
+from .text_utils import is_escaped_quote
 
 
-BLOCK_STARTERS = ("if", "while", "function", "for")
+BLOCK_STARTERS = ("if", "while")
 BLOCK_MIDDLE = ("else:",)
 BLOCK_END = "end"
 UNSUPPORTED_TOKENS = ("exec(", "__import__(", "eval(")
 _BLOCK_START_PATTERN_STR = rf"^({'|'.join(BLOCK_STARTERS)})(\b|\s|\()"
 BLOCK_START_PATTERN = re.compile(_BLOCK_START_PATTERN_STR, flags=re.UNICODE)
+
+
+def _contains_token_outside_strings(line: str, token: str) -> bool:
+    in_string = False
+    string_char = None
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if ch in {'"', "'"}:
+            if not in_string:
+                in_string = True
+                string_char = ch
+            elif string_char == ch and not is_escaped_quote(line, i):
+                in_string = False
+                string_char = None
+            i += 1
+            continue
+        if not in_string and line.startswith(token, i):
+            return True
+        i += 1
+    return False
 
 
 def validate_normalized_lines(lines: list[str]) -> None:
@@ -23,7 +45,7 @@ def validate_normalized_lines(lines: list[str]) -> None:
             continue
 
         for token in UNSUPPORTED_TOKENS:
-            if token in line:
+            if _contains_token_outside_strings(line, token):
                 raise V2LipiError("unsupported_token", token, line=idx)
 
         if line.endswith(":") and BLOCK_START_PATTERN.match(line):

@@ -15,6 +15,7 @@ from .validator import validate_normalized_lines
 def _normalize_with_symbols(source: str, debug_mapper: DebugMapper):
     normalized = normalize_source(source, KEYWORD_MAP)
     symbol_mapper = SymbolMapper(seed_aliases=SYMBOL_SEED_MAP)
+    original_lines = source.splitlines()
 
     transformed: list[str] = []
     for idx, line in enumerate(normalized.normalized_lines, start=1):
@@ -33,7 +34,7 @@ def _normalize_with_symbols(source: str, debug_mapper: DebugMapper):
             line = symbol_mapper.normalize_identifiers_in_line(line)
 
         transformed.append(line)
-        debug_mapper.record_normalization(idx, source.splitlines()[idx - 1], line)
+        debug_mapper.record_normalization(idx, original_lines[idx - 1], line)
 
     return transformed, symbol_mapper
 

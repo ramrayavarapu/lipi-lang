@@ -44,7 +44,6 @@ import sqlite3
 import urllib.request
 import urllib.parse
 import json
-from lipi_v2 import run_v2_file
 
 # v3.0: Optional MySQL support
 try:
@@ -1792,6 +1791,7 @@ def execute_block(lines, env):
 def run_lipi_file(path, mode="compat", lang="en"):
     """Run a Lipi source file"""
     if mode == "v2":
+        from lipi_v2 import run_v2_file
         return run_v2_file(path, lang=lang)
 
     env = {}

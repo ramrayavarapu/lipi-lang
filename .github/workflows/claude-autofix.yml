@@ -126,7 +126,7 @@ jobs:
                   print(
                       f'⚠️  Skipping {file_path} — file is {len(original)} bytes, '
                       f'exceeding the {FILE_LIMIT}-byte auto-fix limit. '
-                      'Manual review is required to avoid truncating the file.'
+                      f'Manual review is required to avoid truncating the file.'
                   )
                   skipped_large_files.append(file_path)
                   continue

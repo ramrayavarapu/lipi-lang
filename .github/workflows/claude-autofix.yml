@@ -110,6 +110,7 @@ jobs:
               return text.strip()
 
           fixes_applied = []
+          skipped_large_files = []
 
           # Fix each file that has inline comments
           for file_path, comments in by_file.items():
@@ -120,26 +121,37 @@ jobs:
                   continue
 
               comments_block = '\n'.join(f'- {c}' for c in comments)
-              prompt = f"""You are fixing issues raised by a GitHub Copilot code review.
-
-File: {file_path}
-
-Copilot review comments on this file:
-{comments_block}
-
-Current file content:
-{original[:4000]}
-
-Output the COMPLETE fixed file content between these markers and nothing else:
-===FIXED_CONTENT_START===
-[your fixed file content here]
-===FIXED_CONTENT_END==="""
+              FILE_LIMIT = 8000
+              if len(original) > FILE_LIMIT:
+                  print(
+                      f'⚠️  Skipping {file_path} — file is {len(original)} bytes, '
+                      f'exceeding the {FILE_LIMIT}-byte auto-fix limit. '
+                      f'Manual review is required to avoid truncating the file.'
+                  )
+                  skipped_large_files.append(file_path)
+                  continue
+              prompt = '\n'.join([
+                  'You are fixing issues raised by a GitHub Copilot code review.',
+                  '',
+                  f'File: {file_path}',
+                  '',
+                  'Copilot review comments on this file:',
+                  comments_block,
+                  '',
+                  'Current file content:',
+                  original,
+                  '',
+                  'Output the COMPLETE fixed file content between these markers and nothing else:',
+                  '===FIXED_CONTENT_START===',
+                  '[your fixed file content here]',
+                  '===FIXED_CONTENT_END===',
+              ])
 
               response = call_claude(prompt)
 
               match = re.search(
-                  r'===FIXED_CONTENT_START===\n(.*?)\n===FIXED_CONTENT_END===',
-                  response, re.DOTALL
+                  r'===FIXED_CONTENT_START===\r?\n(.*?)\r?\n===FIXED_CONTENT_END===',
+                  response.strip(), re.DOTALL
               )
               if not match:
                   print(f'⚠️ Claude did not return parseable content for {file_path} — skipping')
@@ -163,6 +175,9 @@ Output the COMPLETE fixed file content between these markers and nothing else:
           with open('fixes_applied.txt', 'w') as f:
               f.write('\n'.join(fixes_applied))
 
+          with open('skipped_large_files.txt', 'w') as f:
+              f.write('\n'.join(skipped_large_files))
+
           PYEOF
 
       - name: Commit and push fixes
@@ -175,9 +190,9 @@ Output the COMPLETE fixed file content between these markers and nothing else:
             echo "NOTHING_FIXED=true" >> "$GITHUB_ENV"
           else
             git add -A
-            git commit -m "Auto-fix: address Copilot review issues (Rule 2)
-
-$(cat fixes_applied.txt | sed 's/^/- Fixed: /')"
+            git commit \
+              -m "Auto-fix: address Copilot review issues (Rule 2)" \
+              -m "$(sed 's/^/- Fixed: /' < fixes_applied.txt)"
             git push origin HEAD:"${{ github.event.pull_request.head.ref }}"
             echo "NOTHING_FIXED=false" >> "$GITHUB_ENV"
           fi
@@ -189,8 +204,13 @@ $(cat fixes_applied.txt | sed 's/^/- Fixed: /')"
             const fs = require('fs');
             const nothingFixed = process.env.NOTHING_FIXED === 'true';
             let fixedFiles = [];
+            let skippedLargeFiles = [];
             try {
               fixedFiles = fs.readFileSync('fixes_applied.txt', 'utf8')
+                .split('\n').filter(Boolean);
+            } catch {}
+            try {
+              skippedLargeFiles = fs.readFileSync('skipped_large_files.txt', 'utf8')
                 .split('\n').filter(Boolean);
             } catch {}
 
@@ -199,6 +219,13 @@ $(cat fixes_applied.txt | sed 's/^/- Fixed: /')"
               body = [
                 '🤖 **Claude Auto-fix (Rule 2)** ran but found no automatically fixable issues.',
                 '',
+                ...(skippedLargeFiles.length
+                  ? [
+                      '**Skipped large files:**',
+                      ...skippedLargeFiles.map(f => `- \`${f}\` (manual fix required; auto-fix skips files above the size limit)`),
+                      ''
+                    ]
+                  : []),
                 'The Copilot review may contain overall feedback that requires human judgement.',
                 'Please review the Copilot comments and address them manually before requesting final approval.'
               ].join('\n');
@@ -209,6 +236,13 @@ $(cat fixes_applied.txt | sed 's/^/- Fixed: /')"
                 '**Files fixed:**',
                 ...fixedFiles.map(f => `- \`${f}\``),
                 '',
+                ...(skippedLargeFiles.length
+                  ? [
+                      '**Skipped large files:**',
+                      ...skippedLargeFiles.map(f => `- \`${f}\` (manual fix required; auto-fix skips files above the size limit)`),
+                      ''
+                    ]
+                  : []),
                 '**Next steps:**',
                 '1. Review the auto-fix commit to confirm the changes are correct',
                 '2. Re-run CI checks if needed',

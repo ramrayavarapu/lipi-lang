@@ -1,7 +1,8 @@
-name: Claude Preliminary Review (informational)
+name: Claude Preliminary Review (advisory)
 
 # Runs Claude as a fast pre-check before Copilot's full review.
-# This step always passes — it is advisory only.
+# This step is ADVISORY ONLY — it always exits 0.
+# Reading the review output is the human approver's responsibility (Rule 4).
 # The authoritative review is done by GitHub Copilot (Rule 3).
 # Merge is gated by required human approval in branch protection settings.
 
@@ -63,7 +64,11 @@ jobs:
                   json.dump({'content': [{'type': 'text', 'text': 'AI review skipped — API key not configured.'}]}, f)
               sys.exit(0)
 
-          diff = open('diff.txt').read(8000)
+          diff_full = open('diff.txt').read()
+          DIFF_LIMIT = 8000
+          if len(diff_full) > DIFF_LIMIT:
+              print(f'⚠️  Diff is {len(diff_full)} bytes — truncating to {DIFF_LIMIT} bytes for review. Large PRs may miss issues in the truncated portion.')
+          diff = diff_full[:DIFF_LIMIT]
 
           payload = json.dumps({
               "model": "claude-sonnet-4-6",
@@ -74,8 +79,7 @@ jobs:
                       "You are a senior code reviewer. Review this code diff for: "
                       "1) Security vulnerabilities, 2) Regression risks, "
                       "3) Missing tests, 4) Cost implications. "
-                      "If you find CRITICAL issues, include the word CRITICAL in your response. "
-                      "Be concise.\n\nDiff:\n" + diff
+                      "Clearly label any blocking issues. Be concise.\n\nDiff:\n" + diff
                   )
               }]
           }).encode()
@@ -123,15 +127,8 @@ jobs:
         run: |
           echo ""
           echo "=== AI REVIEW COMPLETE ==="
-          if grep "CRITICAL" review_summary.txt; then
-            echo ""
-            echo "⚠️  Claude flagged CRITICAL items above."
-            echo "    Human approver must read and address before merging."
-          else
-            echo "✅ No critical issues flagged."
-          fi
-          echo ""
-          echo "ℹ️  This step always passes — merge is gated by required human approval."
+          echo "ℹ️  This check is advisory — read the review above before approving."
+          echo "    Merge is gated by required human approval (Rule 4)."
           echo "    See: Settings → Branches → Require 1 approving review."
-          # Always exit 0: CI marks the check green; the branch protection rule
-          # 'Require 1 approving review' is the actual merge gate.
+          # Always exit 0: the check is informational.
+          # The human approver reads the output and decides whether to merge.

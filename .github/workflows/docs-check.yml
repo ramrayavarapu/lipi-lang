@@ -46,16 +46,33 @@ jobs:
             exit 1
           fi
 
-      - name: Check system.yaml is valid YAML
+      - name: Check system.yaml is valid YAML with required fields
         run: |
           pip install --quiet pyyaml
-          python3 -c "
+          python3 - <<'PYEOF'
           import yaml, sys
-          with open('docs/architecture/system.yaml') as f:
-              try:
-                  yaml.safe_load(f)
-                  print('✅ system.yaml is valid YAML')
-              except yaml.YAMLError as e:
-                  print(f'❌ system.yaml has invalid YAML: {e}')
-                  sys.exit(1)
-          "
+
+          REQUIRED_KEYS = {'system', 'version', 'owner', 'components', 'testing'}
+
+          try:
+              with open('docs/architecture/system.yaml') as f:
+                  data = yaml.safe_load(f)
+          except FileNotFoundError:
+              print('❌ docs/architecture/system.yaml not found')
+              sys.exit(1)
+          except yaml.YAMLError as e:
+              print(f'❌ system.yaml has invalid YAML: {e}')
+              sys.exit(1)
+
+          if not isinstance(data, dict):
+              print('❌ system.yaml must be a YAML mapping at the top level')
+              sys.exit(1)
+
+          missing = REQUIRED_KEYS - data.keys()
+          if missing:
+              print(f'❌ system.yaml is missing required fields: {sorted(missing)}')
+              print(f'   Required fields: {sorted(REQUIRED_KEYS)}')
+              sys.exit(1)
+
+          print('✅ system.yaml is valid YAML with all required fields')
+          PYEOF

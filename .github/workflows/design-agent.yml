@@ -116,6 +116,8 @@ jobs:
 
       - name: Create Design Proposal issue and link back
         uses: actions/github-script@v7
+        env:
+          DESIGN_ASSIGNEE: ${{ vars.DESIGN_ASSIGNEE }}
         with:
           script: |
             const fs = require('fs');
@@ -138,13 +140,33 @@ jobs:
               design
             ].join('\n');
 
+            // Use the DESIGN_ASSIGNEE repo variable if set and assignable.
+            // To configure: Settings → Variables → New repository variable → DESIGN_ASSIGNEE
+            const configuredAssignee = process.env.DESIGN_ASSIGNEE?.trim();
+            let assignees;
+            if (configuredAssignee) {
+              try {
+                await github.request('GET /repos/{owner}/{repo}/assignees/{assignee}', {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  assignee: configuredAssignee
+                });
+                assignees = [configuredAssignee];
+              } catch (error) {
+                console.warn(
+                  `⚠️ DESIGN_ASSIGNEE "${configuredAssignee}" is not assignable in this repository; ` +
+                  'creating the design issue without an assignee.'
+                );
+              }
+            }
+
             const proposal = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `[DESIGN] ${designTitle}`,
               body,
               labels: ['design', 'needs-approval'],
-              assignees: ['ramrayavarapu']
+              ...(assignees ? { assignees } : {})
             });
 
             await github.rest.issues.createComment({

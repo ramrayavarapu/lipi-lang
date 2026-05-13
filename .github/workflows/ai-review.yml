@@ -73,7 +73,9 @@ jobs:
                       "You are a senior code reviewer. Review this code diff for: "
                       "1) Security vulnerabilities, 2) Regression risks, "
                       "3) Missing tests, 4) Cost implications. "
-                      "If you find CRITICAL issues, include the word CRITICAL in your response. "
+                      "If you find issues that must be fixed before merging, output the exact token "
+                      "REVIEW_CRITICAL_FOUND on its own line. "
+                      "Only output that token for genuine blocking issues, not for style or minor concerns. "
                       "Be concise.\n\nDiff:\n" + diff
                   )
               }]
@@ -122,14 +124,14 @@ jobs:
         run: |
           echo ""
           echo "=== AI REVIEW COMPLETE ==="
-          if grep -q "CRITICAL" review_summary.txt; then
+          if grep -qF "REVIEW_CRITICAL_FOUND" review_summary.txt; then
             echo ""
-            echo "🚫 Claude flagged CRITICAL issues — see review above."
-            echo "   Address all CRITICAL findings before merging."
+            echo "🚫 Claude flagged blocking issues — see review above."
+            echo "   Address all flagged findings before merging."
             echo "   Re-run this check after fixes are pushed."
             exit 1
           else
-            echo "✅ No critical issues flagged."
+            echo "✅ No blocking issues flagged."
             echo "ℹ️  Merge is still gated by required human approval."
             echo "    See: Settings → Branches → Require 1 approving review."
           fi

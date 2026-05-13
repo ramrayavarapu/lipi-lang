@@ -76,7 +76,7 @@ def find_assignment_index(line: str) -> int:
         if ch == "=":
             prev_char = line[i - 1] if i > 0 else ""
             next_char = line[i + 1] if i + 1 < len(line) else ""
-            if prev_char in "<>!=" or next_char == "=":
+            if prev_char in {"<", ">", "!", "="} or next_char == "=":
                 continue
             return i
     return -1

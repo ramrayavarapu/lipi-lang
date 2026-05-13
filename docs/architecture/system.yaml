@@ -1,0 +1,109 @@
+# ─────────────────────────────────────────────────────────────
+# system.yaml — Architecture Manifest
+# Copy this file into any Prayag.io service repo and fill in
+# the bracketed placeholders. Keep it up to date — docs-check
+# CI will fail if this file is missing or empty.
+# ─────────────────────────────────────────────────────────────
+
+system: lipi-lang
+version: "1.0"
+purpose: >
+  Telugu-based programming language interpreter.
+  Enables writing and executing code using Telugu script,
+  making programming accessible to Telugu speakers.
+
+owner: ramrayavarapu
+repository: https://github.com/ramrayavarapu/lipi-lang
+
+# ── Environments ──────────────────────────────────────────────
+# Uncomment and fill in for Prayag.io services
+# environment:
+#   production:  https://prayag.io
+#   staging:     https://staging.prayag.io
+#   local:       http://localhost:3000
+
+# ── Components ────────────────────────────────────────────────
+components:
+  - name: parser
+    type: language-parser
+    description: Tokenises and parses Telugu-script source code
+    language: python
+
+  - name: executor
+    type: runtime-engine
+    description: Executes parsed abstract syntax tree
+    language: python
+
+  - name: runtime
+    type: stdlib
+    description: Standard library functions available in lipi-lang
+    language: python
+
+  # Prayag.io template — add/remove components as needed:
+  #
+  # - name: api
+  #   type: backend-api
+  #   description: REST/GraphQL API layer
+  #   language: python
+  #   framework: fastapi
+  #
+  # - name: frontend
+  #   type: web-ui
+  #   description: User-facing web application
+  #   language: typescript
+  #   framework: react
+  #
+  # - name: infrastructure
+  #   type: iac
+  #   description: Terraform configuration for cloud infrastructure
+  #   language: hcl
+
+# ── Interfaces ────────────────────────────────────────────────
+interfaces:
+  - type: cli
+    description: Command-line interpreter for running .lipi files
+
+  # - type: rest-api
+  #   description: [describe API surface]
+  # - type: web
+  #   description: [describe frontend interface]
+
+# ── Dependencies ──────────────────────────────────────────────
+dependencies:
+  - name: python
+    version: ">=3.11"
+  - name: unittest
+    purpose: test framework (stdlib)
+
+# ── Security ──────────────────────────────────────────────────
+security:
+  input_validation: required
+  secrets: none — no external API calls
+  auth: none
+  # auth: jwt            ← for Prayag.io services
+  # secrets: env vars    ← never hardcoded
+
+# ── Testing ───────────────────────────────────────────────────
+testing:
+  unit_tests: required          # tests/unit/ or tests/
+  api_tests: not applicable     # tests/api/  — set to "required" for API services
+  ux_tests: not applicable      # tests/ux/   — set to "required" for UI services
+  coverage_target: ">= 70%"
+
+# ── Cost Profile ──────────────────────────────────────────────
+cost_profile:
+  infrastructure: minimal — local execution only
+  third_party_apis: none
+  scaling_model: not applicable — local interpreter
+  # For Prayag.io services, document:
+  # infrastructure: [cloud provider + services used]
+  # third_party_apis: [name, cost per call, monthly volume estimate]
+  # scaling_model: [horizontal / vertical / serverless]
+
+# ── Agentic Engineering ───────────────────────────────────────
+agentic_engineering:
+  enabled: true
+  design_agent: chatgpt          # Rule 1 — architecture and design
+  build_agent: claude            # Rule 2 — code, tests, infrastructure
+  review_agent: github-copilot  # Rule 3 — security and regression review
+  standards: STANDARDS.md

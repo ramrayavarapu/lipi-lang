@@ -1,0 +1,137 @@
+name: Claude Preliminary Review (informational)
+
+# Runs Claude as a fast pre-check before Copilot's full review.
+# This step always passes — it is advisory only.
+# The authoritative review is done by GitHub Copilot (Rule 3).
+# Merge is gated by required human approval in branch protection settings.
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate diff
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+
+          # Ensure base commit exists locally; fetch exact SHA first, then base ref.
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "Base SHA ${BASE_SHA} not found locally - attempting fetch by SHA"
+            if ! git fetch --no-tags origin "${BASE_SHA}"; then
+              echo "Fetch by SHA failed - falling back to fetch by base ref origin/${BASE_REF}"
+              git fetch --no-tags origin "${BASE_REF}"
+            fi
+          fi
+
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "Unable to fetch base SHA ${BASE_SHA}; cannot generate diff"
+            exit 1
+          fi
+
+          git diff "$BASE_SHA"...HEAD > diff.txt
+          echo "--- Diff size: $(wc -l < diff.txt) lines ---"
+
+      - name: Check diff is not empty
+        run: |
+          if [ ! -s diff.txt ]; then
+            echo "No meaningful diff found — skipping AI review"
+            exit 0
+          fi
+
+      - name: Call Claude for AI review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, urllib.request, urllib.error, os, sys
+
+          api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
+          if not api_key:
+              print('ℹ️ ANTHROPIC_API_KEY not set — skipping AI review')
+              # Write empty review so subsequent steps don't fail
+              with open('review_response.json', 'w') as f:
+                  json.dump({'content': [{'type': 'text', 'text': 'AI review skipped — API key not configured.'}]}, f)
+              sys.exit(0)
+
+          diff = open('diff.txt').read(8000)
+
+          payload = json.dumps({
+              "model": "claude-sonnet-4-6",
+              "max_tokens": 800,
+              "messages": [{
+                  "role": "user",
+                  "content": (
+                      "You are a senior code reviewer. Review this code diff for: "
+                      "1) Security vulnerabilities, 2) Regression risks, "
+                      "3) Missing tests, 4) Cost implications. "
+                      "If you find CRITICAL issues, include the word CRITICAL in your response. "
+                      "Be concise.\n\nDiff:\n" + diff
+                  )
+              }]
+          }).encode()
+
+          req = urllib.request.Request(
+              'https://api.anthropic.com/v1/messages',
+              data=payload,
+              headers={
+                  'x-api-key': api_key,
+                  'anthropic-version': '2023-06-01',
+                  'content-type': 'application/json',
+              }
+          )
+
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  data = json.load(resp)
+          except urllib.error.HTTPError as e:
+              print(f'❌ Anthropic API error {e.code}: {e.read().decode()}')
+              sys.exit(1)
+          except Exception as e:
+              print(f'❌ Request failed: {e}')
+              sys.exit(1)
+
+          with open('review_response.json', 'w') as f:
+              json.dump(data, f)
+          print(json.dumps(data, indent=2))
+          PYEOF
+
+      - name: Parse and display review
+        run: |
+          python3 -c "
+          import json, sys
+          with open('review_response.json') as f:
+              data = json.load(f)
+          content = data.get('content', [])
+          review = ' '.join([b.get('text','') for b in content if b.get('type')=='text'])
+          print('=== AI REVIEW OUTPUT ===')
+          print(review)
+          with open('review_summary.txt', 'w') as f:
+              f.write(review)
+          "
+
+      - name: Summarise review for human approver
+        run: |
+          echo ""
+          echo "=== AI REVIEW COMPLETE ==="
+          if grep "CRITICAL" review_summary.txt; then
+            echo ""
+            echo "⚠️  Claude flagged CRITICAL items above."
+            echo "    Human approver must read and address before merging."
+          else
+            echo "✅ No critical issues flagged."
+          fi
+          echo ""
+          echo "ℹ️  This step always passes — merge is gated by required human approval."
+          echo "    See: Settings → Branches → Require 1 approving review."
+          # Always exit 0: CI marks the check green; the branch protection rule
+          # 'Require 1 approving review' is the actual merge gate.

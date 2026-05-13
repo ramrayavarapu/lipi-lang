@@ -1,0 +1,67 @@
+name: Build Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found — skipping install"
+          fi
+
+      - name: Ensure tests directory exists
+        run: |
+          if [ ! -d "tests" ]; then
+            echo "❌ tests/ directory missing. Code without tests is incomplete (Rule 2c)."
+            exit 1
+          fi
+          if [ -z "$(ls -A tests/)" ]; then
+            echo "❌ tests/ directory is empty. Add unit, API, or UX tests."
+            exit 1
+          fi
+
+      - name: Run unit tests
+        run: |
+          echo "--- Running unit tests ---"
+          if [ -d "tests/unit" ]; then
+            python -m unittest discover tests/unit -v
+          else
+            # Fall back to flat tests/ layout
+            python -m unittest discover tests -v
+          fi
+
+      - name: Run API tests
+        run: |
+          echo "--- Running API tests ---"
+          if [ -d "tests/api" ]; then
+            python -m unittest discover tests/api -v
+          else
+            echo "ℹ️  No tests/api/ directory found — skipping API tests"
+            echo "    Create tests/api/ to add backend API test coverage (Rule 2c)"
+          fi
+
+      - name: Run UX / flow tests
+        run: |
+          echo "--- Running UX / flow tests ---"
+          if [ -d "tests/ux" ]; then
+            python -m unittest discover tests/ux -v
+          else
+            echo "ℹ️  No tests/ux/ directory found — skipping UX tests"
+            echo "    Create tests/ux/ to add user experience test coverage (Rule 2c)"
+          fi

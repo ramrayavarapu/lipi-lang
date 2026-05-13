@@ -1,0 +1,61 @@
+name: Docs Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check mandatory files exist
+        run: |
+          MISSING=0
+
+          check_file() {
+            if [ ! -f "$1" ]; then
+              echo "❌ Missing required file: $1"
+              MISSING=1
+            else
+              echo "✅ Found: $1"
+            fi
+          }
+
+          check_file "README.md"
+          check_file "STANDARDS.md"
+          check_file "docs/architecture/system.yaml"
+
+          if [ $MISSING -eq 1 ]; then
+            echo ""
+            echo "🚫 Docs check FAILED. All required documentation must be present."
+            echo "   See STANDARDS.md Definition of Done."
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ All required documentation present"
+
+      - name: Check system.yaml is not empty
+        run: |
+          if [ ! -s "docs/architecture/system.yaml" ]; then
+            echo "❌ docs/architecture/system.yaml is empty — update it if architecture changed."
+            exit 1
+          fi
+
+      - name: Check system.yaml is valid YAML
+        run: |
+          pip install --quiet pyyaml
+          python3 -c "
+          import yaml, sys
+          with open('docs/architecture/system.yaml') as f:
+              try:
+                  yaml.safe_load(f)
+                  print('✅ system.yaml is valid YAML')
+              except yaml.YAMLError as e:
+                  print(f'❌ system.yaml has invalid YAML: {e}')
+                  sys.exit(1)
+          "

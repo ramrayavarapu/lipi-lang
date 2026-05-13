@@ -31,16 +31,16 @@ class Variable(Expr):
 
 @dataclass
 class BinaryOp(Expr):
-    left: Expr = None
+    left: Expr | None = field(default=None)
     op: str = ""
-    right: Expr = None
+    right: Expr | None = field(default=None)
 
 
 @dataclass
 class Compare(Expr):
-    left: Expr = None
+    left: Expr | None = field(default=None)
     op: str = ""
-    right: Expr = None
+    right: Expr | None = field(default=None)
 
 
 @dataclass
@@ -52,27 +52,27 @@ class Call(Expr):
 @dataclass
 class Assignment(Node):
     name: str = ""
-    expr: Expr = None
+    expr: Expr | None = field(default=None)
 
 
 @dataclass
 class Print(Node):
-    expr: Expr = None
+    expr: Expr | None = field(default=None)
 
 
 @dataclass
 class If(Node):
-    condition: Expr = None
+    condition: Expr | None = field(default=None)
     then_body: list[Node] = field(default_factory=list)
     else_body: list[Node] = field(default_factory=list)
 
 
 @dataclass
 class While(Node):
-    condition: Expr = None
+    condition: Expr | None = field(default=None)
     body: list[Node] = field(default_factory=list)
 
 
 @dataclass
 class ExprStmt(Node):
-    expr: Expr = None
+    expr: Expr | None = field(default=None)

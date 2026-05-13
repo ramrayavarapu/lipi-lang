@@ -6,6 +6,7 @@ from .dictionary import RESERVED_WORDS
 from .text_utils import transform_identifiers_outside_strings
 
 TELUGU_CHAR_PATTERN = re.compile(r"[\u0C00-\u0C7F]")
+GROUP_KEY_SEPARATOR = "::"
 
 
 class SymbolMapper:
@@ -25,7 +26,7 @@ class SymbolMapper:
     def _group_key(self, name: str) -> str | None:
         for left, right in self.seed_aliases.items():
             if name in (left, right):
-                return "::".join(sorted((left, right)))
+                return GROUP_KEY_SEPARATOR.join(sorted((left, right)))
         return None
 
     def define_symbol(self, name: str) -> str:
@@ -46,7 +47,7 @@ class SymbolMapper:
 
         if group_key:
             self.group_to_canonical[group_key] = canonical
-            left, right = group_key.split("::")
+            left, right = group_key.split(GROUP_KEY_SEPARATOR)
             for alias in (left, right):
                 self.alias_to_canonical.setdefault(alias, canonical)
                 self.canonical_to_aliases.setdefault(canonical, set()).add(alias)

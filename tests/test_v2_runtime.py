@@ -58,6 +58,21 @@ end
         self.assertIn("marks", result["env"])
         self.assertNotIn("మార్కులు", result["env"])
 
+    def test_first_defined_wins_policy_telugu_defined_first(self):
+        source = """
+మార్కులు = 90
+if marks > 75:
+    చెప్పు "Top"
+end
+""".strip()
+
+        with captured_output() as output:
+            result = run_v2_source(source, lang='en')
+
+        self.assertIn("Top", output.getvalue())
+        self.assertIn("మార్కులు", result["env"])
+        self.assertNotIn("marks", result["env"])
+
     def test_malformed_block_validation(self):
         source = """
 if 1 < 2:

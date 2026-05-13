@@ -3,6 +3,7 @@
 import re
 from collections.abc import Callable
 
+# \u0C00-\u0C7F is Telugu Unicode block, allowing Telugu identifiers.
 IDENTIFIER_PATTERN = re.compile(r"[_\w\u0C00-\u0C7F]+", flags=re.UNICODE)
 
 

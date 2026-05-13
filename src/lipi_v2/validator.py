@@ -6,6 +6,7 @@ from .errors import V2LipiError
 from .text_utils import is_escaped_quote
 
 
+# Keep in sync with parser-supported block statements in parser.py.
 BLOCK_STARTERS = ("if", "while")
 BLOCK_MIDDLE = ("else:",)
 BLOCK_END = "end"

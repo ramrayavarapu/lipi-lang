@@ -189,9 +189,9 @@ jobs:
             echo "NOTHING_FIXED=true" >> "$GITHUB_ENV"
           else
             git add -A
-            git commit -m "Auto-fix: address Copilot review issues (Rule 2)
-
-            $(cat fixes_applied.txt | sed 's/^/- Fixed: /')"
+            git commit \
+              -m "Auto-fix: address Copilot review issues (Rule 2)" \
+              -m "$(sed 's/^/- Fixed: /' fixes_applied.txt)"
             git push origin HEAD:"${{ github.event.pull_request.head.ref }}"
             echo "NOTHING_FIXED=false" >> "$GITHUB_ENV"
           fi

@@ -79,7 +79,13 @@ jobs:
               print('ℹ️ ANTHROPIC_API_KEY not set — skipping AI review')
               sys.exit(0)
 
-          diff_full = open('diff.txt').read()
+          try:
+              with open('diff.txt', 'r', encoding='utf-8', errors='replace') as diff_file:
+                  diff_full = diff_file.read()
+          except OSError as e:
+              write_summary(f'AI review skipped — could not read diff: {e}')
+              print(f'⚠️ Could not read diff.txt: {e}')
+              sys.exit(0)
           DIFF_LIMIT = 8000
           truncated = len(diff_full) > DIFF_LIMIT
           if truncated:
@@ -167,10 +173,12 @@ jobs:
             ].join('\n');
 
             // Find and update an existing comment from a previous run, or create a new one.
+            // Use per_page:100 so the marker search works on PRs with many comments.
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
+              per_page: 100,
             });
 
             const existing = comments.find(c => c.body.includes(marker));

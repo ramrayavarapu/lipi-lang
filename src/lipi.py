@@ -981,13 +981,19 @@ def eval_lipi_expr(expr, env):
     if pos != -1:
         left = expr[:pos]
         right = expr[pos+3:]  # +3 for " / "
-        return eval_lipi_expr(left, env) / eval_lipi_expr(right, env)
+        try:
+            return eval_lipi_expr(left, env) / eval_lipi_expr(right, env)
+        except ZeroDivisionError:
+            raise LipiException(get_error_message('division_by_zero'))
 
     pos = find_operator_outside_strings(expr, " % ")
     if pos != -1:
         left = expr[:pos]
         right = expr[pos+3:]  # +3 for " % "
-        return eval_lipi_expr(left, env) % eval_lipi_expr(right, env)
+        try:
+            return eval_lipi_expr(left, env) % eval_lipi_expr(right, env)
+        except ZeroDivisionError:
+            raise LipiException(get_error_message('division_by_zero'))
 
     # Subtraction (check after other operators)
     pos = find_operator_outside_strings(expr, " - ")
@@ -1092,7 +1098,7 @@ def eval_function_call(call_expr, env):
 
     # Check if function exists
     if func_name not in runtime.functions:
-        raise LipiException(f"Function not found: {func_name}")
+        raise LipiException(get_error_message('function_not_found', func_name))
 
     func_def = runtime.functions[func_name]
 

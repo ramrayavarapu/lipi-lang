@@ -8,18 +8,19 @@ on:
 permissions:
   checks: read
   statuses: read
+  pull-requests: read
 
 jobs:
   deploy-gate:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify required checks passed on this commit
+      - name: Verify required checks passed on the merged PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import os, json, urllib.request, sys
+          import os, json, urllib.request, sys, time
 
           token  = os.environ['GITHUB_TOKEN']
           repo   = os.environ['GITHUB_REPOSITORY']
@@ -40,10 +41,24 @@ jobs:
               with urllib.request.urlopen(req) as resp:
                   return json.load(resp)
 
-          runs = gh_get(f'/repos/{repo}/commits/{sha}/check-runs')
+          # CI checks run on the PR head commit, not the merge commit.
+          # Find the PR associated with this merge and use its head SHA.
+          pr_sha = sha
+          try:
+              prs = gh_get(f'/repos/{repo}/commits/{sha}/pulls')
+              if prs:
+                  pr_sha = prs[0]['head']['sha']
+                  pr_number = prs[0]['number']
+                  print(f'ℹ️  Merge commit {sha[:7]} came from PR #{pr_number} (head {pr_sha[:7]})')
+              else:
+                  print(f'ℹ️  No PR found for {sha[:7]} — checking checks on merge commit directly')
+          except Exception as e:
+              print(f'⚠️  Could not look up PR for commit: {e}')
+
+          runs = gh_get(f'/repos/{repo}/commits/{pr_sha}/check-runs')
           results = {}
           for run in runs.get('check_runs', []):
-              name   = run['name']
+              name  = run['name']
               status = run['status']
               concl  = run.get('conclusion', '')
               if name in REQUIRED:

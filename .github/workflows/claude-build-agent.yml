@@ -6,7 +6,9 @@ name: Claude Build Agent (Rule 2)
 # Prerequisites:
 #   ANTHROPIC_API_KEY  — repo secret (Settings → Secrets → Actions)
 #   CLAUDE_AUTOFIX_PAT — fine-grained PAT with Contents: write + Workflows: write
-#                        (needed so Claude's push triggers PR CI workflows)
+#                        (used only for git push so Claude's commits trigger PR CI)
+#                        Issues: write and Pull requests: write are NOT required on
+#                        the PAT — GITHUB_TOKEN handles all GitHub API calls.
 
 on:
   issues:
@@ -42,7 +44,11 @@ jobs:
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.CLAUDE_AUTOFIX_PAT || secrets.GITHUB_TOKEN }}
+          # GITHUB_TOKEN is used for all GitHub API calls (issue comments, PR creation).
+          # It inherits the workflow-level permissions: contents/pull-requests/issues write.
+          # CLAUDE_AUTOFIX_PAT is used only in the checkout step above for git push,
+          # so that Claude's commits trigger PR CI workflows.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           direct_prompt: |
             You are the Build Agent for this repository (Rule 2 — STANDARDS.md).
 

@@ -1,0 +1,86 @@
+name: Claude Build Agent (Rule 2)
+
+# Triggers when the repo owner adds the 'approved' label to a design issue.
+# Claude reads the design, implements it on a new branch, and opens a PR.
+#
+# Prerequisites:
+#   ANTHROPIC_API_KEY  — repo secret (Settings → Secrets → Actions)
+#   CLAUDE_AUTOFIX_PAT — fine-grained PAT with Contents: write + Workflows: write
+#                        (needed so Claude's push triggers PR CI workflows)
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  build:
+    # Only fire when the repo owner approves a design issue.
+    # Guards against any GitHub user triggering API calls on a public repo.
+    if: |
+      github.event.label.name == 'approved' &&
+      contains(github.event.issue.labels.*.name, 'design') &&
+      github.event.sender.login == github.repository_owner
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # PAT so Claude's commits trigger PR CI workflows.
+          # Falls back to GITHUB_TOKEN if PAT is not configured —
+          # in that case CI on the new PR may not run automatically.
+          token: ${{ secrets.CLAUDE_AUTOFIX_PAT || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Run Claude Build Agent
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.CLAUDE_AUTOFIX_PAT || secrets.GITHUB_TOKEN }}
+          direct_prompt: |
+            You are the Build Agent for this repository (Rule 2 — STANDARDS.md).
+
+            An approved design issue has been assigned to you. Read it carefully and implement it.
+
+            Design Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
+
+            --- DESIGN ---
+            ${{ github.event.issue.body }}
+            --- END DESIGN ---
+
+            Follow these steps exactly:
+
+            1. Read STANDARDS.md, README.md, and docs/architecture/system.yaml before writing any code.
+
+            2. Create a new branch named:
+               feature/#${{ github.event.issue.number }}-<short-slug-of-title>
+
+            3. Implement the feature as described in the design. Change only what the design requires — do not refactor unrelated code.
+
+            4. Safety checks (Rule 2b) — verify before finishing:
+               - No security vulnerabilities introduced
+               - No regression in existing functionality
+               - All inputs validated at system boundaries
+               - No secrets or API keys in code
+
+            5. Add all three test types (Rule 2c) in the tests/ directory:
+               - Unit tests: individual functions and logic
+               - API tests: endpoint / interpreter behaviour
+               - UX tests: key user flows end-to-end
+
+            6. If architecture changed, update docs/architecture/system.yaml.
+               If user-facing behaviour changed, update README.md.
+
+            7. Open a pull request with:
+               - Title: [#${{ github.event.issue.number }}] <concise description>
+               - Body referencing design issue #${{ github.event.issue.number }}
+               - Safety checklist filled in
+               - Summary of tests added
+
+            Never commit directly to main. Never skip tests. Never expose secrets.

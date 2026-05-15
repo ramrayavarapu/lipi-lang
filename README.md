@@ -203,6 +203,16 @@ cd learning-platform
 **Browser Compatibility | బ్రౌజర్ అనుకూలత:**
 - Chrome 90+ | Firefox 88+ | Edge 90+ | Safari 14+
 
+### Maths Foundations Booster | మ్యాథ్స్ ఫౌండేషన్స్ బూస్టర్
+
+**English:** A standalone browser app focused on foundational maths confidence for children with age-group activities, instant feedback, and progress tracking.
+
+**Quick Start:**
+```bash
+cd maths-foundations-booster
+# Open index.html in your web browser
+```
+
 ## Repository Structure | రిపోజిటరీ నిర్మాణం
 
 **English:** Professional project organization for production-ready development.
@@ -231,6 +241,11 @@ lipi-lang/
 │   ├── index.html
 │   ├── README.md
 │   └── QUICK_REFERENCE.md
+├── maths-foundations-booster/ # Maths confidence app | గణిత అభ్యాస యాప్
+│   ├── index.html
+│   ├── app.js
+│   ├── styles.css
+│   └── README.md
 └── .github/workflows/     # CI/CD pipeline | CI/CD పైప్లైన్
 ```
 
@@ -488,6 +503,7 @@ All code is tested before merge. See [SECURITY.md](docs/SECURITY.md) for details
 - 📖 [Developer Guide](docs/V3_GUIDE.md) - Complete v3.0 documentation | పూర్తి v3.0 డాక్యుమెంటేషన్
 - 🔍 [Quick Reference](learning-platform/QUICK_REFERENCE.md) - All keywords and syntax | అన్ని కీవర్డ్లు మరియు సింటాక్స్
 - 🚀 [Deployment Guide](learning-platform/DEPLOYMENT_GUIDE.md) - Rollout strategies | రోల్అవుట్ వ్యూహాలు
+- 🧮 [Maths Foundations Booster](maths-foundations-booster/README.md) - Foundational maths app overview
 - 🎯 [Competitive Analysis](docs/COMPETITIVE_ANALYSIS.md) - See how lipi-lang leads | లిపి-భాష ఎలా ముందుంది చూడండి
 
 ## Contributing | సహకారం

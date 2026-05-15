@@ -244,6 +244,7 @@ lipi-lang/
 ├── maths-foundations-booster/ # Maths confidence app | గణిత అభ్యాస యాప్
 │   ├── index.html
 │   ├── app.js
+│   ├── styles.css
 │   └── README.md
 └── .github/workflows/     # CI/CD pipeline | CI/CD పైప్లైన్
 ```

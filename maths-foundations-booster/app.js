@@ -18,6 +18,9 @@ const activityBank = {
 
 let activeUser = null;
 let activeActivity = null;
+let wrongAttempts = 0;
+let activityAttemptRecorded = false;
+let activityCompleted = false;
 
 function getEl(id) {
     return document.getElementById(id);
@@ -137,6 +140,9 @@ function startActivity() {
     getEl('exercise-question').textContent = activeActivity.question;
     getEl('answer-input').value = '';
     getEl('exercise-feedback').textContent = '';
+    wrongAttempts = 0;
+    activityAttemptRecorded = false;
+    activityCompleted = false;
     getEl('exercise-section').classList.remove('hidden');
 }
 
@@ -145,8 +151,18 @@ function submitAnswer() {
         getEl('exercise-feedback').textContent = 'Start an activity first.';
         return;
     }
+    if (activityCompleted) {
+        getEl('exercise-feedback').textContent = 'Activity completed. Start another activity.';
+        return;
+    }
 
-    const guess = Number(getEl('answer-input').value);
+    const rawAnswer = getEl('answer-input').value.trim();
+    if (rawAnswer === '') {
+        getEl('exercise-feedback').textContent = 'Enter a valid number.';
+        return;
+    }
+
+    const guess = Number(rawAnswer);
     if (!Number.isFinite(guess)) {
         getEl('exercise-feedback').textContent = 'Enter a valid number.';
         return;
@@ -154,13 +170,23 @@ function submitAnswer() {
 
     const progressMap = getProgressMap();
     const userProgress = progressMap[activeUser] || { attempted: 0, correct: 0 };
-    userProgress.attempted += 1;
+    if (!activityAttemptRecorded) {
+        userProgress.attempted += 1;
+        activityAttemptRecorded = true;
+    }
 
     if (guess === activeActivity.answer) {
         userProgress.correct += 1;
-        getEl('exercise-feedback').textContent = 'Great job! Correct answer ✅';
+        wrongAttempts = 0;
+        activityCompleted = true;
+        getEl('exercise-feedback').textContent = 'Great job! Correct answer.';
     } else {
-        getEl('exercise-feedback').textContent = `Keep trying! Correct answer: ${activeActivity.answer}`;
+        wrongAttempts += 1;
+        if (wrongAttempts < 2) {
+            getEl('exercise-feedback').textContent = 'Not yet. Try again.';
+        } else {
+            getEl('exercise-feedback').textContent = `Keep trying! Correct answer: ${activeActivity.answer}`;
+        }
     }
 
     progressMap[activeUser] = userProgress;

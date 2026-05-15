@@ -20,7 +20,7 @@ jobs:
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import os, json, urllib.request, sys, time
+          import os, json, urllib.request, urllib.error, sys, time
 
           token  = os.environ['GITHUB_TOKEN']
           repo   = os.environ['GITHUB_REPOSITORY']
@@ -41,21 +41,42 @@ jobs:
               with urllib.request.urlopen(req) as resp:
                   return json.load(resp)
 
+          def gh_get_with_retry(path, attempts=3):
+              """Retry with exponential backoff: 2s, 4s."""
+              for attempt in range(1, attempts + 1):
+                  try:
+                      return gh_get(path)
+                  except (urllib.error.HTTPError, urllib.error.URLError, OSError) as e:
+                      if attempt == attempts:
+                          raise
+                      wait = 2 ** attempt
+                      print(f'⚠️  API call failed (attempt {attempt}/{attempts}): {e} — retrying in {wait}s')
+                      time.sleep(wait)
+
           # CI checks run on the PR head commit, not the merge commit.
           # Find the PR associated with this merge and use its head SHA.
-          pr_sha = sha
           try:
-              prs = gh_get(f'/repos/{repo}/commits/{sha}/pulls')
-              if prs:
-                  pr_sha = prs[0]['head']['sha']
-                  pr_number = prs[0]['number']
-                  print(f'ℹ️  Merge commit {sha[:7]} came from PR #{pr_number} (head {pr_sha[:7]})')
-              else:
-                  print(f'ℹ️  No PR found for {sha[:7]} — checking checks on merge commit directly')
+              prs = gh_get_with_retry(f'/repos/{repo}/commits/{sha}/pulls')
           except Exception as e:
-              print(f'⚠️  Could not look up PR for commit: {e}')
+              print(f'❌ Could not resolve PR for merge commit {sha[:7]} after 3 attempts: {e}')
+              print('   Deploy gate cannot verify required checks — failing to prevent unverified deployment.')
+              sys.exit(1)
 
-          runs = gh_get(f'/repos/{repo}/commits/{pr_sha}/check-runs')
+          if not prs:
+              print(f'ℹ️  No PR found for merge commit {sha[:7]} — this appears to be a direct push.')
+              print('   Skipping deploy gate (direct pushes bypass the PR review workflow by definition).')
+              sys.exit(0)
+
+          pr_sha = prs[0]['head']['sha']
+          pr_number = prs[0]['number']
+          print(f'ℹ️  Merge commit {sha[:7]} came from PR #{pr_number} (head {pr_sha[:7]})')
+
+          try:
+              runs = gh_get_with_retry(f'/repos/{repo}/commits/{pr_sha}/check-runs')
+          except Exception as e:
+              print(f'❌ Could not fetch check runs for PR #{pr_number} head {pr_sha[:7]}: {e}')
+              sys.exit(1)
+
           results = {}
           for run in runs.get('check_runs', []):
               name  = run['name']
@@ -70,7 +91,7 @@ jobs:
               if status == 'completed' and concl == 'success':
                   print(f'✅ {check}: passed')
               elif status == 'missing':
-                  print(f'❌ {check}: not found — check has not run on this commit')
+                  print(f'❌ {check}: not found — check has not run on PR #{pr_number}')
                   all_passed = False
               elif status in ('queued', 'in_progress'):
                   print(f'❌ {check}: still {status} — deploy gate must run after all checks complete')
@@ -80,7 +101,7 @@ jobs:
                   all_passed = False
 
           if not all_passed:
-              print('\n🚫 Deploy gate FAILED — not all required checks passed.')
+              print('\n🚫 Deploy gate FAILED — not all required checks passed on PR #{pr_number}.')
               sys.exit(1)
 
           print('\n🚀 All required checks passed — deployment can proceed.')

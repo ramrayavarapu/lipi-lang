@@ -1,0 +1,65 @@
+:root {
+    color-scheme: light dark;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #334155;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+input,
+select,
+button {
+    font: inherit;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #475569;
+}
+
+button {
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+.hidden {
+    display: none;
+}
+
+#exercise-feedback {
+    min-height: 1.3em;
+    margin-top: 8px;
+}

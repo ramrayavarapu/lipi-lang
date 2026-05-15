@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maths Foundations Booster</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>🧮 Maths Foundations Booster</h1>
+            <p>Build confidence in maths with bite-sized activities and instant feedback.</p>
+        </header>
+
+        <section id="auth-section" class="card">
+            <h2>Registration / Login</h2>
+            <div class="row">
+                <label for="username">Name</label>
+                <input id="username" type="text" maxlength="40" placeholder="Enter your name" autocomplete="off">
+            </div>
+            <div class="row">
+                <label for="age-group">Age Group</label>
+                <select id="age-group">
+                    <option value="">Select age group</option>
+                    <option value="5-7">5-7 years</option>
+                    <option value="8-10">8-10 years</option>
+                    <option value="11-13">11-13 years</option>
+                </select>
+            </div>
+            <div class="actions">
+                <button id="register-btn" type="button">Register</button>
+                <button id="login-btn" type="button">Login</button>
+            </div>
+            <p id="auth-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="dashboard-section" class="card hidden" aria-live="polite">
+            <h2>User Dashboard</h2>
+            <p id="welcome-message"></p>
+            <p id="progress-summary"></p>
+        </section>
+
+        <section id="activity-section" class="card hidden">
+            <h2>Activity Selection</h2>
+            <div class="row">
+                <label for="activity-select">Choose an activity</label>
+                <select id="activity-select"></select>
+            </div>
+            <button id="start-activity-btn" type="button">Start Activity</button>
+        </section>
+
+        <section id="exercise-section" class="card hidden">
+            <h2 id="exercise-title">Activity</h2>
+            <p id="exercise-question"></p>
+            <div class="actions">
+                <input id="answer-input" type="number" inputmode="numeric" aria-label="Your answer">
+                <button id="submit-answer-btn" type="button">Submit</button>
+            </div>
+            <p id="exercise-feedback" role="status" aria-live="polite"></p>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

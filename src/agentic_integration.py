@@ -203,7 +203,11 @@ class AdaptiveAIEngineeringGovernanceSystem:
             
             # Phase 7: Compile Comprehensive Response
             print(f"📊 Phase 7: Response Compilation")
-            
+            trust_summary = {
+                "strictness_level": adapted_strictness,
+                "trust_building_active": len(developer_interactions) > 0
+            }
+
             comprehensive_response = {
                 "operation_id": operation_id,
                 "timestamp": time.time(),
@@ -220,14 +224,8 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 # Operational Intelligence
                 "cost_optimization": governance_decision.get("cost_optimization", {}),
                 "reliability_status": slo_status,
-                "developer_adaptation": {
-                    "strictness_level": adapted_strictness,
-                    "trust_building_active": len(developer_interactions) > 0
-                },
-                "developer_trust_summary": {
-                    "strictness_level": adapted_strictness,
-                    "trust_building_active": len(developer_interactions) > 0
-                },
+                "developer_adaptation": trust_summary,
+                "developer_trust_summary": trust_summary,
                 "metrics_summary": {
                     "governance_applied": True,
                     "risk_score": governance_decision["risk_assessment"]["overall_risk_score"],

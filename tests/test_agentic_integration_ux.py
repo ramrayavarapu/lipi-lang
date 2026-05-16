@@ -271,6 +271,7 @@ class TestAgenticIntegrationUX(unittest.TestCase):
         cognitive = result['cognitive_summary']
         attention_areas = cognitive['attention_required_areas']
         self.assertIsInstance(attention_areas, list)
+        self.assertGreater(len(attention_areas), 0)
 
     def test_ux_dashboard_usability_flow(self):
         """Test UX flow for enterprise dashboard usability"""
@@ -280,8 +281,7 @@ class TestAgenticIntegrationUX(unittest.TestCase):
         # Should be easy to understand at a glance
         self.assertIn('system_status', dashboard)
         status = dashboard['system_status']
-        self.assertIsInstance(status, str)
-        self.assertGreater(len(status), 0)
+        self.assertIn(status, ['healthy', 'degraded', 'critical'])
 
         # Value metrics should be business-friendly
         value_metrics = dashboard['value_metrics']
@@ -300,6 +300,9 @@ class TestAgenticIntegrationUX(unittest.TestCase):
         for layer, layer_status in intelligence_status.items():
             self.assertIsInstance(layer_status, str)
             self.assertGreater(len(layer_status), 0)
+            self.assertTrue(
+                any(keyword in layer_status.lower() for keyword in ['active', 'degraded', 'offline'])
+            )
         
         # Should provide actionable insights
         self.assertIn('enterprise_capabilities', dashboard)

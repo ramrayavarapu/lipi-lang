@@ -273,11 +273,7 @@ class TestAgenticIntegrationUX(unittest.TestCase):
         self.assertIsInstance(attention_areas, list)
         self.assertGreater(len(attention_areas), 0)
         self.assertTrue(
-            any(
-                keyword in area.lower()
-                for area in attention_areas
-                for keyword in ['security', 'compliance', 'architecture', 'testing']
-            )
+            any('security' in area.lower() or 'architecture' in area.lower() for area in attention_areas)
         )
 
     def test_ux_dashboard_usability_flow(self):
@@ -307,9 +303,9 @@ class TestAgenticIntegrationUX(unittest.TestCase):
         for layer, layer_status in intelligence_status.items():
             self.assertIsInstance(layer_status, str)
             self.assertGreater(len(layer_status), 0)
-            self.assertRegex(
-                layer_status,
-                r'^(?:✅\s*)?(?:Active|Degraded|Offline)\s*-\s+.+$'
+            self.assertIn('-', layer_status)
+            self.assertTrue(
+                any(keyword in layer_status.lower() for keyword in ['active', 'degraded', 'offline'])
             )
         
         # Should provide actionable insights

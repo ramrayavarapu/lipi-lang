@@ -31,6 +31,7 @@ from agentic_governance import (
 
 from agentic_intelligence_extended import (
     CostAwarenessEngine,
+    CostBudget,
     ReliabilityFramework,
     HumanCollaborationEngine,
     ComplianceAuditEngine,
@@ -136,12 +137,12 @@ class AdaptiveAIEngineeringGovernanceSystem:
                     float(global_cost_per_change_limit)
                 )
 
-            cost_budget = {
-                "monthly_budget": self.config["cost_budget"]["monthly_budget"],
-                "current_spend": self._get_current_monthly_spend(),
-                "cost_per_change_limit": effective_cost_per_change_limit,
-                "emergency_budget_reserve": self.config["cost_budget"]["emergency_reserve"]
-            }
+            cost_budget = CostBudget(
+                monthly_budget=self.config["cost_budget"].get("monthly_budget", 1000.0),
+                current_spend=self._get_current_monthly_spend(),
+                cost_per_change_limit=effective_cost_per_change_limit,
+                emergency_budget_reserve=self.config["cost_budget"].get("emergency_reserve", 200.0)
+            )
             
             # Optimize agent selection for cost if needed
             original_agent = governance_decision["selected_agent"]

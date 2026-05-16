@@ -42,8 +42,11 @@ except ImportError as e:
         print("✅ agentic_intelligence_extended imports work")
     except ImportError as e:
         print(f"❌ agentic_intelligence_extended import failed: {e}")
+    
+    sys.exit(1)
 
 except Exception as e:
     print(f"❌ Runtime Error: {e}")
     import traceback
     traceback.print_exc()
+    sys.exit(1)

@@ -1321,8 +1321,32 @@ class DeveloperTrustEngine:
     
     def _get_current_strictness(self, developer_id: str) -> str:
         """Get current strictness level for developer"""
-        # For now, return standard - would be stored in database per developer
-        return "standard"
+        default_strictness = "standard"
+        
+        try:
+            conn = sqlite3.connect(self.trust_db)
+            cursor = conn.cursor()
+            cursor.execute("""
+            SELECT new_strictness
+            FROM adaptation_history
+            WHERE developer_id = ?
+            ORDER BY timestamp DESC
+            LIMIT 1
+            """, (developer_id,))
+            
+            row = cursor.fetchone()
+            conn.close()
+        except sqlite3.Error:
+            return default_strictness
+        
+        if not row or not row[0]:
+            return default_strictness
+        
+        current_strictness = row[0]
+        if current_strictness in self.strictness_levels:
+            return current_strictness
+        
+        return default_strictness
     
     def _decrease_strictness(self, current: str) -> str:
         """Decrease strictness level"""

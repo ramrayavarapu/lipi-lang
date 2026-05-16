@@ -53,9 +53,9 @@ Describe specifically what needs testing:
 
 ## Output format
 
-Produce your design as a GitHub issue using the **Design Proposal** template (`.github/ISSUE_TEMPLATE/design_proposal.md`).
+Produce your design using the **Design Proposal** template (`.github/ISSUE_TEMPLATE/design_proposal.md`).
 
-Paste the filled template directly into the issue body on GitHub.
+Return only the filled template body. The workflow may publish it as either a GitHub issue body or a pull request comment depending on the trigger.
 
 ---
 

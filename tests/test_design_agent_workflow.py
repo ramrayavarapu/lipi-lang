@@ -13,6 +13,16 @@ class TestDesignAgentWorkflow(unittest.TestCase):
         self.assertIn('uses: actions/github-script@v8', self.workflow)
         self.assertNotIn('uses: actions/github-script@v7', self.workflow)
 
+    def test_design_agent_triggers_on_pull_request_open(self):
+        self.assertIn('pull_request:', self.workflow)
+        self.assertIn('types: [opened]', self.workflow)
+        self.assertIn("github.event_name == 'pull_request'", self.workflow)
+
+    def test_design_agent_posts_comment_for_pull_requests(self):
+        self.assertIn("context.eventName === 'pull_request'", self.workflow)
+        self.assertIn('Design Proposal comment posted to PR', self.workflow)
+        self.assertIn('Source: Pull Request #${pr.number}', self.workflow)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

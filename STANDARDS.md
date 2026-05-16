@@ -13,7 +13,7 @@ Before any code is written, a design must exist.
 
 **ChatGPT is responsible for producing the architecture and design.**
 
-This step is **automated**: when a Feature Request issue is opened, the `design-agent` workflow calls GPT-4o and automatically creates a filled Design Proposal issue. The proposal is linked back to the feature request.
+This step is **automated**: when a Feature Request issue is opened, the `design-agent` workflow calls GPT-4o and automatically creates a filled Design Proposal issue linked back to the feature request. When a pull request is opened, the same workflow also posts an auto-generated Design Proposal comment on the PR for review.
 
 A human must **review and approve** the Design Proposal before Claude starts building. The `needs-approval` label signals it is pending review.
 

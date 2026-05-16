@@ -4,10 +4,12 @@ Unit tests for the agentic_integration module
 Tests the AdaptiveAIEngineeringGovernanceSystem class
 """
 
+import io
 import unittest
 import sys
 import os
 import json
+from contextlib import redirect_stdout
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -239,8 +241,6 @@ class TestAdaptiveAIEngineeringGovernanceSystem(unittest.TestCase):
 
     def test_verbose_true_prints_output(self):
         """Test that verbose=True prints initialization output"""
-        import io
-        from contextlib import redirect_stdout
         f = io.StringIO()
         with redirect_stdout(f):
             AdaptiveAIEngineeringGovernanceSystem(verbose=True)
@@ -249,8 +249,6 @@ class TestAdaptiveAIEngineeringGovernanceSystem(unittest.TestCase):
 
     def test_verbose_false_suppresses_output(self):
         """Test that verbose=False suppresses initialization output"""
-        import io
-        from contextlib import redirect_stdout
         f = io.StringIO()
         with redirect_stdout(f):
             AdaptiveAIEngineeringGovernanceSystem(verbose=False)
@@ -258,8 +256,6 @@ class TestAdaptiveAIEngineeringGovernanceSystem(unittest.TestCase):
 
     def test_verbose_suppressed_during_process_change(self):
         """Test that verbose=False suppresses phase output during request processing"""
-        import io
-        from contextlib import redirect_stdout
         system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
         request = {
             "type": "build",

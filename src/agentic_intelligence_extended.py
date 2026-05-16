@@ -564,13 +564,13 @@ class HumanCollaborationEngine:
         risk_score = risk_assessment.get("overall_risk_score", 0)
         
         if confidence > 0.9 and risk_score < 5:
-            recommendation = "APPROVE - Low risk, high confidence"
+            recommendation = "APPROVE"
         elif risk_score >= 8:
-            recommendation = "HOLD - Security/compliance review needed"
+            recommendation = "HOLD"
         elif len(arch_violations) > 2:
-            recommendation = "HOLD - Architecture review needed" 
+            recommendation = "HOLD"
         else:
-            recommendation = "REVIEW - Human judgment required"
+            recommendation = "REVIEW"
         
         # Areas requiring attention
         attention_areas = []

@@ -9,7 +9,7 @@ class TestDesignAgentWorkflow(unittest.TestCase):
     def setUp(self):
         self.workflow = WORKFLOW_PATH.read_text(encoding='utf-8')
 
-    def test_generate_design_uses_node24_compatible_github_script(self):
+    def test_generate_design_uses_upgraded_github_script_version(self):
         self.assertIn('uses: actions/github-script@v8', self.workflow)
         self.assertNotIn('uses: actions/github-script@v7', self.workflow)
 

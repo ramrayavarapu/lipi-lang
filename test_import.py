@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Test script to verify agentic_integration imports work correctly
-This will help diagnose any CI build issues
+Manual smoke test to verify agentic_integration imports work correctly.
+This repository-root script is intended for local debugging and is not
+automatically exercised by CI unless it is explicitly wired into a workflow.
 """
 
 import sys
@@ -42,8 +43,11 @@ except ImportError as e:
         print("✅ agentic_intelligence_extended imports work")
     except ImportError as e:
         print(f"❌ agentic_intelligence_extended import failed: {e}")
+    
+    sys.exit(1)
 
 except Exception as e:
     print(f"❌ Runtime Error: {e}")
     import traceback
     traceback.print_exc()
+    sys.exit(1)

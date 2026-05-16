@@ -85,19 +85,21 @@ security:
 
 # ── Testing ───────────────────────────────────────────────────
 testing:
-  unit_tests: required          # tests/unit/ or tests/ — comprehensive coverage implemented
-  api_tests: required          # tests/api/  — full API behavior testing implemented
-  ux_tests: required           # tests/ux/   — end-to-end user experience testing implemented
+  unit_tests: required          # tests/unit/ or flat tests/test_*.py discovery — comprehensive coverage implemented
+  api_tests: required           # flat tests/test_*api*.py discovery — API behavior testing implemented
+  ux_tests: required            # flat tests/test_*ux*.py discovery — end-to-end user experience testing implemented
   coverage_target: ">= 70%"
   
   # Agentic Integration Test Coverage (Issue #70 implementation)
+  # Note: API/UX tests are currently implemented as flat unittest-discoverable files under tests/,
+  # not in dedicated tests/api/ or tests/ux/ directories.
   agentic_test_files:
-    - test_agentic_integration.py         # Unit tests for core system
-    - test_agentic_integration_api.py     # API behavior and integration tests
-    - test_agentic_integration_ux.py      # End-to-end user experience tests
-    - test_agentic_governance.py          # Governance orchestrator tests
-    - test_agentic_api.py                 # API endpoint tests
-    - test_agentic_ux.py                  # User experience flow tests
+    - tests/test_agentic_integration.py         # Unit tests for core system
+    - tests/test_agentic_integration_api.py     # API behavior and integration tests
+    - tests/test_agentic_integration_ux.py      # End-to-end user experience tests
+    - tests/test_agentic_governance.py          # Governance orchestrator tests
+    - tests/test_agentic_api.py                 # API endpoint tests
+    - tests/test_agentic_ux.py                  # User experience flow tests
 
 # ── Cost Profile ──────────────────────────────────────────────
 cost_profile:

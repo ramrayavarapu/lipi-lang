@@ -274,13 +274,26 @@ class AdaptiveAIEngineeringGovernanceSystem:
         
         target_slo = self.config["reliability_targets"].get(f"{agent_type.replace('-', '_')}_slo", 99.0)
         
-        meets_slo = metrics.availability >= target_slo
+        # A fresh reliability store may have no observations yet. In that case,
+        # avoid treating "no data" as a hard SLO violation for newly selected agents.
+        operation_count = getattr(
+            metrics,
+            "total_operations",
+            getattr(metrics, "operation_count", getattr(metrics, "sample_size", None))
+        )
+        has_reliability_history = operation_count is None or operation_count > 0
+        
+        meets_slo = (metrics.availability >= target_slo) if has_reliability_history else True
+        violation_reason = None
+        if has_reliability_history and not meets_slo:
+            violation_reason = f"Availability {metrics.availability:.1f}% below target {target_slo}%"
         
         return {
             "meets_slo": meets_slo,
             "current_availability": metrics.availability,
             "target_slo": target_slo,
-            "violation_reason": f"Availability {metrics.availability:.1f}% below target {target_slo}%" if not meets_slo else None
+            "violation_reason": violation_reason,
+            "insufficient_data": not has_reliability_history
         }
     
     def _get_recent_developer_interactions(self, developer_id: str) -> List[Dict[str, Any]]:

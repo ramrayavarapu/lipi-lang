@@ -46,3 +46,6 @@ htmlcov/
 *.tmp
 *.temp
 .pre-commit-cache/
+
+# SQLite databases generated at runtime
+*.db

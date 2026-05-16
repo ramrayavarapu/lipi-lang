@@ -115,7 +115,7 @@ jobs:
           PYEOF
 
       - name: Create Design Proposal issue and link back
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           DESIGN_ASSIGNEE: ${{ vars.DESIGN_ASSIGNEE }}
         with:

@@ -79,13 +79,17 @@ class DynamicAgentSelector:
         Transforms static orchestration into adaptive intelligence.
         """
         
-        # Security-sensitive routing
-        if context.security_sensitivity >= 8:
+        # Highest security always routes to specialized agent regardless of domain
+        if context.security_sensitivity >= 10:
             return AgentType.SECURITY_SPECIALIZED
-        
-        # Regulated domain routing
+
+        # Regulated domain routing takes precedence for mid-tier security
         if context.regulated_domain:
             return AgentType.REGULATORY_COMPLIANCE
+
+        # Non-regulated high-security changes still get specialized review
+        if context.security_sensitivity >= 8:
+            return AgentType.SECURITY_SPECIALIZED
         
         # Explicit workflow routing should take precedence over specialization
         # for non-critical cases so design/review requests preserve API intent.
@@ -100,8 +104,8 @@ class DynamicAgentSelector:
             # Frontend-heavy tasks
             elif context.frontend_heavy:
                 selected = AgentType.FRONTEND_SPECIALIZED
-            # Low complexity, cost-sensitive routing
-            elif context.complexity_score <= 3 and context.estimated_cost_budget < 10:
+            # Cost-sensitive routing
+            elif context.estimated_cost_budget < 10:
                 selected = AgentType.LIGHTWEIGHT_CHEAP
             else:
                 # Default intelligent routing based on change type
@@ -365,40 +369,47 @@ class RiskIntelligenceEngine:
         """Load risk pattern recognition rules"""
         return {
             "payment-service": RiskLevel.HIGH,
-            "auth-related": RiskLevel.CRITICAL,
+            "auth": RiskLevel.CRITICAL,
             "customer-pii": RiskLevel.CRITICAL,
             "documentation": RiskLevel.LOW,
             "config-change": RiskLevel.MEDIUM,
             "database-schema": RiskLevel.HIGH,
             "security-policy": RiskLevel.CRITICAL,
             "lipi-interpreter": RiskLevel.HIGH,
-            "core-runtime": RiskLevel.HIGH
+            "core-runtime": RiskLevel.HIGH,
+            "interpreter": RiskLevel.HIGH
         }
     
-    def assess_change_risk(self, 
-                          component: str, 
-                          change_description: str, 
-                          files_changed: List[str]) -> RiskAssessment:
+    def assess_change_risk(self,
+                          component: str,
+                          change_description: str,
+                          files_changed: List[str],
+                          regulated: bool = False) -> RiskAssessment:
         """Assess risk level and determine governance requirements"""
-        
+
         risk_factors = {}
         overall_risk = RiskLevel.LOW.value
-        
+
         # Component-based risk assessment
         for pattern, risk_level in self.risk_patterns.items():
             if pattern in component.lower() or pattern in change_description.lower():
                 risk_factors[pattern] = risk_level.value
                 overall_risk = max(overall_risk, risk_level.value)
-        
+
         # File-based risk assessment
         for file_path in files_changed:
             if any(sensitive in file_path.lower() for sensitive in ['auth', 'security', 'payment', 'credential']):
                 risk_factors[f"sensitive_file_{file_path}"] = RiskLevel.HIGH.value
                 overall_risk = max(overall_risk, RiskLevel.HIGH.value)
-        
+
+        # Regulated domains require at least HIGH governance
+        if regulated:
+            overall_risk = max(overall_risk, RiskLevel.HIGH.value)
+            risk_factors["regulated_domain"] = RiskLevel.HIGH.value
+
         # Determine governance requirements based on risk
         governance_requirements = self._determine_governance_requirements(overall_risk)
-        
+
         # Recommend actions
         recommended_actions = self._recommend_actions(overall_risk, risk_factors)
         
@@ -447,7 +458,7 @@ class RiskIntelligenceEngine:
     def _recommend_actions(self, risk_score: int, risk_factors: Dict[str, int]) -> List[str]:
         """Recommend specific actions based on risk assessment"""
         actions = []
-        
+
         if risk_score >= RiskLevel.CRITICAL.value:
             actions.extend([
                 "Require security team approval",
@@ -455,14 +466,14 @@ class RiskIntelligenceEngine:
                 "Schedule deployment during maintenance window",
                 "Prepare immediate rollback plan"
             ])
-        
+
         if risk_score >= RiskLevel.HIGH.value:
             actions.extend([
                 "Require senior developer review",
                 "Run additional integration tests",
                 "Monitor deployment closely"
             ])
-        
+
         # Specific risk factor actions
         for factor, score in risk_factors.items():
             if "pii" in factor:
@@ -471,7 +482,10 @@ class RiskIntelligenceEngine:
                 actions.append("Verify PCI DSS compliance")
             if "auth" in factor:
                 actions.append("Security audit required")
-        
+
+        # Always recommend basic testing
+        actions.append("Verify all existing tests pass before merging")
+
         return actions
 
 
@@ -649,16 +663,16 @@ class MultiRepoReasoningEngine:
             blast_radius_score=blast_radius
         )
     
-    def _calculate_blast_radius(self, 
-                               affected_services: List[str], 
-                               api_changes: List[str], 
+    def _calculate_blast_radius(self,
+                               affected_services: List[str],
+                               api_changes: List[str],
                                schema_changes: List[str]) -> int:
         """Calculate blast radius score"""
         score = len(affected_services)
         score += len(api_changes) * 2  # API changes are more impactful
         score += len(schema_changes) * 3  # Schema changes are most impactful
-        
-        return min(score, 10)  # Cap at 10
+        # Any code change has at least minimal blast radius
+        return max(1, min(score, 10))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -823,7 +837,8 @@ class AgenticGovernanceOrchestrator:
         risk_assessment = self.risk_engine.assess_change_risk(
             component=change_request.get("component", ""),
             change_description=change_request.get("description", ""),
-            files_changed=change_request.get("files_changed", [])
+            files_changed=change_request.get("files_changed", []),
+            regulated=change_request.get("regulated", False)
         )
         
         # 4. Get organizational context

@@ -114,7 +114,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
         7. Continuous learning and adaptation
         """
         
-        operation_id = f"{request_type}_{repository}_{int(time.time())}"
+        operation_id = f"{request_type}_{repository}_{time.time_ns()}"
         start_time = time.time()
         
         try:

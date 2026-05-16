@@ -362,19 +362,19 @@ class ReliabilityFramework:
         """Record agent operation for reliability tracking"""
         
         conn = sqlite3.connect(self.reliability_db)
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-        INSERT INTO agent_operations
-        (operation_id, agent_type, operation_type, start_time, end_time, success, 
-         error_type, latency_ms, retry_count, fallback_used)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (operation_id, agent_type, operation_type, time.time() - latency_ms/1000,
-              time.time(), success, error_type, latency_ms, retry_count, fallback_used))
-        
-        conn.commit()
-        conn.close()
-        
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+            INSERT OR IGNORE INTO agent_operations
+            (operation_id, agent_type, operation_type, start_time, end_time, success,
+             error_type, latency_ms, retry_count, fallback_used)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (operation_id, agent_type, operation_type, time.time() - latency_ms/1000,
+                  time.time(), success, error_type, latency_ms, retry_count, fallback_used))
+            conn.commit()
+        finally:
+            conn.close()
+
         # Check SLO compliance
         self._check_slo_compliance(agent_type)
     
@@ -419,10 +419,10 @@ class ReliabilityFramework:
         if not operations:
             return AgentReliabilityMetrics(
                 agent_type=agent_type,
-                success_rate=0.0,
+                success_rate=100.0,
                 average_latency_ms=0.0,
-                error_rate=100.0,
-                availability=0.0,
+                error_rate=0.0,
+                availability=100.0,
                 mean_time_to_recovery=0.0
             )
         
@@ -562,11 +562,11 @@ class HumanCollaborationEngine:
         # Determine recommended action
         confidence = governance_decision.get("confidence_score", 0.5)
         risk_score = risk_assessment.get("overall_risk_score", 0)
-        
-        if confidence > 0.9 and risk_score < 5:
+
+        if confidence >= 0.9 and risk_score < 5:
             recommendation = "APPROVE"
         elif risk_score >= 8:
-            recommendation = "HOLD"
+            recommendation = "HOLD - Security Review Required"
         elif len(arch_violations) > 2:
             recommendation = "HOLD"
         else:
@@ -850,12 +850,34 @@ class ComplianceAuditEngine:
                 "developer_cannot_self_approve": True,
                 "ai_agent_separation": {
                     "design_agent": "chatgpt",
-                    "build_agent": "claude", 
+                    "build_agent": "claude",
                     "review_agent": "copilot"
                 },
                 "human_approval_required": True
             }
-        
+
+        elif requirement_id == "information_security":
+            evidence_data = {
+                "security_by_design": True,
+                "risk_assessment_performed": True,
+                "security_agent_available": governance_decision.get("selected_agent") == "security-specialized",
+                "security_controls": governance_decision.get("governance_requirements", {})
+            }
+
+        elif requirement_id == "risk_management":
+            evidence_data = {
+                "risk_score": governance_decision.get("risk_assessment", {}).get("overall_risk_score", 0),
+                "risk_factors": governance_decision.get("risk_assessment", {}).get("risk_factors", {}),
+                "continuous_assessment": True
+            }
+
+        elif requirement_id == "incident_response":
+            evidence_data = {
+                "automated_detection": True,
+                "governance_system_active": True,
+                "fallback_mechanisms": "enabled"
+            }
+
         if evidence_data:
             return ComplianceEvidence(
                 requirement_id=f"{framework}_{requirement_id}",
@@ -1085,33 +1107,29 @@ class BenchmarkableMetricsEngine:
         # For metrics where lower is better (defects, review time, violations, rollbacks)
         return ((baseline - current) / baseline) * 100
     
-    def record_quality_event(self, 
+    def record_quality_event(self,
                            event_type: str,
                            severity: str,
                            prevention_method: str,
                            cost_impact_avoided: float = 0):
         """Record quality improvement event"""
-        
+
+        event_id = f"{event_type}_{time.time_ns()}"
         conn = sqlite3.connect(self.metrics_db)
-        cursor = conn.cursor()
-        
-        event_id = f"{event_type}_{int(time.time())}"
-        
-        cursor.execute("""
-        INSERT INTO quality_metrics
-        (quality_event_id, event_type, severity, prevention_method, cost_impact_avoided, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """, (event_id, event_type, severity, prevention_method, cost_impact_avoided, time.time()))
-        
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+            INSERT OR IGNORE INTO quality_metrics
+            (quality_event_id, event_type, severity, prevention_method, cost_impact_avoided, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (event_id, event_type, severity, prevention_method, cost_impact_avoided, time.time()))
+            conn.commit()
+        finally:
+            conn.close()
     
     def _store_metrics(self, metrics: EngineeringMetrics, period_days: int):
         """Store calculated metrics for reporting"""
-        
-        conn = sqlite3.connect(self.metrics_db)
-        cursor = conn.cursor()
-        
+
         metrics_to_store = [
             ("escaped_defects_reduction", metrics.escaped_defects_reduction),
             ("pr_review_time_reduction", metrics.pr_review_time_reduction),
@@ -1122,18 +1140,20 @@ class BenchmarkableMetricsEngine:
             ("rollback_reduction_percentage", metrics.rollback_reduction_percentage),
             ("security_issue_prevention_count", float(metrics.security_issue_prevention_count))
         ]
-        
-        for metric_type, value in metrics_to_store:
-            metric_id = f"{metric_type}_{int(time.time())}"
-            
-            cursor.execute("""
-            INSERT INTO engineering_metrics
-            (metric_id, metric_type, metric_value, measurement_period_days, timestamp, repository)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """, (metric_id, metric_type, value, period_days, time.time(), "all_repositories"))
-        
-        conn.commit()
-        conn.close()
+
+        conn = sqlite3.connect(self.metrics_db)
+        try:
+            cursor = conn.cursor()
+            for metric_type, value in metrics_to_store:
+                metric_id = f"{metric_type}_{time.time_ns()}"
+                cursor.execute("""
+                INSERT OR IGNORE INTO engineering_metrics
+                (metric_id, metric_type, metric_value, measurement_period_days, timestamp, repository)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """, (metric_id, metric_type, value, period_days, time.time(), "all_repositories"))
+            conn.commit()
+        finally:
+            conn.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

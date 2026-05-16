@@ -4,10 +4,12 @@ Unit tests for the agentic_integration module
 Tests the AdaptiveAIEngineeringGovernanceSystem class
 """
 
+import io
 import unittest
 import sys
 import os
 import json
+from contextlib import redirect_stdout
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -236,6 +238,49 @@ class TestAdaptiveAIEngineeringGovernanceSystem(unittest.TestCase):
         except Exception as e:
             # If it does throw an exception, it should be informative
             self.assertIsInstance(e, (ValueError, KeyError, TypeError))
+
+    def test_verbose_true_prints_output(self):
+        """Test that verbose=True prints initialization output"""
+        f = io.StringIO()
+        with redirect_stdout(f):
+            AdaptiveAIEngineeringGovernanceSystem(verbose=True)
+        output = f.getvalue()
+        self.assertIn("Adaptive AI Engineering Governance System initialized", output)
+
+    def test_verbose_false_suppresses_output(self):
+        """Test that verbose=False suppresses initialization output"""
+        f = io.StringIO()
+        with redirect_stdout(f):
+            AdaptiveAIEngineeringGovernanceSystem(verbose=False)
+        self.assertEqual(f.getvalue(), "")
+
+    def test_verbose_suppressed_during_process_change(self):
+        """Test that verbose=False suppresses phase output during request processing"""
+        system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
+        request = {
+            "type": "build",
+            "component": "documentation",
+            "description": "Update README",
+            "security_score": 1,
+            "complexity": 2,
+            "frontend_changes": False,
+            "infrastructure": False,
+            "regulated": False,
+            "cost_budget": 10.0,
+            "urgency": 1,
+            "files_changed": ["README.md"],
+            "technical_details": {}
+        }
+        f = io.StringIO()
+        with redirect_stdout(f):
+            system.process_engineering_request(
+                request_type="build",
+                repository="test-repo",
+                change_request=request,
+                developer_id="test_developer"
+            )
+        output = f.getvalue()
+        self.assertEqual(output, "")
 
 
 if __name__ == '__main__':

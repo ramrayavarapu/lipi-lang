@@ -224,6 +224,16 @@ class AdaptiveAIEngineeringGovernanceSystem:
                     "strictness_level": adapted_strictness,
                     "trust_building_active": len(developer_interactions) > 0
                 },
+                "developer_trust_summary": {
+                    "strictness_level": adapted_strictness,
+                    "trust_building_active": len(developer_interactions) > 0
+                },
+                "metrics_summary": {
+                    "governance_applied": True,
+                    "risk_score": governance_decision["risk_assessment"]["overall_risk_score"],
+                    "agent_selected": governance_decision["selected_agent"],
+                    "compliance_items": len(compliance_evidence)
+                },
                 
                 # Enterprise Readiness
                 "enterprise_features": {
@@ -388,16 +398,16 @@ class AdaptiveAIEngineeringGovernanceSystem:
         
         dashboard = {
             "dashboard_generated_at": time.time(),
-            "system_status": "Adaptive AI Engineering Governance - Operational",
-            
+            "system_status": "healthy",
+
             # Core Value Metrics - Make uniqueness measurable
             "value_metrics": {
-                "escaped_defects_reduction": f"{engineering_metrics.escaped_defects_reduction:.1f}%",
-                "pr_review_time_reduction": f"{engineering_metrics.pr_review_time_reduction:.1f}%",
+                "escaped_defects_reduction": round(engineering_metrics.escaped_defects_reduction, 1),
+                "pr_review_time_reduction": round(engineering_metrics.pr_review_time_reduction, 1),
                 "cost_savings_monthly": f"${engineering_metrics.cost_savings_dollars:.2f}",
-                "developer_productivity_improvement": f"{engineering_metrics.developer_productivity_improvement:.1f}%",
+                "developer_productivity_improvement": round(engineering_metrics.developer_productivity_improvement, 1),
                 "security_issues_prevented": engineering_metrics.security_issue_prevention_count,
-                "policy_violation_reduction": f"{engineering_metrics.policy_violation_reduction:.1f}%"
+                "policy_violation_reduction": round(engineering_metrics.policy_violation_reduction, 1)
             },
             
             # Operational Excellence

@@ -126,10 +126,20 @@ class AdaptiveAIEngineeringGovernanceSystem:
             
             # Phase 2: Cost Optimization
             print(f"💰 Phase 2: Cost-Aware Optimization")
+            global_cost_per_change_limit = self.config["cost_budget"]["cost_per_change_limit"]
+            request_cost_budget = change_request.get("cost_budget")
+            effective_cost_per_change_limit = global_cost_per_change_limit
+
+            if isinstance(request_cost_budget, (int, float)):
+                effective_cost_per_change_limit = min(
+                    float(request_cost_budget),
+                    float(global_cost_per_change_limit)
+                )
+
             cost_budget = {
                 "monthly_budget": self.config["cost_budget"]["monthly_budget"],
                 "current_spend": self._get_current_monthly_spend(),
-                "cost_per_change_limit": self.config["cost_budget"]["cost_per_change_limit"],
+                "cost_per_change_limit": effective_cost_per_change_limit,
                 "emergency_budget_reserve": self.config["cost_budget"]["emergency_reserve"]
             }
             

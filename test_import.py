@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Test script to verify agentic_integration imports work correctly
-This will help diagnose any CI build issues
+Manual smoke test to verify agentic_integration imports work correctly.
+This repository-root script is intended for local debugging and is not
+automatically exercised by CI unless it is explicitly wired into a workflow.
 """
 
 import sys

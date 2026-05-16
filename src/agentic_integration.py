@@ -225,7 +225,10 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 "cost_optimization": governance_decision.get("cost_optimization", {}),
                 "reliability_status": slo_status,
                 "developer_adaptation": trust_summary,
-                "developer_trust_summary": trust_summary,
+                "developer_trust_summary": {
+                    **trust_summary,
+                    "recent_interactions": len(developer_interactions)
+                },
                 "metrics_summary": {
                     "governance_applied": True,
                     "risk_score": governance_decision["risk_assessment"]["overall_risk_score"],

@@ -272,6 +272,13 @@ class TestAgenticIntegrationUX(unittest.TestCase):
         attention_areas = cognitive['attention_required_areas']
         self.assertIsInstance(attention_areas, list)
         self.assertGreater(len(attention_areas), 0)
+        self.assertTrue(
+            any(
+                keyword in area.lower()
+                for area in attention_areas
+                for keyword in ['security', 'compliance', 'architecture', 'testing']
+            )
+        )
 
     def test_ux_dashboard_usability_flow(self):
         """Test UX flow for enterprise dashboard usability"""
@@ -300,8 +307,9 @@ class TestAgenticIntegrationUX(unittest.TestCase):
         for layer, layer_status in intelligence_status.items():
             self.assertIsInstance(layer_status, str)
             self.assertGreater(len(layer_status), 0)
-            self.assertTrue(
-                any(keyword in layer_status.lower() for keyword in ['active', 'degraded', 'offline'])
+            self.assertRegex(
+                layer_status,
+                r'^(?:✅\s*)?(?:Active|Degraded|Offline)\s*-\s+.+$'
             )
         
         # Should provide actionable insights

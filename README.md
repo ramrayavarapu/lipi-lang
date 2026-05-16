@@ -69,9 +69,9 @@ Lipi-lang now implements **13 intelligence layers** that transform engineering d
 - **50%+ reduction in escaped defects** through risk-aware governance
 - **40%+ faster PR review cycles** via cognitive optimization  
 - **30%+ cost savings** through intelligent agent selection
-- **99.5%+ reliability** with SLO monitoring and fallbacks
-- **Complete audit trails** for enterprise compliance
-- **Adaptive developer experience** preventing AI bureaucracy
+- **Target: 99.5%+ reliability** when deployed with SLO monitoring and fallbacks
+- **Designed for complete audit trails** to support enterprise compliance
+- **Adaptive developer experience** designed to reduce AI bureaucracy
 
 ### Implementation | అమలు
 

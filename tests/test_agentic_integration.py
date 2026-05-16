@@ -280,9 +280,7 @@ class TestAdaptiveAIEngineeringGovernanceSystem(unittest.TestCase):
                 developer_id="test_developer"
             )
         output = f.getvalue()
-        self.assertNotIn("Phase 1", output)
-        self.assertNotIn("Phase 4", output)
-        self.assertNotIn("Phase 6", output)
+        self.assertEqual(output, "")
 
 
 if __name__ == '__main__':

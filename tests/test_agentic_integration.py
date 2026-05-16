@@ -8,7 +8,6 @@ import unittest
 import sys
 import os
 import json
-from unittest.mock import patch, MagicMock
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))

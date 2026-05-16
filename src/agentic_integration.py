@@ -55,7 +55,8 @@ class AdaptiveAIEngineeringGovernanceSystem:
     - Difficult to replicate through deep integration and intelligence layers
     """
     
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: Optional[str] = None, verbose: bool = True):
+        self.verbose = verbose
         self.config = self._load_configuration(config_path)
         
         # Initialize all intelligence layers
@@ -67,8 +68,9 @@ class AdaptiveAIEngineeringGovernanceSystem:
         self.metrics_engine = BenchmarkableMetricsEngine()
         self.developer_trust = DeveloperTrustEngine()
         
-        print("🚀 Adaptive AI Engineering Governance System initialized")
-        print("   Transforming workflow automation → adaptive engineering intelligence")
+        if self.verbose:
+            print("🚀 Adaptive AI Engineering Governance System initialized")
+            print("   Transforming workflow automation → adaptive engineering intelligence")
     
     def _load_configuration(self, config_path: Optional[str]) -> Dict[str, Any]:
         """Load system configuration"""
@@ -119,14 +121,16 @@ class AdaptiveAIEngineeringGovernanceSystem:
         
         try:
             # Phase 1: Intelligent Governance Decision
-            print(f"\n🧠 Phase 1: Intelligent Governance Analysis")
+            if self.verbose:
+                print(f"\n🧠 Phase 1: Intelligent Governance Analysis")
             governance_decision = self.governance_orchestrator.orchestrate_intelligent_governance(
                 repository=repository,
                 change_request=change_request
             )
             
             # Phase 2: Cost Optimization
-            print(f"💰 Phase 2: Cost-Aware Optimization")
+            if self.verbose:
+                print(f"💰 Phase 2: Cost-Aware Optimization")
             global_cost_per_change_limit = self.config["cost_budget"]["cost_per_change_limit"]
             request_cost_budget = change_request.get("cost_budget")
             effective_cost_per_change_limit = global_cost_per_change_limit
@@ -161,7 +165,8 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 governance_decision["selected_agent"] = cost_optimized_agent
             
             # Phase 3: Reliability & SLO Monitoring
-            print(f"⚡ Phase 3: Reliability Assurance")
+            if self.verbose:
+                print(f"⚡ Phase 3: Reliability Assurance")
             slo_status = self._check_agent_slo_status(governance_decision["selected_agent"])
             
             if not slo_status["meets_slo"]:
@@ -178,11 +183,13 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 governance_decision["selected_agent"] = fallback_agent
             
             # Phase 4: Human Collaboration Optimization
-            print(f"🤝 Phase 4: Human Collaboration Intelligence")
+            if self.verbose:
+                print(f"🤝 Phase 4: Human Collaboration Intelligence")
             cognitive_summary = self.human_collaboration.generate_cognitive_summary(governance_decision)
             
             # Phase 5: Compliance & Audit Evidence Generation
-            print(f"📋 Phase 5: Compliance Evidence Generation")
+            if self.verbose:
+                print(f"📋 Phase 5: Compliance Evidence Generation")
             compliance_evidence = self.compliance_engine.generate_compliance_evidence(
                 change_request, 
                 governance_decision
@@ -194,7 +201,8 @@ class AdaptiveAIEngineeringGovernanceSystem:
             )
             
             # Phase 6: Developer Trust Adaptation
-            print(f"🎯 Phase 6: Developer Trust Optimization")
+            if self.verbose:
+                print(f"🎯 Phase 6: Developer Trust Optimization")
             developer_interactions = self._get_recent_developer_interactions(developer_id)
             adapted_strictness = self.developer_trust.adapt_strictness_for_developer(
                 developer_id,
@@ -202,7 +210,8 @@ class AdaptiveAIEngineeringGovernanceSystem:
             )
             
             # Phase 7: Compile Comprehensive Response
-            print(f"📊 Phase 7: Response Compilation")
+            if self.verbose:
+                print(f"📊 Phase 7: Response Compilation")
             trust_summary = {
                 "strictness_level": adapted_strictness,
                 "trust_building_active": len(developer_interactions) > 0
@@ -259,16 +268,18 @@ class AdaptiveAIEngineeringGovernanceSystem:
             # Phase 8: Record Metrics and Learning
             self._record_operation_metrics(operation_id, request_type, governance_decision, start_time)
             
-            print(f"✅ Agentic Engineering Governance completed in {time.time() - start_time:.2f}s")
-            print(f"   Agent selected: {governance_decision['selected_agent']}")
-            print(f"   Risk level: {governance_decision['risk_assessment']['overall_risk_score']}/10") 
-            print(f"   Human attention: {len(cognitive_summary.attention_required_areas)} areas")
+            if self.verbose:
+                print(f"✅ Agentic Engineering Governance completed in {time.time() - start_time:.2f}s")
+                print(f"   Agent selected: {governance_decision['selected_agent']}")
+                print(f"   Risk level: {governance_decision['risk_assessment']['overall_risk_score']}/10") 
+                print(f"   Human attention: {len(cognitive_summary.attention_required_areas)} areas")
             
             return comprehensive_response
             
         except Exception as e:
             # Graceful degradation with reliability framework
-            print(f"❌ Error in agentic governance: {str(e)}")
+            if self.verbose:
+                print(f"❌ Error in agentic governance: {str(e)}")
             return self._create_fallback_response(operation_id, request_type, repository, str(e))
     
     def _get_current_monthly_spend(self) -> float:
@@ -383,7 +394,8 @@ class AdaptiveAIEngineeringGovernanceSystem:
     def generate_enterprise_dashboard(self) -> Dict[str, Any]:
         """Generate enterprise dashboard showing system value and metrics"""
         
-        print("📊 Generating Enterprise Dashboard...")
+        if self.verbose:
+            print("📊 Generating Enterprise Dashboard...")
         
         # Calculate engineering metrics
         engineering_metrics = self.metrics_engine.calculate_engineering_metrics()

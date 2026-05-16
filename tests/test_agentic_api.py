@@ -25,7 +25,7 @@ class TestAgenticSystemAPI(unittest.TestCase):
     """Test the main API interface of the agentic system"""
     
     def setUp(self):
-        self.system = AdaptiveAIEngineeringGovernanceSystem()
+        self.system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
     
     def test_process_design_request(self):
         """Test processing design-type requests"""
@@ -248,7 +248,7 @@ class TestAgenticSystemIntegration(unittest.TestCase):
     """Test integration with existing lipi-lang system"""
     
     def setUp(self):
-        self.system = AdaptiveAIEngineeringGovernanceSystem()
+        self.system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
     
     def test_lipi_lang_enhancement_integration(self):
         """Test that agentic system enhances lipi-lang appropriately"""
@@ -424,7 +424,7 @@ class TestAgenticSystemPerformance(unittest.TestCase):
     """Test performance characteristics of the agentic system"""
     
     def setUp(self):
-        self.system = AdaptiveAIEngineeringGovernanceSystem()
+        self.system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
     
     def test_response_time_performance(self):
         """Test that system responds within reasonable time limits"""

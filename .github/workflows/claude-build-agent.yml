@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # PAT so Claude's commits trigger PR CI workflows.
           # Falls back to GITHUB_TOKEN if PAT is not configured —

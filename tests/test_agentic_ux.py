@@ -25,7 +25,7 @@ class TestDeveloperExperience(unittest.TestCase):
     """Test the developer user experience with the agentic system"""
     
     def setUp(self):
-        self.system = AdaptiveAIEngineeringGovernanceSystem()
+        self.system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
     
     def test_simple_documentation_change_flow(self):
         """Test that simple documentation changes have minimal friction"""

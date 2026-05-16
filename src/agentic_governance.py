@@ -370,7 +370,9 @@ class RiskIntelligenceEngine:
             "documentation": RiskLevel.LOW,
             "config-change": RiskLevel.MEDIUM,
             "database-schema": RiskLevel.HIGH,
-            "security-policy": RiskLevel.CRITICAL
+            "security-policy": RiskLevel.CRITICAL,
+            "lipi-interpreter": RiskLevel.HIGH,
+            "core-runtime": RiskLevel.HIGH
         }
     
     def assess_change_risk(self, 

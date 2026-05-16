@@ -192,7 +192,13 @@ def main():
     # Files to scan (relative to script directory)
     files_to_scan = [
         os.path.join(script_dir, '..', 'src', 'lipi.py'),
+        os.path.join(script_dir, '..', 'src', 'agent_intelligence.py'),
+        os.path.join(script_dir, '..', 'src', 'agentic_orchestrator.py'),
+        os.path.join(script_dir, '..', 'src', 'agent_cli.py'),
         os.path.join(script_dir, 'test_lipi.py'),
+        os.path.join(script_dir, 'test_agent_intelligence.py'),
+        os.path.join(script_dir, 'test_agentic_orchestrator.py'),
+        os.path.join(script_dir, 'test_agent_ux.py'),
     ]
 
     print("🛡️  Running security scan for lipi-lang\n")

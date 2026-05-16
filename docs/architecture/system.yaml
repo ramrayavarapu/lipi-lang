@@ -6,11 +6,12 @@
 # ─────────────────────────────────────────────────────────────
 
 system: lipi-lang
-version: "1.0"
+version: "2.0"
 purpose: >
-  Telugu-based programming language interpreter.
+  Telugu-based programming language interpreter with intelligent agentic engineering.
   Enables writing and executing code using Telugu script,
   making programming accessible to Telugu speakers.
+  Enhanced with dynamic agent selection intelligence for adaptive task orchestration.
 
 owner: ramrayavarapu
 repository: https://github.com/ramrayavarapu/lipi-lang
@@ -39,6 +40,30 @@ components:
     description: Standard library functions available in lipi-lang
     language: python
 
+  - name: routing-intelligence
+    type: ai-orchestrator
+    description: Dynamic agent selection intelligence layer with machine learning
+    language: python
+    framework: custom
+    capabilities:
+      - Task classification and routing
+      - Historical performance analysis
+      - Outcome learning and adaptation
+      - Agent capability matching
+      - Fallback selection
+
+  - name: agentic-orchestrator
+    type: task-orchestrator
+    description: Main orchestrator for intelligent task-to-agent assignment
+    language: python
+    dependencies: [routing-intelligence]
+
+  - name: agent-cli
+    type: cli-tool
+    description: Command-line interface for testing and demonstrating agent selection
+    language: python
+    dependencies: [agentic-orchestrator]
+
   # Prayag.io template — add/remove components as needed:
   #
   # - name: api
@@ -63,6 +88,9 @@ interfaces:
   - type: cli
     description: Command-line interpreter for running .lipi files
 
+  - type: agent-cli
+    description: Command-line interface for dynamic agent selection testing and demonstration
+
   # - type: rest-api
   #   description: [describe API surface]
   # - type: web
@@ -86,9 +114,13 @@ security:
 # ── Testing ───────────────────────────────────────────────────
 testing:
   unit_tests: required          # tests/unit/ or tests/
-  api_tests: not applicable     # tests/api/  — set to "required" for API services
-  ux_tests: not applicable      # tests/ux/   — set to "required" for UI services
-  coverage_target: ">= 70%"
+  api_tests: required           # tests/api/  — for agent orchestrator APIs
+  ux_tests: required            # tests/ux/   — for CLI and user workflows
+  coverage_target: ">= 80%"
+  test_files:
+    - test_agent_intelligence.py   # Unit tests for AI decision logic
+    - test_agentic_orchestrator.py # API tests for orchestrator behavior
+    - test_agent_ux.py             # UX tests for user flows
 
 # ── Cost Profile ──────────────────────────────────────────────
 cost_profile:
@@ -103,7 +135,32 @@ cost_profile:
 # ── Agentic Engineering ───────────────────────────────────────
 agentic_engineering:
   enabled: true
+  version: "2.0"
+  
+  # Static baseline agents (STANDARDS.md Rule 1-3)
   design_agent: chatgpt          # Rule 1 — architecture and design
   build_agent: claude            # Rule 2 — code, tests, infrastructure
-  review_agent: github-copilot  # Rule 3 — security and regression review
+  review_agent: github-copilot   # Rule 3 — security and regression review
+  
+  # Dynamic routing intelligence (NEW)
+  routing_intelligence:
+    enabled: true
+    learning_enabled: true
+    task_classification: automatic
+    agent_selection: ml-enhanced
+    fallback_strategy: standards-compliant
+    memory_persistence: agent_memory.json
+    
+  # Specialized agents for complex scenarios
+  specialized_agents:
+    - security_specialist: enhanced-security-analysis
+    - testing_specialist: comprehensive-test-coverage
+    
+  # Performance monitoring
+  metrics:
+    track_confidence_scores: true
+    track_execution_time: true
+    track_quality_scores: true
+    learn_from_outcomes: true
+    
   standards: STANDARDS.md

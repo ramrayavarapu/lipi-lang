@@ -85,10 +85,19 @@ security:
 
 # ── Testing ───────────────────────────────────────────────────
 testing:
-  unit_tests: required          # tests/unit/ or tests/
-  api_tests: not applicable     # tests/api/  — set to "required" for API services
-  ux_tests: not applicable      # tests/ux/   — set to "required" for UI services
+  unit_tests: required          # tests/unit/ or tests/ — comprehensive coverage implemented
+  api_tests: required          # tests/api/  — full API behavior testing implemented
+  ux_tests: required           # tests/ux/   — end-to-end user experience testing implemented
   coverage_target: ">= 70%"
+  
+  # Agentic Integration Test Coverage (Issue #70 implementation)
+  agentic_test_files:
+    - test_agentic_integration.py         # Unit tests for core system
+    - test_agentic_integration_api.py     # API behavior and integration tests
+    - test_agentic_integration_ux.py      # End-to-end user experience tests
+    - test_agentic_governance.py          # Governance orchestrator tests
+    - test_agentic_api.py                 # API endpoint tests
+    - test_agentic_ux.py                  # User experience flow tests
 
 # ── Cost Profile ──────────────────────────────────────────────
 cost_profile:

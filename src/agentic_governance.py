@@ -86,27 +86,32 @@ class DynamicAgentSelector:
         # Regulated domain routing
         if context.regulated_domain:
             return AgentType.REGULATORY_COMPLIANCE
-            
-        # Infrastructure changes
-        if context.infrastructure_changes:
-            return AgentType.INFRASTRUCTURE_SPECIALIZED
-            
-        # Frontend-heavy tasks
-        if context.frontend_heavy:
-            return AgentType.FRONTEND_SPECIALIZED
-            
-        # Low complexity, cost-sensitive routing
-        if context.complexity_score <= 3 and context.estimated_cost_budget < 10:
-            return AgentType.LIGHTWEIGHT_CHEAP
-            
-        # Default intelligent routing based on change type
-        agent_mapping = {
-            "design": AgentType.CHATGPT_DESIGN,
-            "build": AgentType.CLAUDE_BUILD,
-            "review": AgentType.COPILOT_REVIEW
-        }
         
-        selected = agent_mapping.get(context.change_type, AgentType.CLAUDE_BUILD)
+        # Explicit workflow routing should take precedence over specialization
+        # for non-critical cases so design/review requests preserve API intent.
+        if context.change_type == "design":
+            selected = AgentType.CHATGPT_DESIGN
+        elif context.change_type == "review":
+            selected = AgentType.COPILOT_REVIEW
+        else:
+            # Infrastructure changes
+            if context.infrastructure_changes:
+                selected = AgentType.INFRASTRUCTURE_SPECIALIZED
+            # Frontend-heavy tasks
+            elif context.frontend_heavy:
+                selected = AgentType.FRONTEND_SPECIALIZED
+            # Low complexity, cost-sensitive routing
+            elif context.complexity_score <= 3 and context.estimated_cost_budget < 10:
+                selected = AgentType.LIGHTWEIGHT_CHEAP
+            else:
+                # Default intelligent routing based on change type
+                agent_mapping = {
+                    "design": AgentType.CHATGPT_DESIGN,
+                    "build": AgentType.CLAUDE_BUILD,
+                    "review": AgentType.COPILOT_REVIEW
+                }
+                
+                selected = agent_mapping.get(context.change_type, AgentType.CLAUDE_BUILD)
         
         # Log selection for learning
         self.selection_history.append({

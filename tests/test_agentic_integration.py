@@ -237,6 +237,57 @@ class TestAdaptiveAIEngineeringGovernanceSystem(unittest.TestCase):
             # If it does throw an exception, it should be informative
             self.assertIsInstance(e, (ValueError, KeyError, TypeError))
 
+    def test_verbose_true_prints_output(self):
+        """Test that verbose=True prints initialization output"""
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            AdaptiveAIEngineeringGovernanceSystem(verbose=True)
+        output = f.getvalue()
+        self.assertIn("Adaptive AI Engineering Governance System initialized", output)
+
+    def test_verbose_false_suppresses_output(self):
+        """Test that verbose=False suppresses initialization output"""
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            AdaptiveAIEngineeringGovernanceSystem(verbose=False)
+        self.assertEqual(f.getvalue(), "")
+
+    def test_verbose_suppressed_during_process_change(self):
+        """Test that verbose=False suppresses phase output during request processing"""
+        import io
+        from contextlib import redirect_stdout
+        system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
+        request = {
+            "type": "build",
+            "component": "documentation",
+            "description": "Update README",
+            "security_score": 1,
+            "complexity": 2,
+            "frontend_changes": False,
+            "infrastructure": False,
+            "regulated": False,
+            "cost_budget": 10.0,
+            "urgency": 1,
+            "files_changed": ["README.md"],
+            "technical_details": {}
+        }
+        f = io.StringIO()
+        with redirect_stdout(f):
+            system.process_engineering_request(
+                request_type="build",
+                repository="test-repo",
+                change_request=request,
+                developer_id="test_developer"
+            )
+        output = f.getvalue()
+        self.assertNotIn("Phase 1", output)
+        self.assertNotIn("Phase 4", output)
+        self.assertNotIn("Phase 6", output)
+
 
 if __name__ == '__main__':
     # Set up test environment

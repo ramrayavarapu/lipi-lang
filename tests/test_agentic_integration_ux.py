@@ -7,9 +7,6 @@ Tests end-to-end user experience flows and scenarios
 import unittest
 import sys
 import os
-import json
-import time
-from unittest.mock import patch, MagicMock
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))

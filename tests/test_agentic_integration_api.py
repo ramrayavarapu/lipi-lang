@@ -21,7 +21,7 @@ class TestAgenticIntegrationAPI(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        self.system = AdaptiveAIEngineeringGovernanceSystem()
+        self.system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
         self.test_repository = "lipi-lang-test"
 
     def test_full_api_workflow_documentation_change(self):

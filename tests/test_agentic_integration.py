@@ -20,7 +20,7 @@ class TestAdaptiveAIEngineeringGovernanceSystem(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        self.system = AdaptiveAIEngineeringGovernanceSystem()
+        self.system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
 
     def test_system_initialization(self):
         """Test that system initializes with all required components"""
@@ -202,7 +202,7 @@ class TestAdaptiveAIEngineeringGovernanceSystem(unittest.TestCase):
             json.dump(custom_config, f)
         
         try:
-            system = AdaptiveAIEngineeringGovernanceSystem(config_path=config_path)
+            system = AdaptiveAIEngineeringGovernanceSystem(config_path=config_path, verbose=False)
             
             # Custom values should be applied
             self.assertEqual(system.config['cost_budget']['monthly_budget'], 2000.0)

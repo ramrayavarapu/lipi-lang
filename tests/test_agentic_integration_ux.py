@@ -19,7 +19,7 @@ class TestAgenticIntegrationUX(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        self.system = AdaptiveAIEngineeringGovernanceSystem()
+        self.system = AdaptiveAIEngineeringGovernanceSystem(verbose=False)
 
     def test_ux_new_developer_onboarding_flow(self):
         """Test UX flow for a new developer's first few changes"""

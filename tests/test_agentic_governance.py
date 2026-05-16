@@ -601,7 +601,7 @@ class TestIntegratedSystem(unittest.TestCase):
         json.dump(config, self.temp_config)
         self.temp_config.close()
         
-        self.system = AdaptiveAIEngineeringGovernanceSystem(self.temp_config.name)
+        self.system = AdaptiveAIEngineeringGovernanceSystem(self.temp_config.name, verbose=False)
     
     def tearDown(self):
         os.unlink(self.temp_config.name)

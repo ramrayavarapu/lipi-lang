@@ -22,6 +22,10 @@ import os
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 
+MAX_RECOMMENDED_ACTIONS = 3
+MAX_ATTENTION_AREAS = 2
+MAX_TOTAL_RECOMMENDATIONS = 6
+
 # Import all intelligence layers
 from agentic_governance import (
     AgenticGovernanceOrchestrator,
@@ -411,20 +415,55 @@ class AdaptiveAIEngineeringGovernanceSystem:
     def _build_actionable_recommendations(self,
                                         governance_decision: Dict[str, Any],
                                         cognitive_summary: Any) -> List[Dict[str, str]]:
-        """Build concise, execution-ready recommendations for the request."""
+        """
+        Build concise, execution-ready recommendations for the request.
+
+        Args:
+            governance_decision: Governance output containing risk actions and
+                governance requirements.
+            cognitive_summary: Summary object with human attention areas.
+
+        Returns:
+            A prioritized list of recommendation objects with title, action, and
+            priority fields.
+        """
         recommendations: List[Dict[str, str]] = []
 
-        for action in governance_decision.get("recommended_actions", [])[:3]:
+        actions = governance_decision.get("recommended_actions", [])
+        def action_priority(action: str) -> int:
+            return 1 if "security" in action.lower() else 0
+
+        prioritized_actions = sorted(actions, key=action_priority, reverse=True)
+        for action in prioritized_actions[:MAX_RECOMMENDED_ACTIONS]:
+            action_lower = action.lower()
+            if "security" in action_lower:
+                title = "Security risk mitigation"
+            elif "compliance" in action_lower:
+                title = "Compliance safeguard"
+            elif "review" in action_lower:
+                title = "Governance review step"
+            else:
+                title = "Risk mitigation"
             recommendations.append({
-                "title": "Risk mitigation",
+                "title": title,
                 "action": action,
-                "priority": "high" if "security" in action.lower() else "medium"
+                "priority": "high" if "security" in action_lower else "medium"
             })
 
-        for area in getattr(cognitive_summary, "attention_required_areas", [])[:2]:
+        attention_areas = getattr(cognitive_summary, "attention_required_areas", [])
+        def attention_priority(area: str) -> int:
+            area_lower = area.lower()
+            if "security" in area_lower:
+                return 2
+            if "architecture" in area_lower:
+                return 1
+            return 0
+
+        prioritized_attention_areas = sorted(attention_areas, key=attention_priority, reverse=True)
+        for area in prioritized_attention_areas[:MAX_ATTENTION_AREAS]:
             recommendations.append({
                 "title": "Human attention required",
-                "action": f"Perform focused review for: {area}.",
+                "action": f"Perform focused review for: {area}",
                 "priority": "high"
             })
 
@@ -443,7 +482,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 "priority": "low"
             })
 
-        return recommendations
+        return recommendations[:MAX_TOTAL_RECOMMENDATIONS]
     
     def generate_enterprise_dashboard(self) -> Dict[str, Any]:
         """Generate enterprise dashboard showing system value and metrics"""

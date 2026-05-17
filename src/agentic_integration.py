@@ -22,6 +22,11 @@ import os
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 
+MAX_RECOMMENDED_ACTIONS = 3
+MAX_ATTENTION_AREAS = 2
+MAX_TOTAL_RECOMMENDATIONS = 6
+MAX_RECOMMENDATION_OUTPUT_LENGTH = 160
+
 # Import all intelligence layers
 from agentic_governance import (
     AgenticGovernanceOrchestrator,
@@ -216,6 +221,10 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 "strictness_level": adapted_strictness,
                 "trust_building_active": len(developer_interactions) > 0
             }
+            actionable_recommendations = self._build_actionable_recommendations(
+                governance_decision,
+                cognitive_summary
+            )
 
             comprehensive_response = {
                 "operation_id": operation_id,
@@ -244,6 +253,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
                     "agent_selected": governance_decision["selected_agent"],
                     "compliance_items": len(compliance_evidence)
                 },
+                "actionable_recommendations": actionable_recommendations,
                 
                 # Enterprise Readiness
                 "enterprise_features": {
@@ -388,8 +398,139 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 "governance_requirements": {"approval_depth": "human-review-required"},
                 "human_attention_areas": ["Agentic system failure", "Manual governance required"],
                 "merge_recommendation": "Human review required"
-            }
+            },
+            "actionable_recommendations": [
+                {
+                    "title": "Restore governance pipeline",
+                    "action": "Investigate agentic system failure and re-run governance analysis.",
+                    "priority": "high"
+                },
+                {
+                    "title": "Require manual review",
+                    "action": "Route this request through human governance before merge.",
+                    "priority": "high"
+                }
+            ]
         }
+
+    def _build_actionable_recommendations(self,
+                                        governance_decision: Dict[str, Any],
+                                        cognitive_summary: Any) -> List[Dict[str, str]]:
+        """
+        Build concise, execution-ready recommendations for the request.
+
+        Args:
+            governance_decision: Governance output containing risk actions and
+                governance requirements.
+            cognitive_summary: Summary object with human attention areas.
+
+        Returns:
+            A prioritized list of recommendation objects with title, action, and
+            priority fields.
+        """
+        recommendations: List[Dict[str, str]] = []
+        risk_score = self._extract_risk_score(governance_decision)
+        baseline_priority = self._priority_from_risk_score(risk_score)
+
+        actions = governance_decision.get("recommended_actions", [])
+        def action_priority_score(action: str) -> int:
+            action_lower = action.lower()
+            if "security" in action_lower:
+                return 2
+            if "compliance" in action_lower or "audit" in action_lower:
+                return 1
+            return 0
+
+        prioritized_actions = sorted(actions, key=action_priority_score, reverse=True)
+        for action in prioritized_actions[:MAX_RECOMMENDED_ACTIONS]:
+            normalized_action = self._normalize_recommendation_text(action)
+            action_lower = normalized_action.lower()
+            if "security" in action_lower:
+                title = "Security risk mitigation"
+            elif "compliance" in action_lower:
+                title = "Compliance safeguard"
+            elif "review" in action_lower:
+                title = "Governance review step"
+            else:
+                title = "Risk mitigation"
+            recommendations.append({
+                "title": title,
+                "action": normalized_action,
+                "priority": baseline_priority
+            })
+
+        attention_areas = self._extract_attention_areas(cognitive_summary)
+        def attention_priority(area: str) -> int:
+            area_lower = area.lower()
+            if "security" in area_lower:
+                return 2
+            if "architecture" in area_lower:
+                return 1
+            return 0
+
+        prioritized_attention_areas = sorted(attention_areas, key=attention_priority, reverse=True)
+        for area in prioritized_attention_areas[:MAX_ATTENTION_AREAS]:
+            normalized_area = self._normalize_recommendation_text(area)
+            recommendations.append({
+                "title": "Human attention required",
+                "action": f"Perform focused review for: {normalized_area}",
+                "priority": baseline_priority
+            })
+
+        approval_depth = governance_decision.get("governance_requirements", {}).get("approval_depth")
+        if approval_depth:
+            recommendations.append({
+                "title": "Approval workflow",
+                "action": self._normalize_recommendation_text(
+                    f"Collect approvals using governance depth: {approval_depth}."
+                ),
+                "priority": baseline_priority
+            })
+
+        if not recommendations:
+            recommendations.append({
+                "title": "Proceed with standard workflow",
+                "action": "No elevated risk detected; continue with normal review process.",
+                "priority": "low"
+            })
+
+        return recommendations[:MAX_TOTAL_RECOMMENDATIONS]
+
+    def _extract_attention_areas(self, cognitive_summary: Any) -> List[str]:
+        """Extract attention areas from either dataclass/object or dict payloads."""
+        if isinstance(cognitive_summary, dict):
+            areas = cognitive_summary.get("attention_required_areas", [])
+        else:
+            areas = getattr(cognitive_summary, "attention_required_areas", [])
+
+        if not isinstance(areas, list):
+            return []
+
+        return [area for area in areas if isinstance(area, str) and area.strip()]
+
+    def _normalize_recommendation_text(self, value: Any) -> str:
+        """Normalize and bound recommendation text for user-facing output."""
+        normalized = " ".join(str(value).split())
+        normalized = "".join(ch for ch in normalized if ch.isprintable())
+        if len(normalized) > MAX_RECOMMENDATION_OUTPUT_LENGTH:
+            return normalized[:MAX_RECOMMENDATION_OUTPUT_LENGTH - 1].rstrip() + "…"
+        return normalized
+
+    def _extract_risk_score(self, governance_decision: Dict[str, Any]) -> int:
+        """Read structured risk score from governance output safely."""
+        score = governance_decision.get("risk_assessment", {}).get("overall_risk_score", 0)
+        try:
+            return int(score)
+        except (TypeError, ValueError):
+            return 0
+
+    def _priority_from_risk_score(self, risk_score: int) -> str:
+        """Map structured risk score to recommendation priority."""
+        if risk_score >= 7:
+            return "high"
+        if risk_score >= 3:
+            return "medium"
+        return "low"
     
     def generate_enterprise_dashboard(self) -> Dict[str, Any]:
         """Generate enterprise dashboard showing system value and metrics"""

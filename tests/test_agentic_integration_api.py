@@ -110,6 +110,13 @@ class TestAgenticIntegrationAPI(unittest.TestCase):
 
         # Should have compliance evidence
         self.assertGreater(len(result['compliance_evidence']), 0)
+        self.assertGreater(len(result['actionable_recommendations']), 0)
+        self.assertTrue(
+            any(
+                'security' in recommendation['action'].lower()
+                for recommendation in result['actionable_recommendations']
+            )
+        )
 
         # Should track multi-service impact
         self.assertIn('affected_services', governance['system_impact'])
@@ -290,6 +297,80 @@ class TestAgenticIntegrationAPI(unittest.TestCase):
         max_risk_diff = max(risk_scores) - min(risk_scores)
         self.assertLessEqual(max_risk_diff, 1.0)
 
+    def test_actionable_recommendations_support_dict_cognitive_summary(self):
+        """Recommendations should include attention areas from dict summaries."""
+        governance_decision = {
+            "recommended_actions": ["Run additional integration tests"],
+            "governance_requirements": {"approval_depth": "peer-review"},
+            "risk_assessment": {"overall_risk_score": 5, "risk_factors": {}}
+        }
+        cognitive_summary = {
+            "attention_required_areas": ["Architecture boundary checks"]
+        }
+
+        recommendations = self.system._build_actionable_recommendations(
+            governance_decision,
+            cognitive_summary
+        )
+        self.assertTrue(
+            any("Architecture boundary checks" in item["action"] for item in recommendations)
+        )
+
+    def test_fallback_response_contains_valid_actionable_recommendations(self):
+        """Fallback response should include a valid recommendation list."""
+        fallback = self.system._create_fallback_response(
+            operation_id="op_fallback",
+            request_type="build",
+            repository="repo",
+            error_message="failure"
+        )
+
+        recommendations = fallback["actionable_recommendations"]
+        self.assertIsInstance(recommendations, list)
+        self.assertGreater(len(recommendations), 0)
+        for item in recommendations:
+            self.assertIn("title", item)
+            self.assertIn("action", item)
+            self.assertIn("priority", item)
+
+    def test_empty_governance_returns_default_recommendation(self):
+        """Empty governance decisions should return default recommendation."""
+        recommendations = self.system._build_actionable_recommendations({}, {})
+        self.assertEqual(len(recommendations), 1)
+        self.assertEqual(recommendations[0]["priority"], "low")
+        self.assertIn("Proceed with standard workflow", recommendations[0]["title"])
+
+    def test_recommendation_priority_uses_structured_risk_score(self):
+        """Priority should be derived from risk score rather than action substring."""
+        governance_decision = {
+            "recommended_actions": ["Perform mandatory checks"],
+            "governance_requirements": {"approval_depth": "senior-developer-and-lead"},
+            "risk_assessment": {"overall_risk_score": 8, "risk_factors": {}}
+        }
+        recommendations = self.system._build_actionable_recommendations(
+            governance_decision,
+            {"attention_required_areas": []}
+        )
+        action_recommendation = recommendations[0]
+        self.assertEqual(action_recommendation["action"], "Perform mandatory checks")
+        self.assertEqual(action_recommendation["priority"], "high")
+
+    def test_recommendation_text_is_normalized(self):
+        """Recommendation output should normalize user-facing text."""
+        governance_decision = {
+            "recommended_actions": ["Run\tintegration\nchecks  now"],
+            "governance_requirements": {"approval_depth": "peer-review\tlevel"},
+            "risk_assessment": {"overall_risk_score": 3, "risk_factors": {}}
+        }
+        recommendations = self.system._build_actionable_recommendations(
+            governance_decision,
+            {"attention_required_areas": ["Security\nimplications\t"]}
+        )
+
+        for item in recommendations:
+            self.assertNotIn("\n", item["action"])
+            self.assertNotIn("\t", item["action"])
+
     def _validate_api_response_structure(self, result):
         """Helper to validate standard API response structure"""
         required_keys = [
@@ -297,7 +378,8 @@ class TestAgenticIntegrationAPI(unittest.TestCase):
             'cognitive_summary', 
             'compliance_evidence',
             'audit_trail',
-            'metrics_summary'
+            'metrics_summary',
+            'actionable_recommendations'
         ]
 
         for key in required_keys:
@@ -316,6 +398,14 @@ class TestAgenticIntegrationAPI(unittest.TestCase):
         self.assertIsInstance(risk_assessment['overall_risk_score'], (int, float))
         self.assertGreaterEqual(risk_assessment['overall_risk_score'], 0)
         self.assertLessEqual(risk_assessment['overall_risk_score'], 10)
+
+        recommendations = result['actionable_recommendations']
+        self.assertIsInstance(recommendations, list)
+        self.assertGreater(len(recommendations), 0)
+        for recommendation in recommendations:
+            self.assertIn('title', recommendation)
+            self.assertIn('action', recommendation)
+            self.assertIn('priority', recommendation)
 
 
 if __name__ == '__main__':

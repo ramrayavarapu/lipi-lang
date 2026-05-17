@@ -25,6 +25,7 @@ from dataclasses import dataclass, asdict
 MAX_RECOMMENDED_ACTIONS = 3
 MAX_ATTENTION_AREAS = 2
 MAX_TOTAL_RECOMMENDATIONS = 6
+MAX_RECOMMENDATION_TEXT_LENGTH = 160
 
 # Import all intelligence layers
 from agentic_governance import (
@@ -428,14 +429,24 @@ class AdaptiveAIEngineeringGovernanceSystem:
             priority fields.
         """
         recommendations: List[Dict[str, str]] = []
+        risk_score = self._extract_risk_score(governance_decision)
+        baseline_priority = self._priority_from_risk_score(risk_score)
 
         actions = governance_decision.get("recommended_actions", [])
+        risk_factors = governance_decision.get("risk_assessment", {}).get("risk_factors", {})
+
         def action_priority(action: str) -> int:
-            return 1 if "security" in action.lower() else 0
+            action_lower = action.lower()
+            if "security" in action_lower:
+                return 2
+            if "compliance" in action_lower or "audit" in action_lower:
+                return 1
+            return 0
 
         prioritized_actions = sorted(actions, key=action_priority, reverse=True)
         for action in prioritized_actions[:MAX_RECOMMENDED_ACTIONS]:
-            action_lower = action.lower()
+            normalized_action = self._normalize_recommendation_text(action)
+            action_lower = normalized_action.lower()
             if "security" in action_lower:
                 title = "Security risk mitigation"
             elif "compliance" in action_lower:
@@ -444,13 +455,16 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 title = "Governance review step"
             else:
                 title = "Risk mitigation"
+            action_priority_level = baseline_priority
+            if "auth" in risk_factors or any("auth" in str(k).lower() for k in risk_factors):
+                action_priority_level = "high"
             recommendations.append({
                 "title": title,
-                "action": action,
-                "priority": "high" if "security" in action_lower else "medium"
+                "action": normalized_action,
+                "priority": action_priority_level
             })
 
-        attention_areas = getattr(cognitive_summary, "attention_required_areas", [])
+        attention_areas = self._extract_attention_areas(cognitive_summary)
         def attention_priority(area: str) -> int:
             area_lower = area.lower()
             if "security" in area_lower:
@@ -461,18 +475,21 @@ class AdaptiveAIEngineeringGovernanceSystem:
 
         prioritized_attention_areas = sorted(attention_areas, key=attention_priority, reverse=True)
         for area in prioritized_attention_areas[:MAX_ATTENTION_AREAS]:
+            normalized_area = self._normalize_recommendation_text(area)
             recommendations.append({
                 "title": "Human attention required",
-                "action": f"Perform focused review for: {area}",
-                "priority": "high"
+                "action": self._normalize_recommendation_text(f"Perform focused review for: {normalized_area}"),
+                "priority": baseline_priority
             })
 
         approval_depth = governance_decision.get("governance_requirements", {}).get("approval_depth")
         if approval_depth:
             recommendations.append({
                 "title": "Approval workflow",
-                "action": f"Collect approvals using governance depth: {approval_depth}.",
-                "priority": "medium"
+                "action": self._normalize_recommendation_text(
+                    f"Collect approvals using governance depth: {approval_depth}."
+                ),
+                "priority": baseline_priority
             })
 
         if not recommendations:
@@ -483,6 +500,42 @@ class AdaptiveAIEngineeringGovernanceSystem:
             })
 
         return recommendations[:MAX_TOTAL_RECOMMENDATIONS]
+
+    def _extract_attention_areas(self, cognitive_summary: Any) -> List[str]:
+        """Extract attention areas from either dataclass/object or dict payloads."""
+        if isinstance(cognitive_summary, dict):
+            areas = cognitive_summary.get("attention_required_areas", [])
+        else:
+            areas = getattr(cognitive_summary, "attention_required_areas", [])
+
+        if not isinstance(areas, list):
+            return []
+
+        return [str(area) for area in areas]
+
+    def _normalize_recommendation_text(self, value: Any) -> str:
+        """Normalize and bound recommendation text for user-facing output."""
+        normalized = " ".join(str(value).split())
+        normalized = "".join(ch for ch in normalized if ch.isprintable())
+        if len(normalized) > MAX_RECOMMENDATION_TEXT_LENGTH:
+            return normalized[:MAX_RECOMMENDATION_TEXT_LENGTH].rstrip() + "…"
+        return normalized
+
+    def _extract_risk_score(self, governance_decision: Dict[str, Any]) -> int:
+        """Read structured risk score from governance output safely."""
+        score = governance_decision.get("risk_assessment", {}).get("overall_risk_score", 0)
+        try:
+            return int(score)
+        except (TypeError, ValueError):
+            return 0
+
+    def _priority_from_risk_score(self, risk_score: int) -> str:
+        """Map structured risk score to recommendation priority."""
+        if risk_score >= 7:
+            return "high"
+        if risk_score >= 3:
+            return "medium"
+        return "low"
     
     def generate_enterprise_dashboard(self) -> Dict[str, Any]:
         """Generate enterprise dashboard showing system value and metrics"""

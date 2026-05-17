@@ -435,7 +435,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
         actions = governance_decision.get("recommended_actions", [])
         risk_factors = governance_decision.get("risk_assessment", {}).get("risk_factors", {})
 
-        def action_priority(action: str) -> int:
+        def action_sort_order(action: str) -> int:
             action_lower = action.lower()
             if "security" in action_lower:
                 return 2
@@ -443,7 +443,8 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 return 1
             return 0
 
-        prioritized_actions = sorted(actions, key=action_priority, reverse=True)
+        prioritized_actions = sorted(actions, key=action_sort_order, reverse=True)
+        has_auth_risk_factor = any("auth" in str(key).lower() for key in risk_factors.keys())
         for action in prioritized_actions[:MAX_RECOMMENDED_ACTIONS]:
             normalized_action = self._normalize_recommendation_text(action)
             action_lower = normalized_action.lower()
@@ -456,7 +457,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
             else:
                 title = "Risk mitigation"
             action_priority_level = baseline_priority
-            if "auth" in risk_factors or any("auth" in str(k).lower() for k in risk_factors):
+            if has_auth_risk_factor:
                 action_priority_level = "high"
             recommendations.append({
                 "title": title,
@@ -511,14 +512,14 @@ class AdaptiveAIEngineeringGovernanceSystem:
         if not isinstance(areas, list):
             return []
 
-        return [str(area) for area in areas]
+        return [area for area in areas if isinstance(area, str) and area.strip()]
 
     def _normalize_recommendation_text(self, value: Any) -> str:
         """Normalize and bound recommendation text for user-facing output."""
         normalized = " ".join(str(value).split())
         normalized = "".join(ch for ch in normalized if ch.isprintable())
         if len(normalized) > MAX_RECOMMENDATION_TEXT_LENGTH:
-            return normalized[:MAX_RECOMMENDATION_TEXT_LENGTH].rstrip() + "…"
+            return normalized[:MAX_RECOMMENDATION_TEXT_LENGTH - 1].rstrip() + "…"
         return normalized
 
     def _extract_risk_score(self, governance_decision: Dict[str, Any]) -> int:

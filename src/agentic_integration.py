@@ -433,8 +433,6 @@ class AdaptiveAIEngineeringGovernanceSystem:
         baseline_priority = self._priority_from_risk_score(risk_score)
 
         actions = governance_decision.get("recommended_actions", [])
-        risk_factors = governance_decision.get("risk_assessment", {}).get("risk_factors", {})
-
         def action_sort_order(action: str) -> int:
             action_lower = action.lower()
             if "security" in action_lower:
@@ -444,7 +442,6 @@ class AdaptiveAIEngineeringGovernanceSystem:
             return 0
 
         prioritized_actions = sorted(actions, key=action_sort_order, reverse=True)
-        has_auth_risk_factor = any("auth" in str(key).lower() for key in risk_factors.keys())
         for action in prioritized_actions[:MAX_RECOMMENDED_ACTIONS]:
             normalized_action = self._normalize_recommendation_text(action)
             action_lower = normalized_action.lower()
@@ -456,13 +453,10 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 title = "Governance review step"
             else:
                 title = "Risk mitigation"
-            action_priority_level = baseline_priority
-            if has_auth_risk_factor:
-                action_priority_level = "high"
             recommendations.append({
                 "title": title,
                 "action": normalized_action,
-                "priority": action_priority_level
+                "priority": baseline_priority
             })
 
         attention_areas = self._extract_attention_areas(cognitive_summary)
@@ -479,7 +473,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
             normalized_area = self._normalize_recommendation_text(area)
             recommendations.append({
                 "title": "Human attention required",
-                "action": self._normalize_recommendation_text(f"Perform focused review for: {normalized_area}"),
+                "action": f"Perform focused review for: {normalized_area}",
                 "priority": baseline_priority
             })
 

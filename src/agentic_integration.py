@@ -216,6 +216,10 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 "strictness_level": adapted_strictness,
                 "trust_building_active": len(developer_interactions) > 0
             }
+            actionable_recommendations = self._build_actionable_recommendations(
+                governance_decision,
+                cognitive_summary
+            )
 
             comprehensive_response = {
                 "operation_id": operation_id,
@@ -244,6 +248,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
                     "agent_selected": governance_decision["selected_agent"],
                     "compliance_items": len(compliance_evidence)
                 },
+                "actionable_recommendations": actionable_recommendations,
                 
                 # Enterprise Readiness
                 "enterprise_features": {
@@ -388,8 +393,57 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 "governance_requirements": {"approval_depth": "human-review-required"},
                 "human_attention_areas": ["Agentic system failure", "Manual governance required"],
                 "merge_recommendation": "Human review required"
-            }
+            },
+            "actionable_recommendations": [
+                {
+                    "title": "Restore governance pipeline",
+                    "action": "Investigate agentic system failure and re-run governance analysis.",
+                    "priority": "high"
+                },
+                {
+                    "title": "Require manual review",
+                    "action": "Route this request through human governance before merge.",
+                    "priority": "high"
+                }
+            ]
         }
+
+    def _build_actionable_recommendations(self,
+                                        governance_decision: Dict[str, Any],
+                                        cognitive_summary: Any) -> List[Dict[str, str]]:
+        """Build concise, execution-ready recommendations for the request."""
+        recommendations: List[Dict[str, str]] = []
+
+        for action in governance_decision.get("recommended_actions", [])[:3]:
+            recommendations.append({
+                "title": "Risk mitigation",
+                "action": action,
+                "priority": "high" if "security" in action.lower() else "medium"
+            })
+
+        for area in getattr(cognitive_summary, "attention_required_areas", [])[:2]:
+            recommendations.append({
+                "title": "Human attention required",
+                "action": f"Perform focused review for: {area}.",
+                "priority": "high"
+            })
+
+        approval_depth = governance_decision.get("governance_requirements", {}).get("approval_depth")
+        if approval_depth:
+            recommendations.append({
+                "title": "Approval workflow",
+                "action": f"Collect approvals using governance depth: {approval_depth}.",
+                "priority": "medium"
+            })
+
+        if not recommendations:
+            recommendations.append({
+                "title": "Proceed with standard workflow",
+                "action": "No elevated risk detected; continue with normal review process.",
+                "priority": "low"
+            })
+
+        return recommendations
     
     def generate_enterprise_dashboard(self) -> Dict[str, Any]:
         """Generate enterprise dashboard showing system value and metrics"""

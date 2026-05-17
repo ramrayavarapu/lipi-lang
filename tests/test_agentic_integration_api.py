@@ -110,6 +110,13 @@ class TestAgenticIntegrationAPI(unittest.TestCase):
 
         # Should have compliance evidence
         self.assertGreater(len(result['compliance_evidence']), 0)
+        self.assertGreater(len(result['actionable_recommendations']), 0)
+        self.assertTrue(
+            any(
+                'security' in recommendation['action'].lower()
+                for recommendation in result['actionable_recommendations']
+            )
+        )
 
         # Should track multi-service impact
         self.assertIn('affected_services', governance['system_impact'])
@@ -297,7 +304,8 @@ class TestAgenticIntegrationAPI(unittest.TestCase):
             'cognitive_summary', 
             'compliance_evidence',
             'audit_trail',
-            'metrics_summary'
+            'metrics_summary',
+            'actionable_recommendations'
         ]
 
         for key in required_keys:
@@ -316,6 +324,14 @@ class TestAgenticIntegrationAPI(unittest.TestCase):
         self.assertIsInstance(risk_assessment['overall_risk_score'], (int, float))
         self.assertGreaterEqual(risk_assessment['overall_risk_score'], 0)
         self.assertLessEqual(risk_assessment['overall_risk_score'], 10)
+
+        recommendations = result['actionable_recommendations']
+        self.assertIsInstance(recommendations, list)
+        self.assertGreater(len(recommendations), 0)
+        for recommendation in recommendations:
+            self.assertIn('title', recommendation)
+            self.assertIn('action', recommendation)
+            self.assertIn('priority', recommendation)
 
 
 if __name__ == '__main__':

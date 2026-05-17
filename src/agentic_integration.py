@@ -25,7 +25,7 @@ from dataclasses import dataclass, asdict
 MAX_RECOMMENDED_ACTIONS = 3
 MAX_ATTENTION_AREAS = 2
 MAX_TOTAL_RECOMMENDATIONS = 6
-MAX_RECOMMENDATION_TEXT_LENGTH = 160
+MAX_RECOMMENDATION_OUTPUT_LENGTH = 160
 
 # Import all intelligence layers
 from agentic_governance import (
@@ -433,7 +433,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
         baseline_priority = self._priority_from_risk_score(risk_score)
 
         actions = governance_decision.get("recommended_actions", [])
-        def action_sort_order(action: str) -> int:
+        def action_priority_score(action: str) -> int:
             action_lower = action.lower()
             if "security" in action_lower:
                 return 2
@@ -441,7 +441,7 @@ class AdaptiveAIEngineeringGovernanceSystem:
                 return 1
             return 0
 
-        prioritized_actions = sorted(actions, key=action_sort_order, reverse=True)
+        prioritized_actions = sorted(actions, key=action_priority_score, reverse=True)
         for action in prioritized_actions[:MAX_RECOMMENDED_ACTIONS]:
             normalized_action = self._normalize_recommendation_text(action)
             action_lower = normalized_action.lower()
@@ -512,8 +512,8 @@ class AdaptiveAIEngineeringGovernanceSystem:
         """Normalize and bound recommendation text for user-facing output."""
         normalized = " ".join(str(value).split())
         normalized = "".join(ch for ch in normalized if ch.isprintable())
-        if len(normalized) > MAX_RECOMMENDATION_TEXT_LENGTH:
-            return normalized[:MAX_RECOMMENDATION_TEXT_LENGTH - 1].rstrip() + "…"
+        if len(normalized) > MAX_RECOMMENDATION_OUTPUT_LENGTH:
+            return normalized[:MAX_RECOMMENDATION_OUTPUT_LENGTH - 1].rstrip() + "…"
         return normalized
 
     def _extract_risk_score(self, governance_decision: Dict[str, Any]) -> int:

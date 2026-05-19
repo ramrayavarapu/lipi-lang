@@ -43,7 +43,7 @@ jobs:
       - name: Prepare bounded design issue body
         run: |
           python3 - <<'PYEOF'
-          import json, os
+          import json, os, uuid
 
           # Keep issue-body prompt input bounded to reduce prompt-injection surface
           # and avoid oversized prompt payloads. 4000 keeps user-controlled content
@@ -57,11 +57,14 @@ jobs:
           issue = event.get("issue") or {}
           body = issue.get("body") or ""
           bounded_body = body if len(body) <= LIMIT else f"{body[:LIMIT]}{TRUNCATED_TAG}"
+          delimiter = f"__DESIGN_ISSUE_BODY_EOF_{uuid.uuid4().hex}__"
+          while delimiter in bounded_body:
+              delimiter = f"__DESIGN_ISSUE_BODY_EOF_{uuid.uuid4().hex}__"
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-              env_file.write("DESIGN_ISSUE_BODY<<__DESIGN_ISSUE_BODY_EOF__\n")
+              env_file.write(f"DESIGN_ISSUE_BODY<<{delimiter}\n")
               env_file.write(bounded_body)
-              env_file.write("\n__DESIGN_ISSUE_BODY_EOF__\n")
+              env_file.write(f"\n{delimiter}\n")
           PYEOF
 
       - name: Run Claude Build Agent

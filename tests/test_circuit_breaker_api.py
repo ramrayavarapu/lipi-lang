@@ -147,7 +147,7 @@ class TestCircuitBreakerAPI(unittest.TestCase):
         self.assertEqual(expected_exit_code, 0, "Workflow should exit cleanly when circuit breaker triggers")
     
     def test_api_error_handling_when_posting_comment(self):
-        """Test handling of API errors when posting circuit breaker comment."""
+        """Test that API errors when posting the circuit breaker comment propagate as exceptions."""
         # Simulate API failure
         class APIException(Exception):
             pass
@@ -155,7 +155,7 @@ class TestCircuitBreakerAPI(unittest.TestCase):
         def failing_post_comment(*args, **kwargs):
             raise APIException("GitHub API rate limit exceeded")
         
-        # Test that the workflow handles API failures gracefully
+        # Verify that API errors are not silently swallowed — they propagate to the caller
         with self.assertRaises(APIException):
             failing_post_comment(
                 owner='ramrayavarapu',

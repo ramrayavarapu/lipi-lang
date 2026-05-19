@@ -4,7 +4,7 @@ This document provides the complete implementation guide for the circuit breaker
 
 ## Overview
 
-The circuit breaker prevents infinite loops in the claude-autofix workflow by detecting consecutive autofix commits and halting the process when necessary.
+The circuit breaker prevents infinite loops in the claude-autofix workflow by detecting when the most recent commit already has an "Auto-fix:" prefix and halting the process when that is the case.
 
 ## Implementation Details
 
@@ -13,7 +13,7 @@ The circuit breaker prevents infinite loops in the claude-autofix workflow by de
 The circuit breaker activates when:
 1. A pull request review triggers the claude-autofix workflow
 2. The most recent commit message starts with "Auto-fix:"
-3. This indicates a consecutive autofix scenario that could lead to infinite loops
+3. This means an autofix has already run most recently, so running again could create an infinite loop
 
 ### Required Changes to `.github/workflows/claude-autofix.yml`
 

@@ -212,17 +212,14 @@ class TestCircuitBreakerGitIntegration(unittest.TestCase):
         self.assertFalse(should_trigger, "Circuit breaker should not trigger after regular commit")
     
     def test_consecutive_autofix_detection(self):
-        """Test detection of consecutive autofix commits."""
+        """Test that the circuit breaker triggers when the latest commit is an Auto-fix commit."""
         # First autofix commit
         with open('test_file.txt', 'w') as f:
             f.write('first autofix')
         subprocess.run(['git', 'add', 'test_file.txt'], check=True)
         subprocess.run(['git', 'commit', '-m', 'Auto-fix: first fix'], check=True)
         
-        # Check that circuit breaker would not trigger on first autofix
-        # (This is the expected behavior - circuit breaker only triggers on consecutive autofixes)
-        
-        # Second autofix commit (this should trigger circuit breaker)
+        # Second autofix commit (last commit is still "Auto-fix:", so circuit breaker triggers)
         with open('test_file.txt', 'w') as f:
             f.write('second autofix')
         subprocess.run(['git', 'add', 'test_file.txt'], check=True)
@@ -231,7 +228,7 @@ class TestCircuitBreakerGitIntegration(unittest.TestCase):
         last_commit_msg = self.get_last_commit_message()
         should_trigger = CircuitBreakerLogic.should_trigger_circuit_breaker(last_commit_msg)
         
-        self.assertTrue(should_trigger, "Circuit breaker should trigger on second consecutive autofix")
+        self.assertTrue(should_trigger, "Circuit breaker should trigger when last commit is an Auto-fix commit")
 
 
 if __name__ == '__main__':

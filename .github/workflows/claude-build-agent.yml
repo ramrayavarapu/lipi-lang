@@ -40,6 +40,27 @@ jobs:
           token: ${{ secrets.CLAUDE_AUTOFIX_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Prepare bounded design issue body
+        run: |
+          python3 - <<'PYEOF'
+          import json, os
+
+          LIMIT = 4000
+          TRUNCATED_TAG = "\n\n[truncated]"
+
+          with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as event_file:
+              event = json.load(event_file)
+
+          issue = event.get("issue") or {}
+          body = issue.get("body") or ""
+          bounded_body = body if len(body) <= LIMIT else f"{body[:LIMIT]}{TRUNCATED_TAG}"
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+              env_file.write("DESIGN_ISSUE_BODY<<__LIPI_DESIGN_ISSUE_BODY_EOF__\n")
+              env_file.write(bounded_body)
+              env_file.write("\n__LIPI_DESIGN_ISSUE_BODY_EOF__\n")
+          PYEOF
+
       - name: Run Claude Build Agent
         uses: anthropics/claude-code-action@beta
         with:
@@ -57,7 +78,7 @@ jobs:
             Design Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
 
             --- DESIGN ---
-            ${{ github.event.issue.body }}
+            ${{ env.DESIGN_ISSUE_BODY }}
             --- END DESIGN ---
 
             Follow these steps exactly:

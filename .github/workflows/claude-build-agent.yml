@@ -45,6 +45,9 @@ jobs:
           python3 - <<'PYEOF'
           import json, os
 
+          # Keep issue-body prompt input bounded to reduce prompt-injection surface
+          # and avoid oversized prompt payloads. 4000 keeps user-controlled content
+          # constrained while leaving room for surrounding build instructions.
           LIMIT = 4000
           TRUNCATED_TAG = "\n\n[truncated]"
 
@@ -56,9 +59,9 @@ jobs:
           bounded_body = body if len(body) <= LIMIT else f"{body[:LIMIT]}{TRUNCATED_TAG}"
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-              env_file.write("DESIGN_ISSUE_BODY<<__LIPI_DESIGN_ISSUE_BODY_EOF__\n")
+              env_file.write("DESIGN_ISSUE_BODY<<__DESIGN_ISSUE_BODY_EOF__\n")
               env_file.write(bounded_body)
-              env_file.write("\n__LIPI_DESIGN_ISSUE_BODY_EOF__\n")
+              env_file.write("\n__DESIGN_ISSUE_BODY_EOF__\n")
           PYEOF
 
       - name: Run Claude Build Agent

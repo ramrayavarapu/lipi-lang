@@ -10,8 +10,6 @@ import unittest
 import subprocess
 import tempfile
 import os
-import json
-from unittest.mock import Mock, patch
 
 
 class TestCircuitBreakerUX(unittest.TestCase):

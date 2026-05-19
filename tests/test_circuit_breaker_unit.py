@@ -42,7 +42,7 @@ class CircuitBreakerLogic:
         Returns:
             str: The circuit breaker comment text
         """
-        return [
+        return '\n'.join([
             '🛑 **Circuit Breaker Activated**',
             '',
             'The claude-autofix workflow has detected that the most recent commit is an autofix commit.',
@@ -54,7 +54,7 @@ class CircuitBreakerLogic:
             '3. Commit your changes to continue the review process',
             '',
             'The autofix workflow will resume on your next commit.'
-        ].join('\n')
+        ])
 
 
 class TestCircuitBreakerUnit(unittest.TestCase):

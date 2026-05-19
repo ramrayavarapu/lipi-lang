@@ -31,7 +31,45 @@ jobs:
           # so CI re-runs automatically after the autofix commit.
           token: ${{ secrets.CLAUDE_AUTOFIX_PAT }}
 
+      - name: Check for circuit breaker condition
+        id: circuit_breaker
+        run: |
+          LAST_COMMIT_MSG=$(git log -1 --pretty=format:'%s')
+          echo "Last commit message: $LAST_COMMIT_MSG"
+
+          if [[ "$LAST_COMMIT_MSG" == Auto-fix:* ]]; then
+            echo "Circuit breaker triggered: consecutive autofix detected"
+            echo "CIRCUIT_BREAKER_TRIGGERED=true" >> "$GITHUB_ENV"
+          else
+            echo "CIRCUIT_BREAKER_TRIGGERED=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Post circuit breaker comment
+        if: env.CIRCUIT_BREAKER_TRIGGERED == 'true'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: [
+                '🛑 **Circuit Breaker Activated**',
+                '',
+                'The claude-autofix workflow has detected that the most recent commit is an autofix commit.',
+                'To prevent infinite loops, the autofix process has been halted.',
+                '',
+                '**Manual intervention is required:**',
+                '1. Review the recent autofix commits and Copilot feedback',
+                '2. Make manual corrections as needed',
+                '3. Commit your changes to continue the review process',
+                '',
+                'The autofix workflow will resume on your next commit.'
+              ].join('\n')
+            });
+
       - name: Collect Copilot review comments and generate fixes
+        if: env.CIRCUIT_BREAKER_TRIGGERED != 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.CLAUDE_AUTOFIX_PAT }}
@@ -181,6 +219,7 @@ jobs:
           PYEOF
 
       - name: Commit and push fixes
+        if: env.CIRCUIT_BREAKER_TRIGGERED != 'true'
         run: |
           git config user.name  "Claude Auto-fix"
           git config user.email "claude-autofix@github-actions"
@@ -198,6 +237,7 @@ jobs:
           fi
 
       - name: Comment on PR with fix summary
+        if: env.CIRCUIT_BREAKER_TRIGGERED != 'true'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
